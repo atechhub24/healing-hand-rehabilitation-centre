@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ArrowRight, MessageCircle } from "lucide-react";
 
 export function CTASection() {
   return (
     <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4 text-white">
             Ready to Take Control of Your Health?
@@ -21,21 +21,20 @@ export function CTASection() {
               <Button
                 size="lg"
                 variant="secondary"
-                className={cn("font-semibold hover:bg-white/90")}
+                className="font-semibold hover:bg-white/90"
               >
                 Get Started Now
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
             <Link href="/contact">
               <Button
                 size="lg"
                 variant="outline"
-                className={cn(
-                  "border-2 border-white text-white bg-transparent",
-                  "hover:bg-white hover:text-blue-600"
-                )}
+                className="border-white text-white hover:bg-white"
               >
                 Contact Us
+                <MessageCircle className="h-5 w-5" />
               </Button>
             </Link>
           </div>

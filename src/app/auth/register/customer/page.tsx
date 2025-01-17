@@ -36,11 +36,8 @@ export default function CustomerRegisterPage() {
 
     try {
       if (!showOTP) {
-        // Format phone number to E.164 format
-        const formattedPhone = formData.phoneNumber.startsWith("+")
-          ? formData.phoneNumber
-          : `+${formData.phoneNumber}`;
-
+        // Add +91 prefix to the phone number
+        const formattedPhone = `+91${formData.phoneNumber.replace(/\D/g, "")}`;
         const result = await signInWithPhone(formattedPhone);
         if (result.success) {
           setShowOTP(true);
@@ -50,7 +47,8 @@ export default function CustomerRegisterPage() {
           );
         }
       } else {
-        const result = await verifyOTP(formData.otp);
+        const { otp, ...userData } = formData;
+        const result = await verifyOTP(otp, userData);
         if (result.success) {
           router.push("/dashboard");
         } else {
@@ -71,7 +69,13 @@ export default function CustomerRegisterPage() {
       | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "phoneNumber") {
+      // Only allow numbers and limit to 10 digits
+      const sanitizedValue = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -91,16 +95,24 @@ export default function CustomerRegisterPage() {
             {!showOTP ? (
               <>
                 <div className="space-y-1">
-                  <Input
-                    type="tel"
-                    name="phoneNumber"
-                    placeholder="Phone Number (e.g., +1234567890)"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="flex">
+                    <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-gray-50 px-3">
+                      +91
+                    </div>
+                    <Input
+                      type="tel"
+                      name="phoneNumber"
+                      placeholder="Enter 10-digit mobile number"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      className="rounded-l-none"
+                      required
+                      pattern="[0-9]{10}"
+                      title="Please enter a valid 10-digit mobile number"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500">
-                    Please include your country code (e.g., +1 for US)
+                    Enter your 10-digit mobile number
                   </p>
                 </div>
                 <Input
@@ -152,6 +164,9 @@ export default function CustomerRegisterPage() {
                 value={formData.otp}
                 onChange={handleChange}
                 required
+                pattern="[0-9]*"
+                maxLength={6}
+                title="Please enter the 6-digit OTP"
               />
             )}
           </div>

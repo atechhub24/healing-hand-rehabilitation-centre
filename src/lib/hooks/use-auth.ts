@@ -8,9 +8,9 @@ import {
   signInWithCredential,
   RecaptchaVerifier,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebase";
-import { useAuthStore } from "../store/auth-store";
+import { ref, set, get, update } from "firebase/database";
+import { auth, database } from "../firebase";
+import { useAuthStore, UserData, UserRole } from "../store/auth-store";
 
 export const useAuth = () => {
   const [verificationId, setVerificationId] = useState<string>("");
@@ -18,21 +18,67 @@ export const useAuth = () => {
     useState<RecaptchaVerifier | null>(null);
   const {
     setUser,
+    setUserData,
     setRole,
     setLoading,
     signOut: clearAuthStore,
   } = useAuthStore();
 
+  const updateUserLastLogin = async (uid: string) => {
+    const userRef = ref(database, `users/${uid}`);
+    await update(userRef, {
+      lastLogin: new Date().toISOString(),
+    });
+  };
+
+  const createOrUpdateUserData = async (
+    uid: string,
+    data: Partial<UserData>,
+    isNewUser: boolean = false
+  ) => {
+    const userRef = ref(database, `users/${uid}`);
+    const currentData = isNewUser ? {} : (await get(userRef)).val();
+
+    const updatedData = {
+      ...currentData,
+      ...data,
+      uid,
+      lastLogin: new Date().toISOString(),
+      ...(isNewUser && { createdAt: new Date().toISOString() }),
+    };
+
+    await set(userRef, updatedData);
+    return updatedData;
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const role = userDoc.data()?.role;
-        setUser(user);
-        setRole(role);
+        try {
+          const userRef = ref(database, `users/${user.uid}`);
+          const snapshot = await get(userRef);
+          const userData = snapshot.val();
+
+          if (userData) {
+            setUser(user);
+            setUserData(userData);
+            setRole(userData.role);
+            await updateUserLastLogin(user.uid);
+          } else {
+            setUser(null);
+            setUserData(null);
+            setRole(null);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUser(null);
+          setUserData(null);
+          setRole(null);
+        }
       } else {
         setUser(null);
+        setUserData(null);
         setRole(null);
       }
       setLoading(false);
@@ -44,7 +90,7 @@ export const useAuth = () => {
         recaptchaVerifier.clear();
       }
     };
-  }, [setUser, setRole, setLoading]);
+  }, [setUser, setUserData, setRole, setLoading]);
 
   const initRecaptcha = () => {
     try {
@@ -75,6 +121,7 @@ export const useAuth = () => {
         email,
         password
       );
+      await updateUserLastLogin(userCredential.user.uid);
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error };
@@ -84,8 +131,8 @@ export const useAuth = () => {
   const signUpWithEmail = async (
     email: string,
     password: string,
-    role: string,
-    userData: any
+    role: UserRole,
+    userData: Partial<UserData>
   ) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -93,11 +140,16 @@ export const useAuth = () => {
         email,
         password
       );
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        ...userData,
-        role,
-        createdAt: new Date(),
-      });
+      const newUserData = await createOrUpdateUserData(
+        userCredential.user.uid,
+        {
+          ...userData,
+          email,
+          role,
+        },
+        true
+      );
+      setUserData(newUserData as UserData);
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error };
@@ -123,22 +175,22 @@ export const useAuth = () => {
     }
   };
 
-  const verifyOTP = async (otp: string) => {
+  const verifyOTP = async (otp: string, userData?: Partial<UserData>) => {
     try {
       const credential = PhoneAuthProvider.credential(verificationId, otp);
       const userCredential = await signInWithCredential(auth, credential);
 
-      // Create or update user document
-      await setDoc(
-        doc(db, "users", userCredential.user.uid),
+      const newUserData = await createOrUpdateUserData(
+        userCredential.user.uid,
         {
+          ...userData,
           phoneNumber: userCredential.user.phoneNumber,
-          role: "customer",
-          createdAt: new Date(),
+          role: "customer" as UserRole,
         },
-        { merge: true }
+        true
       );
 
+      setUserData(newUserData as UserData);
       return { success: true, user: userCredential.user };
     } catch (error) {
       console.error("Error in OTP verification:", error);

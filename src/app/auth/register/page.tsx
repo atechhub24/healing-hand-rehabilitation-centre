@@ -43,6 +43,9 @@ export default function RegisterPage() {
     specialization: "",
     experience: "",
     location: "",
+    labType: "",
+    certifications: "",
+    hospitalAffiliation: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -239,6 +242,50 @@ export default function RegisterPage() {
                 className="pl-10"
               />
             </div>
+            {formData.role === "doctor" && (
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  name="hospitalAffiliation"
+                  placeholder="Hospital Affiliation"
+                  value={formData.hospitalAffiliation}
+                  onChange={handleChange}
+                  required
+                  className="pl-10"
+                />
+              </div>
+            )}
+
+            {formData.role === "paramedic" && (
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  name="certifications"
+                  placeholder="Professional Certifications"
+                  value={formData.certifications}
+                  onChange={handleChange}
+                  required
+                  className="pl-10"
+                />
+              </div>
+            )}
+
+            {formData.role === "lab" && (
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  name="labType"
+                  placeholder="Laboratory Type"
+                  value={formData.labType}
+                  onChange={handleChange}
+                  required
+                  className="pl-10"
+                />
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>

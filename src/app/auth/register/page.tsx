@@ -12,6 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  User,
+  Briefcase,
+  MapPin,
+  Lock,
+  UserCheck,
+} from "lucide-react";
 
 type UserRole = "doctor" | "paramedic" | "lab";
 
@@ -20,6 +30,8 @@ export default function RegisterPage() {
   const { signUpWithEmail } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -90,86 +102,143 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-            <Select
-              name="role"
-              value={formData.role}
-              onValueChange={(value: UserRole) =>
-                handleChange({ target: { name: "role", value } })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="doctor">Doctor</SelectItem>
-                <SelectItem value="paramedic">Paramedic</SelectItem>
-                <SelectItem value="lab">Laboratory</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="text"
-              name="qualification"
-              placeholder="Qualification"
-              value={formData.qualification}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="text"
-              name="specialization"
-              placeholder="Specialization"
-              value={formData.specialization}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="number"
-              name="experience"
-              placeholder="Years of Experience"
-              value={formData.experience}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleChange}
-              required
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="pl-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className="pl-10 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+            <div className="relative">
+              <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Select
+                name="role"
+                value={formData.role}
+                onValueChange={(value: UserRole) =>
+                  handleChange({ target: { name: "role", value } })
+                }
+              >
+                <SelectTrigger className="pl-10">
+                  <SelectValue placeholder="Select Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="doctor">Doctor</SelectItem>
+                  <SelectItem value="paramedic">Paramedic</SelectItem>
+                  <SelectItem value="lab">Laboratory</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                name="qualification"
+                placeholder="Qualification"
+                value={formData.qualification}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                name="specialization"
+                placeholder="Specialization"
+                value={formData.specialization}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="number"
+                name="experience"
+                placeholder="Years of Experience"
+                value={formData.experience}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                name="location"
+                placeholder="Location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+                className="pl-10"
+              />
+            </div>
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>

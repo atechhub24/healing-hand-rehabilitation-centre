@@ -4,7 +4,25 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import {
+  Menu,
+  X,
+  User,
+  Settings,
+  LogOut,
+  Bell,
+  Edit,
+  ChevronDown,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,14 +75,61 @@ export function NavBar() {
                 Contact
               </Link>
               {user ? (
-                <>
+                <div className="flex items-center gap-2">
                   <Link href="/dashboard">
                     <Button variant="ghost">Dashboard</Button>
                   </Link>
-                  <Button variant="outline" onClick={handleSignOut}>
-                    Sign Out
+                  {/* Notification Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative"
+                    asChild
+                  >
+                    <Link href="/notifications">
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
+                        3
+                      </span>
+                    </Link>
                   </Button>
-                </>
+                  {/* Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="flex items-center gap-2"
+                      >
+                        <User className="h-5 w-5" />
+                        <span className="hidden sm:inline-block">Profile</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>View Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Edit Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Settings</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign Out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ) : (
                 <>
                   <Link href="/auth/login">
@@ -133,6 +198,37 @@ export function NavBar() {
                     onClick={toggleMenu}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
+                    onClick={toggleMenu}
+                  >
+                    Notifications
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                      3
+                    </span>
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
+                    onClick={toggleMenu}
+                  >
+                    View Profile
+                  </Link>
+                  <Link
+                    href="/profile/edit"
+                    className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
+                    onClick={toggleMenu}
+                  >
+                    Edit Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
+                    onClick={toggleMenu}
+                  >
+                    Settings
                   </Link>
                   <button
                     onClick={() => {

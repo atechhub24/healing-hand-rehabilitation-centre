@@ -43,22 +43,41 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    if (!showOTP) {
-      const result = await signInWithPhone(phoneForm.phoneNumber);
-      if (result.success) {
-        setShowOTP(true);
+    try {
+      if (!showOTP) {
+        const formattedPhone = `+91${phoneForm.phoneNumber.replace(/\D/g, "")}`;
+        const result = await signInWithPhone(formattedPhone);
+        if (result.success) {
+          setShowOTP(true);
+        } else {
+          setError(
+            "Failed to send OTP. Please verify your phone number and try again."
+          );
+        }
       } else {
-        setError("Failed to send OTP");
+        const result = await verifyOTP(phoneForm.otp);
+        if (result.success) {
+          router.push("/dashboard");
+        } else {
+          setError("Invalid OTP. Please try again.");
+        }
       }
-    } else {
-      const result = await verifyOTP(phoneForm.otp);
-      if (result.success) {
-        router.push("/dashboard");
-      } else {
-        setError("Invalid OTP");
-      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setPhoneForm((prev) => ({ ...prev, phoneNumber: sanitizedValue }));
+  };
+
+  const handleOTPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setPhoneForm((prev) => ({ ...prev, otp: sanitizedValue }));
   };
 
   return (
@@ -111,30 +130,52 @@ export default function LoginPage() {
             <form onSubmit={handlePhoneLogin} className="space-y-4">
               <div className="space-y-2">
                 {!showOTP ? (
-                  <Input
-                    type="tel"
-                    placeholder="Phone number"
-                    value={phoneForm.phoneNumber}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPhoneForm({
-                        ...phoneForm,
-                        phoneNumber: e.target.value,
-                      })
-                    }
-                    required
-                  />
+                  <div className="space-y-1">
+                    <div className="flex">
+                      <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-gray-50 px-3">
+                        +91
+                      </div>
+                      <Input
+                        type="tel"
+                        placeholder="Enter 10-digit mobile number"
+                        value={phoneForm.phoneNumber}
+                        onChange={handlePhoneChange}
+                        className="rounded-l-none"
+                        required
+                        pattern="[0-9]{10}"
+                        title="Please enter a valid 10-digit mobile number"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Enter your 10-digit mobile number
+                    </p>
+                  </div>
                 ) : (
-                  <Input
-                    type="text"
-                    placeholder="Enter OTP"
-                    value={phoneForm.otp}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPhoneForm({ ...phoneForm, otp: e.target.value })
-                    }
-                    required
-                  />
+                  <div className="space-y-1">
+                    <Input
+                      type="text"
+                      placeholder="Enter OTP"
+                      value={phoneForm.otp}
+                      onChange={handleOTPChange}
+                      required
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      title="Please enter the 6-digit OTP"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Enter the 6-digit OTP sent to your phone
+                    </p>
+                  </div>
                 )}
               </div>
+
+              {!showOTP && (
+                <div
+                  id="recaptcha-container"
+                  className="flex justify-center my-4"
+                ></div>
+              )}
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading
                   ? "Processing..."
@@ -147,8 +188,6 @@ export default function LoginPage() {
         </Tabs>
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-
-        <div id="recaptcha-container" />
       </div>
     </div>
   );

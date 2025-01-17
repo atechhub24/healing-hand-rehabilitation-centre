@@ -10,15 +10,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, role, isLoading } = useAuthStore();
+  const { user, role, isLoading, isInitialized } = useAuthStore();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (isInitialized && !user) {
       router.push("/auth/login");
     }
-  }, [user, isLoading, router]);
+  }, [user, isInitialized, router]);
 
-  if (isLoading) {
+  if (!isInitialized || isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-gray-900"></div>

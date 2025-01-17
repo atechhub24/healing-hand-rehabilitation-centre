@@ -27,10 +27,12 @@ interface AuthState {
   userData: UserData | null;
   role: UserRole | null;
   isLoading: boolean;
+  isInitialized: boolean;
   setUser: (user: User | null) => void;
   setUserData: (userData: UserData | null) => void;
   setRole: (role: UserRole | null) => void;
   setLoading: (isLoading: boolean) => void;
+  setInitialized: (isInitialized: boolean) => void;
   signOut: () => void;
   updateUserData: (data: Partial<UserData>) => void;
 }
@@ -44,10 +46,12 @@ export const useAuthStore = create<AuthState>()(
       userData: null,
       role: null,
       isLoading: true,
+      isInitialized: false,
       setUser: (user: User | null) => set({ user }),
       setUserData: (userData: UserData | null) => set({ userData }),
       setRole: (role: UserRole | null) => set({ role }),
       setLoading: (isLoading: boolean) => set({ isLoading }),
+      setInitialized: (isInitialized: boolean) => set({ isInitialized }),
       signOut: () => set({ user: null, userData: null, role: null }),
       updateUserData: (data: Partial<UserData>) =>
         set((state) => ({

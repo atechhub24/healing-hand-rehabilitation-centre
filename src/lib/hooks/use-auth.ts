@@ -21,6 +21,7 @@ export const useAuth = () => {
     setUserData,
     setRole,
     setLoading,
+    setInitialized,
     signOut: clearAuthStore,
   } = useAuthStore();
 
@@ -52,10 +53,14 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
+    let unsubscribed = false;
+    setLoading(true);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
-      if (user) {
-        try {
+      if (unsubscribed) return;
+
+      try {
+        if (user) {
           const userRef = ref(database, `users/${user.uid}`);
           const snapshot = await get(userRef);
           const userData = snapshot.val();
@@ -70,27 +75,30 @@ export const useAuth = () => {
             setUserData(null);
             setRole(null);
           }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+        } else {
           setUser(null);
           setUserData(null);
           setRole(null);
         }
-      } else {
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setUser(null);
         setUserData(null);
         setRole(null);
+      } finally {
+        setLoading(false);
+        setInitialized(true);
       }
-      setLoading(false);
     });
 
     return () => {
+      unsubscribed = true;
       unsubscribe();
       if (recaptchaVerifier) {
         recaptchaVerifier.clear();
       }
     };
-  }, [setUser, setUserData, setRole, setLoading]);
+  }, [setUser, setUserData, setRole, setLoading, setInitialized]);
 
   const initRecaptcha = () => {
     try {
@@ -116,6 +124,7 @@ export const useAuth = () => {
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -125,6 +134,8 @@ export const useAuth = () => {
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,6 +146,7 @@ export const useAuth = () => {
     userData: Partial<UserData>
   ) => {
     try {
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -153,11 +165,14 @@ export const useAuth = () => {
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signInWithPhone = async (phoneNumber: string) => {
     try {
+      setLoading(true);
       const verifier = initRecaptcha();
       const formattedPhoneNumber = phoneNumber.startsWith("+")
         ? phoneNumber
@@ -172,11 +187,14 @@ export const useAuth = () => {
     } catch (error) {
       console.error("Error in phone authentication:", error);
       return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const verifyOTP = async (otp: string, userData?: Partial<UserData>) => {
     try {
+      setLoading(true);
       const credential = PhoneAuthProvider.credential(verificationId, otp);
       const userCredential = await signInWithCredential(auth, credential);
 
@@ -195,16 +213,21 @@ export const useAuth = () => {
     } catch (error) {
       console.error("Error in OTP verification:", error);
       return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       await firebaseSignOut(auth);
       clearAuthStore();
       return { success: true };
     } catch (error) {
       return { success: false, error };
+    } finally {
+      setLoading(false);
     }
   };
 

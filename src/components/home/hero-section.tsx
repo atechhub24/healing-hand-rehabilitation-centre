@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export function HeroSection() {
   return (
     <section className="relative py-20 bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-5xl font-bold tracking-tight mb-6">
             Your Health, Our Priority

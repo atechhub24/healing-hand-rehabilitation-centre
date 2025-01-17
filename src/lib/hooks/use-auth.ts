@@ -23,6 +23,10 @@ export const useAuth = () => {
     setLoading,
     setInitialized,
     signOut: clearAuthStore,
+    user,
+    role,
+    isLoading,
+    isInitialized,
   } = useAuthStore();
 
   const updateUserLastLogin = async (uid: string) => {
@@ -237,5 +241,9 @@ export const useAuth = () => {
     signInWithPhone,
     verifyOTP,
     signOut,
+    user,
+    role,
+    isLoading,
+    isInitialized,
   };
 };

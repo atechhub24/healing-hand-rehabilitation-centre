@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function DashboardLayout({
   children,
@@ -10,7 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, role, isLoading, isInitialized } = useAuthStore();
+  const { user, role, isLoading, isInitialized } = useAuth();
 
   useEffect(() => {
     if (isInitialized && !user) {

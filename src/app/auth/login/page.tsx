@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -188,6 +189,18 @@ export default function LoginPage() {
         </Tabs>
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link
+              href="/auth/register"
+              className="text-blue-500 hover:underline"
+            >
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -14,6 +14,8 @@ import { useAuthStore } from "../store/auth-store";
 
 export const useAuth = () => {
   const [verificationId, setVerificationId] = useState<string>("");
+  const [recaptchaVerifier, setRecaptchaVerifier] =
+    useState<RecaptchaVerifier | null>(null);
   const {
     setUser,
     setRole,
@@ -36,8 +38,35 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+      }
+    };
   }, [setUser, setRole, setLoading]);
+
+  const initRecaptcha = () => {
+    try {
+      if (!recaptchaVerifier) {
+        const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "normal",
+          callback: () => {
+            // Callback when reCAPTCHA is solved
+          },
+          "expired-callback": () => {
+            // Callback when reCAPTCHA expires
+          },
+        });
+        setRecaptchaVerifier(verifier);
+        return verifier;
+      }
+      return recaptchaVerifier;
+    } catch (error) {
+      console.error("Error initializing reCAPTCHA:", error);
+      throw error;
+    }
+  };
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
@@ -77,21 +106,19 @@ export const useAuth = () => {
 
   const signInWithPhone = async (phoneNumber: string) => {
     try {
-      const recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-        }
-      );
+      const verifier = initRecaptcha();
+      const formattedPhoneNumber = phoneNumber.startsWith("+")
+        ? phoneNumber
+        : `+${phoneNumber}`;
       const provider = new PhoneAuthProvider(auth);
       const verificationId = await provider.verifyPhoneNumber(
-        phoneNumber,
-        recaptchaVerifier
+        formattedPhoneNumber,
+        verifier
       );
       setVerificationId(verificationId);
       return { success: true };
     } catch (error) {
+      console.error("Error in phone authentication:", error);
       return { success: false, error };
     }
   };
@@ -100,8 +127,21 @@ export const useAuth = () => {
     try {
       const credential = PhoneAuthProvider.credential(verificationId, otp);
       const userCredential = await signInWithCredential(auth, credential);
+
+      // Create or update user document
+      await setDoc(
+        doc(db, "users", userCredential.user.uid),
+        {
+          phoneNumber: userCredential.user.phoneNumber,
+          role: "customer",
+          createdAt: new Date(),
+        },
+        { merge: true }
+      );
+
       return { success: true, user: userCredential.user };
     } catch (error) {
+      console.error("Error in OTP verification:", error);
       return { success: false, error };
     }
   };

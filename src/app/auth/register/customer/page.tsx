@@ -34,22 +34,35 @@ export default function CustomerRegisterPage() {
     setIsLoading(true);
     setError("");
 
-    if (!showOTP) {
-      const result = await signInWithPhone(formData.phoneNumber);
-      if (result.success) {
-        setShowOTP(true);
+    try {
+      if (!showOTP) {
+        // Format phone number to E.164 format
+        const formattedPhone = formData.phoneNumber.startsWith("+")
+          ? formData.phoneNumber
+          : `+${formData.phoneNumber}`;
+
+        const result = await signInWithPhone(formattedPhone);
+        if (result.success) {
+          setShowOTP(true);
+        } else {
+          setError(
+            "Failed to send OTP. Please verify your phone number and try again."
+          );
+        }
       } else {
-        setError("Failed to send OTP. Please try again.");
+        const result = await verifyOTP(formData.otp);
+        if (result.success) {
+          router.push("/dashboard");
+        } else {
+          setError("Invalid OTP. Please try again.");
+        }
       }
-    } else {
-      const result = await verifyOTP(formData.otp);
-      if (result.success) {
-        router.push("/dashboard");
-      } else {
-        setError("Invalid OTP. Please try again.");
-      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleChange = (
@@ -77,14 +90,19 @@ export default function CustomerRegisterPage() {
           <div className="space-y-2">
             {!showOTP ? (
               <>
-                <Input
-                  type="tel"
-                  name="phoneNumber"
-                  placeholder="Phone Number"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="space-y-1">
+                  <Input
+                    type="tel"
+                    name="phoneNumber"
+                    placeholder="Phone Number (e.g., +1234567890)"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                  <p className="text-xs text-gray-500">
+                    Please include your country code (e.g., +1 for US)
+                  </p>
+                </div>
                 <Input
                   type="text"
                   name="name"
@@ -138,14 +156,20 @@ export default function CustomerRegisterPage() {
             )}
           </div>
 
+          {/* reCAPTCHA container - visible size */}
+          {!showOTP && (
+            <div
+              id="recaptcha-container"
+              className="flex justify-center my-4"
+            ></div>
+          )}
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Processing..." : showOTP ? "Verify OTP" : "Send OTP"}
           </Button>
         </form>
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-
-        <div id="recaptcha-container" />
 
         <p className="text-sm text-center">
           Already have an account?{" "}

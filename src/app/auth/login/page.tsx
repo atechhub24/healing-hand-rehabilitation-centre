@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
+import { Eye, EyeOff, Mail, Lock, Phone } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showOTP, setShowOTP] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [emailForm, setEmailForm] = useState({
     email: "",
@@ -102,26 +104,43 @@ export default function LoginPage() {
           <TabsContent value="email">
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={emailForm.email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEmailForm({ ...emailForm, email: e.target.value })
-                  }
-                  required
-                  className="w-full"
-                />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={emailForm.password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEmailForm({ ...emailForm, password: e.target.value })
-                  }
-                  required
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={emailForm.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEmailForm({ ...emailForm, email: e.target.value })
+                    }
+                    required
+                    className="pl-10 w-full"
+                  />
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={emailForm.password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEmailForm({ ...emailForm, password: e.target.value })
+                    }
+                    required
+                    className="pl-10 pr-10 w-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"
@@ -138,41 +157,47 @@ export default function LoginPage() {
               <div className="space-y-3">
                 {!showOTP ? (
                   <div className="space-y-2">
-                    <div className="flex">
-                      <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3">
-                        +91
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <div className="flex">
+                        <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3 ml-9">
+                          +91
+                        </div>
+                        <Input
+                          type="tel"
+                          placeholder="Enter 10-digit mobile number"
+                          value={phoneForm.phoneNumber}
+                          onChange={handlePhoneChange}
+                          className="rounded-l-none"
+                          required
+                          pattern="[0-9]{10}"
+                          title="Please enter a valid 10-digit mobile number"
+                        />
                       </div>
-                      <Input
-                        type="tel"
-                        placeholder="Enter 10-digit mobile number"
-                        value={phoneForm.phoneNumber}
-                        onChange={handlePhoneChange}
-                        className="rounded-l-none"
-                        required
-                        pattern="[0-9]{10}"
-                        title="Please enter a valid 10-digit mobile number"
-                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Enter your 10-digit mobile number
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Enter your 10-digit mobile number
-                    </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Input
-                      type="text"
-                      placeholder="Enter OTP"
-                      value={phoneForm.otp}
-                      onChange={handleOTPChange}
-                      required
-                      pattern="[0-9]{6}"
-                      maxLength={6}
-                      title="Please enter the 6-digit OTP"
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Enter the 6-digit OTP sent to your phone
-                    </p>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Enter OTP"
+                        value={phoneForm.otp}
+                        onChange={handleOTPChange}
+                        required
+                        pattern="[0-9]{6}"
+                        maxLength={6}
+                        title="Please enter the 6-digit OTP"
+                        className="pl-10 w-full"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Enter the 6-digit OTP sent to your phone
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

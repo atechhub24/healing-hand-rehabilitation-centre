@@ -13,6 +13,7 @@ import {
   Bell,
   Edit,
   ChevronDown,
+  UserPlus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,6 +36,26 @@ export function NavBar() {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const RegisterButton = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="default" className="flex items-center gap-2">
+          <UserPlus className="h-5 w-5" />
+          <span>Register</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/auth/register/customer">Register as Patient</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/auth/register">Register as Provider</Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-sm bg-white/75 shadow-sm">
@@ -109,17 +130,26 @@ export function NavBar() {
                       <DropdownMenuLabel>My Account</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                          <User className="mr-2 h-4 w-4" />
-                          <span>View Profile</span>
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile" className="flex items-center">
+                            <User className="mr-2 h-4 w-4" />
+                            <span>View Profile</span>
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Edit Profile</span>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/profile/edit"
+                            className="flex items-center"
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit Profile</span>
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Settings</span>
+                        <DropdownMenuItem asChild>
+                          <Link href="/settings" className="flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                          </Link>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
@@ -135,9 +165,7 @@ export function NavBar() {
                   <Link href="/auth/login">
                     <Button variant="ghost">Sign In</Button>
                   </Link>
-                  <Link href="/auth/register">
-                    <Button variant="default">Register</Button>
-                  </Link>
+                  <RegisterButton />
                 </>
               )}
             </div>
@@ -250,11 +278,18 @@ export function NavBar() {
                     Sign In
                   </Link>
                   <Link
+                    href="/auth/register/customer"
+                    className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
+                    onClick={toggleMenu}
+                  >
+                    Register as Patient
+                  </Link>
+                  <Link
                     href="/auth/register"
                     className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
                     onClick={toggleMenu}
                   >
-                    Register
+                    Register as Provider
                   </Link>
                 </>
               )}

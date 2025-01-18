@@ -157,27 +157,24 @@ export default function LoginPage() {
               <div className="space-y-3">
                 {!showOTP ? (
                   <div className="space-y-2">
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <div className="flex">
-                        <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3 ml-9">
-                          +91
-                        </div>
-                        <Input
-                          type="tel"
-                          placeholder="Enter 10-digit mobile number"
-                          value={phoneForm.phoneNumber}
-                          onChange={handlePhoneChange}
-                          className="rounded-l-none"
-                          required
-                          pattern="[0-9]{10}"
-                          title="Please enter a valid 10-digit mobile number"
-                        />
+                    <div className="flex">
+                      <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3">
+                        +91
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter your 10-digit mobile number
-                      </p>
+                      <Input
+                        type="tel"
+                        placeholder="Enter 10-digit mobile number"
+                        value={phoneForm.phoneNumber}
+                        onChange={handlePhoneChange}
+                        className="rounded-l-none"
+                        required
+                        pattern="[0-9]{10}"
+                        title="Please enter a valid 10-digit mobile number"
+                      />
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Enter your 10-digit mobile number
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-2">

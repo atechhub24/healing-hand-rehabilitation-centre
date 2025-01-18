@@ -92,10 +92,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[450px] space-y-6 rounded-lg border border-border/50 bg-card p-6 shadow-sm">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             Healthcare Provider Registration
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 sm:space-y-3">
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
@@ -288,14 +288,16 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full mt-2" disabled={isLoading}>
             {isLoading ? "Registering..." : "Register"}
           </Button>
         </form>
 
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+        )}
 
-        <p className="text-sm text-center">
+        <p className="text-sm text-center mt-4">
           Already have an account?{" "}
           <a href="/auth/login" className="text-blue-500 hover:underline">
             Sign in

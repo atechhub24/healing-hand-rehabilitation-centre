@@ -82,10 +82,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[450px] space-y-6 rounded-lg border border-border/50 bg-card p-6 shadow-sm">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             Welcome back
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -94,14 +94,14 @@ export default function LoginPage() {
         </div>
 
         <Tabs defaultValue="email" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="phone">Phone</TabsTrigger>
           </TabsList>
 
           <TabsContent value="email">
             <form onSubmit={handleEmailLogin} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Input
                   type="email"
                   placeholder="Email"
@@ -110,6 +110,7 @@ export default function LoginPage() {
                     setEmailForm({ ...emailForm, email: e.target.value })
                   }
                   required
+                  className="w-full"
                 />
                 <Input
                   type="password"
@@ -119,9 +120,14 @@ export default function LoginPage() {
                     setEmailForm({ ...emailForm, password: e.target.value })
                   }
                   required
+                  className="w-full"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full mt-2"
+                disabled={isLoading}
+              >
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
@@ -129,11 +135,11 @@ export default function LoginPage() {
 
           <TabsContent value="phone">
             <form onSubmit={handlePhoneLogin} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {!showOTP ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="flex">
-                      <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-gray-50 px-3">
+                      <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3">
                         +91
                       </div>
                       <Input
@@ -147,12 +153,12 @@ export default function LoginPage() {
                         title="Please enter a valid 10-digit mobile number"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Enter your 10-digit mobile number
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Input
                       type="text"
                       placeholder="Enter OTP"
@@ -162,8 +168,9 @@ export default function LoginPage() {
                       pattern="[0-9]{6}"
                       maxLength={6}
                       title="Please enter the 6-digit OTP"
+                      className="w-full"
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Enter the 6-digit OTP sent to your phone
                     </p>
                   </div>
@@ -177,7 +184,11 @@ export default function LoginPage() {
                 ></div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full mt-2"
+                disabled={isLoading}
+              >
                 {isLoading
                   ? "Processing..."
                   : showOTP
@@ -188,7 +199,9 @@ export default function LoginPage() {
           </TabsContent>
         </Tabs>
 
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+        )}
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">

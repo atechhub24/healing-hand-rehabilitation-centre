@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Phone, User, Calendar, MapPin, Lock } from "lucide-react";
 
 export default function CustomerRegisterPage() {
   const router = useRouter();
@@ -79,10 +80,10 @@ export default function CustomerRegisterPage() {
   };
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+      <div className="w-full max-w-[450px] space-y-6 rounded-lg border border-border/50 bg-card p-6 shadow-sm">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             Customer Registration
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -91,7 +92,7 @@ export default function CustomerRegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-3">
             {!showOTP ? (
               <>
                 <div className="space-y-1">
@@ -115,63 +116,88 @@ export default function CustomerRegisterPage() {
                     Enter your 10-digit mobile number
                   </p>
                 </div>
-                <Input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-                <Input
-                  type="date"
-                  name="dateOfBirth"
-                  placeholder="Date of Birth"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  required
-                />
-                <Select
-                  name="gender"
-                  value={formData.gender}
-                  onValueChange={(value) =>
-                    handleChange({ target: { name: "gender", value } })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  type="text"
-                  name="address"
-                  placeholder="Address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
+
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="date"
+                    name="dateOfBirth"
+                    placeholder="Date of Birth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Select
+                    name="gender"
+                    value={formData.gender}
+                    onValueChange={(value) =>
+                      handleChange({ target: { name: "gender", value } })
+                    }
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Select Gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="address"
+                    placeholder="Address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
               </>
             ) : (
-              <Input
-                type="text"
-                name="otp"
-                placeholder="Enter OTP"
-                value={formData.otp}
-                onChange={handleChange}
-                required
-                pattern="[0-9]*"
-                maxLength={6}
-                title="Please enter the 6-digit OTP"
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  name="otp"
+                  placeholder="Enter OTP"
+                  value={formData.otp}
+                  onChange={handleChange}
+                  required
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  title="Please enter the 6-digit OTP"
+                  className="pl-10"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the 6-digit OTP sent to your phone
+                </p>
+              </div>
             )}
           </div>
 
-          {/* reCAPTCHA container - visible size */}
           {!showOTP && (
             <div
               id="recaptcha-container"
@@ -179,14 +205,16 @@ export default function CustomerRegisterPage() {
             ></div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full mt-2" disabled={isLoading}>
             {isLoading ? "Processing..." : showOTP ? "Verify OTP" : "Send OTP"}
           </Button>
         </form>
 
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+        )}
 
-        <p className="text-sm text-center">
+        <p className="text-sm text-center text-muted-foreground">
           Already have an account?{" "}
           <a href="/auth/login" className="text-blue-500 hover:underline">
             Sign in

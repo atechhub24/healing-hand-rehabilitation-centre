@@ -21,9 +21,19 @@ import {
   MapPin,
   Lock,
   UserCheck,
+  Plus,
+  X,
 } from "lucide-react";
 
 type UserRole = "doctor" | "paramedic" | "lab";
+
+interface ClinicAddress {
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  timings: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,6 +42,15 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
+    {
+      address: "",
+      city: "",
+      state: "",
+      pincode: "",
+      timings: "",
+    },
+  ]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -45,7 +64,6 @@ export default function RegisterPage() {
     location: "",
     labType: "",
     certifications: "",
-    hospitalAffiliation: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,6 +83,11 @@ export default function RegisterPage() {
       specialization: formData.specialization,
       experience: parseInt(formData.experience),
       location: formData.location,
+      ...(formData.role === "doctor" && { clinicAddresses }),
+      ...(formData.role === "paramedic" && {
+        certifications: formData.certifications,
+      }),
+      ...(formData.role === "lab" && { labType: formData.labType }),
     };
 
     const result = await signUpWithEmail(
@@ -89,6 +112,35 @@ export default function RegisterPage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleClinicAddressChange = (
+    index: number,
+    field: keyof ClinicAddress,
+    value: string
+  ) => {
+    const newAddresses = [...clinicAddresses];
+    newAddresses[index] = { ...newAddresses[index], [field]: value };
+    setClinicAddresses(newAddresses);
+  };
+
+  const addClinicAddress = () => {
+    setClinicAddresses([
+      ...clinicAddresses,
+      {
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        timings: "",
+      },
+    ]);
+  };
+
+  const removeClinicAddress = (index: number) => {
+    if (clinicAddresses.length > 1) {
+      setClinicAddresses(clinicAddresses.filter((_, i) => i !== index));
+    }
   };
 
   return (
@@ -230,30 +282,117 @@ export default function RegisterPage() {
                 className="pl-10"
               />
             </div>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                name="location"
-                placeholder="Location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
+
             {formData.role === "doctor" && (
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  name="hospitalAffiliation"
-                  placeholder="Hospital Affiliation"
-                  value={formData.hospitalAffiliation}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Clinic Addresses
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addClinicAddress}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Another Clinic
+                  </Button>
+                </div>
+                {clinicAddresses.map((clinic, index) => (
+                  <div key={index} className="space-y-3 border rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Clinic {index + 1}
+                      </h4>
+                      {clinicAddresses.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeClinicAddress(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Clinic Address"
+                        value={clinic.address}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "address",
+                            e.target.value
+                          )
+                        }
+                        required
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        type="text"
+                        placeholder="City"
+                        value={clinic.city}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "city",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                      <Input
+                        type="text"
+                        placeholder="State"
+                        value={clinic.state}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "state",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        type="text"
+                        placeholder="PIN Code"
+                        value={clinic.pincode}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "pincode",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Timings (e.g., 9 AM - 6 PM)"
+                        value={clinic.timings}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "timings",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

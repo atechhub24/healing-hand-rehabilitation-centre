@@ -16,6 +16,8 @@ import {
   TestTube,
   Bell,
   LogOut,
+  Search,
+  User,
 } from "lucide-react";
 
 const roleConfig = {
@@ -115,13 +117,16 @@ export default function RoleBasedLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-sm">
+      <aside className="w-64 bg-white border-r border-gray-200">
         <div className="flex h-full flex-col">
-          {/* Sidebar Header */}
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+          {/* Brand */}
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200">
+            <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+              <span className="text-white font-bold">H+</span>
+            </div>
+            <span className="font-semibold text-gray-900">Healthcare+</span>
           </div>
 
           {/* Navigation Menu */}
@@ -141,8 +146,19 @@ export default function RoleBasedLayout({
             </ul>
           </nav>
 
-          {/* Sidebar Footer */}
-          <div className="border-t p-4">
+          {/* User Profile */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {user.email || user.phoneNumber}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">{role}</p>
+              </div>
+            </div>
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 text-red-600 hover:bg-red-50 hover:text-red-700"
@@ -156,9 +172,37 @@ export default function RoleBasedLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto p-6">{children}</div>
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-4">
+            <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              {/* Notifications */}
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto p-6">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

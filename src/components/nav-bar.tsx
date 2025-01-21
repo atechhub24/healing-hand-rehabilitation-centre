@@ -97,7 +97,7 @@ export function NavBar() {
               </Link>
               {user ? (
                 <div className="flex items-center gap-2">
-                  <Link href="/dashboard">
+                  <Link href={`/${role}`}>
                     <Button variant="ghost">Dashboard</Button>
                   </Link>
                   {/* Notification Button */}
@@ -221,7 +221,7 @@ export function NavBar() {
               {user ? (
                 <>
                   <Link
-                    href="/dashboard"
+                    href={`/${role}`}
                     className="block px-3 py-2 rounded-md text-base hover:text-blue-600"
                     onClick={toggleMenu}
                   >

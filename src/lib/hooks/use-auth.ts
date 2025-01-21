@@ -135,7 +135,13 @@ export const useAuth = () => {
         password
       );
       await updateUserLastLogin(userCredential.user.uid);
-      return { success: true, user: userCredential.user };
+
+      // Get user role from database
+      const userRef = ref(database, `users/${userCredential.user.uid}`);
+      const snapshot = await get(userRef);
+      const userData = snapshot.val();
+
+      return { success: true, user: userCredential.user, role: userData.role };
     } catch (error) {
       return { success: false, error };
     } finally {
@@ -213,7 +219,11 @@ export const useAuth = () => {
       );
 
       setUserData(newUserData as UserData);
-      return { success: true, user: userCredential.user };
+      return {
+        success: true,
+        user: userCredential.user,
+        role: newUserData.role,
+      };
     } catch (error) {
       console.error("Error in OTP verification:", error);
       return { success: false, error };

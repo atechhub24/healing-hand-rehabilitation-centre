@@ -33,8 +33,8 @@ export default function LoginPage() {
     setError("");
 
     const result = await signInWithEmail(emailForm.email, emailForm.password);
-    if (result.success) {
-      router.push("/dashboard");
+    if (result.success && result.role) {
+      router.push(`/${result.role}`);
     } else {
       setError("Invalid email or password");
     }
@@ -59,8 +59,8 @@ export default function LoginPage() {
         }
       } else {
         const result = await verifyOTP(phoneForm.otp);
-        if (result.success) {
-          router.push("/dashboard");
+        if (result.success && result.role) {
+          router.push(`/${result.role}`);
         } else {
           setError("Invalid OTP. Please try again.");
         }

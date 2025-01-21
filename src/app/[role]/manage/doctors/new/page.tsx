@@ -19,6 +19,9 @@ import {
   Plus,
   X,
   ArrowLeft,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -39,6 +42,7 @@ export default function NewDoctorPage() {
   const { role } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
     {
       address: "",
@@ -62,10 +66,24 @@ export default function NewDoctorPage() {
 
   const [formData, setFormData] = useState({
     email: "",
+    password: "",
     name: "",
     qualification: "",
     specialization: "",
     experience: "",
+    clinicAddresses: [
+      {
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        timings: {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        },
+      },
+    ],
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -168,9 +186,7 @@ export default function NewDoctorPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
-              Basic Information
-            </h2>
+            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
             <div className="space-y-4">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -184,6 +200,37 @@ export default function NewDoctorPage() {
                   className="pl-10"
                 />
               </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium pb-2 border-b">
+              Basic Information
+            </h2>
+            <div className="space-y-4">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input

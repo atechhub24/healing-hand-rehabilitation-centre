@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Eye, Trash } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +27,7 @@ interface Doctor {
 }
 
 export default function DoctorsPage() {
+  const { role } = useParams();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,7 +35,7 @@ export default function DoctorsPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Doctors Management</h1>
-        <Link href="/manage/doctors/new">
+        <Link href={`/${role}/manage/doctors/new`}>
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" /> Add New Doctor
           </Button>
@@ -78,12 +80,14 @@ export default function DoctorsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/[role]/manage/doctors/${doctor.id}`}>
+                        <Link href={`/${role}/manage/doctors/${doctor.id}`}>
                           <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/[role]/manage/doctors/${doctor.id}/edit`}>
+                        <Link
+                          href={`/${role}/manage/doctors/${doctor.id}/edit`}
+                        >
                           <Button variant="ghost" size="sm">
                             <Pencil className="h-4 w-4" />
                           </Button>

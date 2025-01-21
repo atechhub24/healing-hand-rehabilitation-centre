@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -46,6 +46,7 @@ interface Doctor {
 
 export default function EditDoctorPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { role } = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -122,7 +123,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
 
     try {
       // TODO: Implement API call to update doctor
-      router.push("/[role]/manage/doctors");
+      router.push(`/${role}/manage/doctors`);
     } catch (error) {
       setError("Failed to update doctor. Please try again.");
     }
@@ -206,7 +207,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
     <div className="container mx-auto p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/[role]/manage/doctors">
+          <Link href={`/${role}/manage/doctors`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Doctors
@@ -432,7 +433,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/[role]/manage/doctors")}
+              onClick={() => router.push(`/${role}/manage/doctors`)}
             >
               Cancel
             </Button>

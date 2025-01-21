@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +36,7 @@ interface ClinicAddress {
 
 export default function NewDoctorPage() {
   const router = useRouter();
+  const { role } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
@@ -80,7 +81,7 @@ export default function NewDoctorPage() {
 
     try {
       // TODO: Implement API call to create doctor
-      router.push("/[role]/manage/doctors");
+      router.push(`/${role}/manage/doctors`);
     } catch (error) {
       setError("Failed to create doctor. Please try again.");
     }
@@ -156,7 +157,7 @@ export default function NewDoctorPage() {
     <div className="container mx-auto p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/[role]/manage/doctors">
+          <Link href={`/${role}/manage/doctors`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Doctors
@@ -382,7 +383,7 @@ export default function NewDoctorPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/[role]/manage/doctors")}
+              onClick={() => router.push(`/${role}/manage/doctors`)}
             >
               Cancel
             </Button>

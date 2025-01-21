@@ -20,6 +20,9 @@ import {
   ArrowLeft,
   Clock,
   FileText,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,10 +37,12 @@ export default function NewLaboratoryPage() {
   const { role } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     license: "",
     specialties: [] as string[],
     address: {
@@ -148,6 +153,47 @@ export default function NewLaboratoryPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
+            <div className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="pl-10"
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
             <h2 className="text-lg font-medium pb-2 border-b">
               Basic Information
             </h2>
@@ -159,18 +205,6 @@ export default function NewLaboratoryPage() {
                   name="name"
                   placeholder="Laboratory Name"
                   value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
                   onChange={handleChange}
                   required
                   className="pl-10"

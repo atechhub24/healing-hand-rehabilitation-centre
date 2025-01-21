@@ -11,13 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Briefcase, MapPin, Mail, Clock, ArrowLeft } from "lucide-react";
+import {
+  User,
+  Briefcase,
+  MapPin,
+  Mail,
+  Clock,
+  ArrowLeft,
+  Lock,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import Link from "next/link";
 
 interface Paramedic {
   id: string;
   name: string;
   email: string;
+  password: string;
   qualification: string;
   specialization: string;
   experience: number;
@@ -43,9 +54,11 @@ export default function EditParamedicPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
+    password: "",
     name: "",
     qualification: "",
     specialization: "",
@@ -68,8 +81,9 @@ export default function EditParamedicPage({
         // TODO: Implement API call to fetch paramedic
         const paramedic: Paramedic = {
           id: params.id,
+          name: "John Doe",
           email: "paramedic@example.com",
-          name: "John Smith",
+          password: "",
           qualification: "EMT-P",
           specialization: "Emergency Care",
           experience: 5,
@@ -87,6 +101,7 @@ export default function EditParamedicPage({
 
         setFormData({
           email: paramedic.email,
+          password: paramedic.password,
           name: paramedic.name,
           qualification: paramedic.qualification,
           specialization: paramedic.specialization,
@@ -181,9 +196,7 @@ export default function EditParamedicPage({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
-              Basic Information
-            </h2>
+            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
             <div className="space-y-4">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -197,6 +210,36 @@ export default function EditParamedicPage({
                   className="pl-10"
                 />
               </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password (leave empty to keep unchanged)"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium pb-2 border-b">
+              Basic Information
+            </h2>
+            <div className="space-y-4">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input

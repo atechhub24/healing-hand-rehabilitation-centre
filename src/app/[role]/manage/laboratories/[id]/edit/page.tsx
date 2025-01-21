@@ -20,6 +20,9 @@ import {
   ArrowLeft,
   Clock,
   FileText,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -33,6 +36,7 @@ interface Laboratory {
   id: string;
   name: string;
   email: string;
+  password: string;
   license: string;
   specialties: string[];
   address: {
@@ -59,10 +63,12 @@ export default function EditLaboratoryPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     license: "",
     specialties: [] as string[],
     address: {
@@ -88,12 +94,13 @@ export default function EditLaboratoryPage({
         // TODO: Implement API call to fetch laboratory
         const laboratory: Laboratory = {
           id: params.id,
-          name: "Example Laboratory",
+          name: "Example Lab",
           email: "lab@example.com",
+          password: "",
           license: "LAB123456",
           specialties: ["Pathology", "Radiology"],
           address: {
-            street: "123 Medical Street",
+            street: "123 Lab Street",
             city: "Mumbai",
             state: "Maharashtra",
             pincode: "400001",
@@ -115,6 +122,7 @@ export default function EditLaboratoryPage({
         setFormData({
           name: laboratory.name,
           email: laboratory.email,
+          password: laboratory.password,
           license: laboratory.license,
           specialties: laboratory.specialties,
           address: laboratory.address,
@@ -230,6 +238,46 @@ export default function EditLaboratoryPage({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
+            <div className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="pl-10"
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password (leave empty to keep unchanged)"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
             <h2 className="text-lg font-medium pb-2 border-b">
               Basic Information
             </h2>
@@ -241,18 +289,6 @@ export default function EditLaboratoryPage({
                   name="name"
                   placeholder="Laboratory Name"
                   value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
                   onChange={handleChange}
                   required
                   className="pl-10"

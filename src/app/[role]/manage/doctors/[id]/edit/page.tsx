@@ -19,6 +19,9 @@ import {
   Plus,
   X,
   ArrowLeft,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -37,6 +40,7 @@ interface ClinicAddress {
 interface Doctor {
   id: string;
   email: string;
+  password: string;
   name: string;
   qualification: string;
   specialization: string;
@@ -50,13 +54,28 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([]);
   const [formData, setFormData] = useState({
     email: "",
+    password: "",
     name: "",
     qualification: "",
     specialization: "",
     experience: "",
+    clinicAddresses: [
+      {
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        timings: {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        },
+      },
+    ],
   });
 
   useEffect(() => {
@@ -66,6 +85,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
         const doctor: Doctor = {
           id: params.id,
           email: "doctor@example.com",
+          password: "",
           name: "Dr. John Doe",
           qualification: "MBBS, MD",
           specialization: "Cardiology",
@@ -79,14 +99,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
               timings: {
                 startTime: "09:00",
                 endTime: "17:00",
-                days: [
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                ],
+                days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
               },
             },
           ],
@@ -94,10 +107,12 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
 
         setFormData({
           email: doctor.email,
+          password: doctor.password,
           name: doctor.name,
           qualification: doctor.qualification,
           specialization: doctor.specialization,
           experience: doctor.experience.toString(),
+          clinicAddresses: doctor.clinicAddresses,
         });
         setClinicAddresses(doctor.clinicAddresses);
         setIsLoading(false);
@@ -218,9 +233,7 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
-              Basic Information
-            </h2>
+            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
             <div className="space-y-4">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -234,6 +247,36 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
                   className="pl-10"
                 />
               </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password (leave empty to keep unchanged)"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium pb-2 border-b">
+              Basic Information
+            </h2>
+            <div className="space-y-4">
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input

@@ -18,6 +18,9 @@ import {
   LogOut,
   Search,
   User,
+  Stethoscope,
+  UserCog,
+  Microscope,
 } from "lucide-react";
 
 const roleConfig = {
@@ -26,8 +29,15 @@ const roleConfig = {
     menuItems: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
       { label: "User Management", icon: Users, href: "/admin/users" },
+      { label: "Doctors", icon: Stethoscope, href: "/admin/manage/doctors" },
+      { label: "Paramedics", icon: UserCog, href: "/admin/manage/paramedics" },
+      {
+        label: "Laboratories",
+        icon: Microscope,
+        href: "/admin/manage/laboratories",
+      },
       { label: "Analytics", icon: Activity, href: "/admin/analytics" },
-      { label: "Settings", icon: Settings, href: "/admin/settings" },
+      { label: "Settings", icon: Settings, href: "/settings" },
     ],
   },
   doctor: {

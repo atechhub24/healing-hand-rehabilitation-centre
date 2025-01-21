@@ -32,12 +32,33 @@ export default function useFetch<T extends object>(
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Memoize options to prevent unnecessary rerenders
+  const memoizedOptions = useCallback(
+    () => ({
+      filter: options?.filter,
+      transform: options?.transform,
+      nested: options?.nested,
+      realtime: options?.realtime,
+      refetchOnMount: options?.refetchOnMount,
+    }),
+    [
+      options?.filter?.orderBy,
+      options?.filter?.limit,
+      options?.filter?.limitToLast,
+      options?.transform,
+      options?.nested,
+      options?.realtime,
+      options?.refetchOnMount,
+    ]
+  );
+
   // Create query based on options
   const createQuery = useCallback(() => {
+    const opts = memoizedOptions();
     let dbQuery: Query;
-    if (options?.filter) {
+    if (opts.filter) {
       const baseRef = ref(database, path);
-      const { orderBy, limit, limitToLast: isLimitToLast } = options.filter;
+      const { orderBy, limit, limitToLast: isLimitToLast } = opts.filter;
 
       if (orderBy) {
         dbQuery = query(baseRef, orderByChild(orderBy as string));
@@ -55,12 +76,13 @@ export default function useFetch<T extends object>(
       dbQuery = ref(database, path);
     }
     return dbQuery;
-  }, [path, options?.filter]);
+  }, [path, memoizedOptions]);
 
   // Function to process the data
   const processData = useCallback(
     (value: T | null) => {
-      if (options?.nested && value) {
+      const opts = memoizedOptions();
+      if (opts.nested && value) {
         const entries = Object.entries(value) as [string, Partial<T>][];
         value = entries.map(([key, val]) => ({
           id: key,
@@ -68,13 +90,13 @@ export default function useFetch<T extends object>(
         })) as unknown as T;
       }
 
-      if (options?.transform) {
-        value = options.transform(value);
+      if (opts.transform) {
+        value = opts.transform(value);
       }
 
       return value;
     },
-    [options?.nested, options?.transform]
+    [memoizedOptions]
   );
 
   // Function to fetch data once
@@ -101,9 +123,10 @@ export default function useFetch<T extends object>(
   }, [fetchData]);
 
   useEffect(() => {
-    const shouldFetch = options?.refetchOnMount ?? true;
+    const opts = memoizedOptions();
+    const shouldFetch = opts.refetchOnMount ?? true;
 
-    if (options?.realtime) {
+    if (opts.realtime) {
       // Set up real-time listener
       const dbQuery = createQuery();
       const unsubscribe = onValue(
@@ -125,7 +148,7 @@ export default function useFetch<T extends object>(
       // Fetch once
       fetchData();
     }
-  }, [path, options, createQuery, processData, fetchData]);
+  }, [path, memoizedOptions, createQuery, processData, fetchData]);
 
   return { data, loading, error, refetch } as const;
 }

@@ -3,36 +3,66 @@
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Users, Mail, Phone, Calendar } from "lucide-react";
+import useFetch from "@/lib/hooks/use-fetch";
+import { useMemo } from "react";
 
-const users = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    email: "sarah.j@healthcare.com",
-    role: "doctor",
-    specialty: "Cardiologist",
-    joinDate: "Jan 15, 2024",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "John Smith",
-    email: "john.s@healthcare.com",
-    role: "paramedic",
-    specialty: "Emergency Care",
-    joinDate: "Jan 10, 2024",
-    status: "active",
-  },
-  // Add more users as needed
-];
+interface User {
+  id?: string;
+  uid: string;
+  name?: string;
+  email: string;
+  role: "admin" | "paramedic" | "customer";
+  certifications?: string;
+  specialization?: string;
+  experience?: number;
+  createdAt: string;
+  lastLogin: string;
+  phoneNumber?: string;
+  qualification?: string;
+  location?: string;
+  status?: "active" | "inactive";
+}
 
 export default function UsersPage() {
   const params = useParams();
   const { role } = useAuth();
 
+  // Memoize the options object
+  const fetchOptions = useMemo(
+    () => ({
+      nested: true,
+      realtime: true,
+      filter: {
+        orderBy: "createdAt",
+        limitToLast: true,
+        limit: 50,
+      },
+      transform: (data: Record<string, User> | null) => {
+        return Object.entries(data || {}).reduce<Record<string, User>>(
+          (acc, [key, user]) => ({
+            ...acc,
+            [key]: { ...user, status: "active" },
+          }),
+          {}
+        );
+      },
+    }),
+    []
+  ); // Empty dependency array since options never change
+
+  const {
+    data: users,
+    loading,
+    error,
+    refetch,
+  } = useFetch<Record<string, User>>("/users", fetchOptions);
+
   if (role !== "admin") {
     return null;
   }
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div className="space-y-6">
@@ -76,8 +106,8 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+              {Object.values(users || {}).map((user) => (
+                <tr key={user.uid} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -85,7 +115,7 @@ export default function UsersPage() {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {user.name}
+                          {user.name || "N/A"}
                         </div>
                         <div className="text-sm text-gray-500">
                           {user.email}
@@ -99,10 +129,10 @@ export default function UsersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.specialty}
+                    {user.specialization || user.qualification || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.joinDate}
+                    {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

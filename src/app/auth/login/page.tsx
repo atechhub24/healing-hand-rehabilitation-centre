@@ -155,7 +155,7 @@ export default function LoginPage() {
           <TabsContent value="phone">
             <form onSubmit={handlePhoneLogin} className="space-y-4">
               <div className="space-y-3">
-                {showOTP ? (
+                {!showOTP ? (
                   <div className="space-y-2">
                     <div className="flex">
                       <div className="flex items-center justify-center rounded-l-md border border-r-0 bg-muted px-3">

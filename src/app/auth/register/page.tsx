@@ -32,7 +32,11 @@ interface ClinicAddress {
   city: string;
   state: string;
   pincode: string;
-  timings: string;
+  timings: {
+    startTime: string;
+    endTime: string;
+    days: string[];
+  };
 }
 
 export default function RegisterPage() {
@@ -48,7 +52,18 @@ export default function RegisterPage() {
       city: "",
       state: "",
       pincode: "",
-      timings: "",
+      timings: {
+        startTime: "09:00",
+        endTime: "17:00",
+        days: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ],
+      },
     },
   ]);
 
@@ -116,11 +131,27 @@ export default function RegisterPage() {
 
   const handleClinicAddressChange = (
     index: number,
-    field: keyof ClinicAddress,
+    field: keyof Omit<ClinicAddress, "timings">,
     value: string
   ) => {
     const newAddresses = [...clinicAddresses];
     newAddresses[index] = { ...newAddresses[index], [field]: value };
+    setClinicAddresses(newAddresses);
+  };
+
+  const handleTimingsChange = (
+    index: number,
+    field: keyof ClinicAddress["timings"],
+    value: string | string[]
+  ) => {
+    const newAddresses = [...clinicAddresses];
+    newAddresses[index] = {
+      ...newAddresses[index],
+      timings: {
+        ...newAddresses[index].timings,
+        [field]: value,
+      },
+    };
     setClinicAddresses(newAddresses);
   };
 
@@ -132,7 +163,18 @@ export default function RegisterPage() {
         city: "",
         state: "",
         pincode: "",
-        timings: "",
+        timings: {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ],
+        },
       },
     ]);
   };
@@ -284,26 +326,24 @@ export default function RegisterPage() {
             </div>
 
             {formData.role === "doctor" && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    Clinic Addresses
-                  </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-medium">Clinic Addresses</h3>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={addClinicAddress}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-1.5"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                     Add Another Clinic
                   </Button>
                 </div>
                 {clinicAddresses.map((clinic, index) => (
-                  <div key={index} className="space-y-3 border rounded-lg p-4">
+                  <div key={index} className="space-y-3 border rounded-lg p-3">
                     <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-medium text-gray-900">
+                      <h4 className="text-sm font-medium">
                         Clinic {index + 1}
                       </h4>
                       {clinicAddresses.length > 1 && (
@@ -312,14 +352,15 @@ export default function RegisterPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeClinicAddress(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
+
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         type="text"
                         placeholder="Clinic Address"
@@ -332,10 +373,11 @@ export default function RegisterPage() {
                           )
                         }
                         required
-                        className="pl-10"
+                        className="pl-9"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+
+                    <div className="grid grid-cols-2 gap-2">
                       <Input
                         type="text"
                         placeholder="City"
@@ -363,7 +405,8 @@ export default function RegisterPage() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+
+                    <div className="grid grid-cols-2 gap-2">
                       <Input
                         type="text"
                         placeholder="PIN Code"
@@ -377,19 +420,64 @@ export default function RegisterPage() {
                         }
                         required
                       />
-                      <Input
-                        type="text"
-                        placeholder="Timings (e.g., 9 AM - 6 PM)"
-                        value={clinic.timings}
-                        onChange={(e) =>
-                          handleClinicAddressChange(
-                            index,
-                            "timings",
-                            e.target.value
-                          )
+                      <Select
+                        value={clinic.timings.days.join(",")}
+                        onValueChange={(value) =>
+                          handleTimingsChange(index, "days", value.split(","))
                         }
-                        required
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Working Days" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
+                            Weekdays
+                          </SelectItem>
+                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+                            Weekdays + Saturday
+                          </SelectItem>
+                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
+                            All Days
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Opening Time
+                        </label>
+                        <Input
+                          type="time"
+                          value={clinic.timings.startTime}
+                          onChange={(e) =>
+                            handleTimingsChange(
+                              index,
+                              "startTime",
+                              e.target.value
+                            )
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">
+                          Closing Time
+                        </label>
+                        <Input
+                          type="time"
+                          value={clinic.timings.endTime}
+                          onChange={(e) =>
+                            handleTimingsChange(
+                              index,
+                              "endTime",
+                              e.target.value
+                            )
+                          }
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}

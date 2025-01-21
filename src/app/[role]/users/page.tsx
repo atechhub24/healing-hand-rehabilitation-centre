@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Users, Mail, Phone, Calendar } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
 interface User {
   id?: string;
@@ -27,35 +27,36 @@ export default function UsersPage() {
   const params = useParams();
   const { role } = useAuth();
 
-  // Memoize the options object
+  // Memoize the transform function
+  const transformUsers = useCallback((data: Record<string, User> | null) => {
+    if (!data) return [];
+    return Object.values(data).map((user) => ({
+      ...user,
+      status: "active" as const, // Explicitly type the status
+    }));
+  }, []); // Empty deps array since transform logic is static
+
+  // Memoize the entire options object
   const fetchOptions = useMemo(
     () => ({
       nested: true,
       realtime: true,
+      asArray: true,
       filter: {
         orderBy: "createdAt",
         limitToLast: true,
         limit: 50,
       },
-      transform: (data: Record<string, User> | null) => {
-        return Object.entries(data || {}).reduce<Record<string, User>>(
-          (acc, [key, user]) => ({
-            ...acc,
-            [key]: { ...user, status: "active" },
-          }),
-          {}
-        );
-      },
+      transform: transformUsers,
     }),
-    []
-  ); // Empty dependency array since options never change
+    [transformUsers]
+  ); // Only depends on transformUsers
 
   const {
     data: users,
     loading,
     error,
-    refetch,
-  } = useFetch<Record<string, User>>("/users", fetchOptions);
+  } = useFetch<Record<string, User>, User[]>("/users", fetchOptions);
 
   console.log(users);
 
@@ -108,8 +109,8 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {Object.values(users || {}).map((user) => (
-                <tr key={user.uid} className="hover:bg-gray-50">
+              {users?.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">

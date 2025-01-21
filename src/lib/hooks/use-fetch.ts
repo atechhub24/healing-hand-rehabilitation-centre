@@ -12,23 +12,24 @@ import {
 } from "firebase/database";
 import { database } from "../firebase";
 
-interface UseFetchOptions<T> {
+interface UseFetchOptions<T, R = T> {
   filter?: {
     orderBy?: keyof T;
     limit?: number;
     limitToLast?: boolean;
   };
-  transform?: (data: T | null) => T;
+  transform?: (data: T | null) => R;
   nested?: boolean;
+  asArray?: boolean; // New option to return data as array
   realtime?: boolean; // Control whether to use real-time updates
   refetchOnMount?: boolean; // Control whether to refetch when component remounts
 }
 
-export default function useFetch<T extends object>(
+export default function useFetch<T extends object, R = T>(
   path: string,
-  options?: UseFetchOptions<T>
+  options?: UseFetchOptions<T, R>
 ) {
-  const [data, setData] = useState<T | null>(null);
+  const [data, setData] = useState<R | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -38,6 +39,7 @@ export default function useFetch<T extends object>(
       filter: options?.filter,
       transform: options?.transform,
       nested: options?.nested,
+      asArray: options?.asArray,
       realtime: options?.realtime,
       refetchOnMount: options?.refetchOnMount,
     }),
@@ -47,6 +49,7 @@ export default function useFetch<T extends object>(
       options?.filter?.limitToLast,
       options?.transform,
       options?.nested,
+      options?.asArray,
       options?.realtime,
       options?.refetchOnMount,
     ]
@@ -82,19 +85,34 @@ export default function useFetch<T extends object>(
   const processData = useCallback(
     (value: T | null) => {
       const opts = memoizedOptions();
-      if (opts.nested && value) {
-        const entries = Object.entries(value) as [string, Partial<T>][];
-        value = entries.map(([key, val]) => ({
-          id: key,
-          ...val,
-        })) as unknown as T;
+      let processed: any = value;
+
+      // Handle nested data
+      if (opts.nested && processed) {
+        processed = Object.entries(processed).reduce<Record<string, any>>(
+          (acc, [key, val]) => ({
+            ...acc,
+            [key]: typeof val === "object" ? { id: key, ...val } : val,
+          }),
+          {}
+        );
       }
 
+      // Convert to array if requested
+      if (opts.asArray && processed) {
+        processed = Object.entries(processed).map(([key, val]) =>
+          typeof val === "object"
+            ? { id: key, ...val }
+            : { id: key, value: val }
+        );
+      }
+
+      // Apply custom transform
       if (opts.transform) {
-        value = opts.transform(value);
+        processed = opts.transform(processed);
       }
 
-      return value;
+      return processed as R;
     },
     [memoizedOptions]
   );
@@ -150,5 +168,11 @@ export default function useFetch<T extends object>(
     }
   }, [path, memoizedOptions, createQuery, processData, fetchData]);
 
-  return { data, loading, error, refetch } as const;
+  return {
+    data,
+    loading,
+    error,
+    refetch,
+    isArray: options?.asArray ?? false,
+  } as const;
 }

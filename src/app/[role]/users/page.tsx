@@ -57,6 +57,8 @@ export default function UsersPage() {
     refetch,
   } = useFetch<Record<string, User>>("/users", fetchOptions);
 
+  console.log(users);
+
   if (role !== "admin") {
     return null;
   }

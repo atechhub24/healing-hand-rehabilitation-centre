@@ -153,7 +153,7 @@ export default function RegisterPage() {
     );
 
     if (result.success) {
-      router.push("/dashboard");
+      router.push(`/${formData.role}`);
     } else {
       setError("Registration failed. Please try again.");
     }

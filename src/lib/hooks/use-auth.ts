@@ -9,14 +9,18 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
   RecaptchaVerifier,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, database } from "../firebase";
 import { useAuthStore, UserData, UserRole } from "../store/auth-store";
 import useMounted from "./use-mounted";
 import mutateData from "../firebase/mutate-data";
+import { useRouter } from "next/navigation";
 
 export const useAuth = () => {
+  const router = useRouter();
   const [verificationId, setVerificationId] = useState<string>("");
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier | null>(null);
@@ -76,6 +80,9 @@ export const useAuth = () => {
     let unsubscribed = false;
     setLoading(true);
 
+    // Set persistence to LOCAL
+    setPersistence(auth, browserLocalPersistence);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (unsubscribed || !mounted.current) return;
 
@@ -90,21 +97,34 @@ export const useAuth = () => {
             setUserData(userData);
             setRole(userData.role);
             await updateUserLastLogin(user.uid);
+
+            // Only redirect if on auth pages and current path doesn't include role
+            const currentPath = window.location.pathname;
+            if (currentPath.startsWith("/auth")) {
+              router.push(`/${userData.role}`);
+            }
           } else {
-            setUser(null);
-            setUserData(null);
-            setRole(null);
+            await firebaseSignOut(auth);
+            clearAuthStore();
+            if (!window.location.pathname.startsWith("/auth")) {
+              router.push("/auth/login");
+            }
           }
         } else {
-          setUser(null);
-          setUserData(null);
-          setRole(null);
+          clearAuthStore();
+          // Only redirect to login if not on public pages and not already on a role page
+          const currentPath = window.location.pathname;
+          const isPublicPath =
+            currentPath.startsWith("/auth") || currentPath === "/";
+          const hasRoleInPath = currentPath.split("/")[1] === role;
+
+          if (!isPublicPath && !hasRoleInPath) {
+            router.push("/auth/login");
+          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        setUser(null);
-        setUserData(null);
-        setRole(null);
+        clearAuthStore();
       } finally {
         setLoading(false);
         setInitialized(true);
@@ -118,7 +138,17 @@ export const useAuth = () => {
         recaptchaVerifier.clear();
       }
     };
-  }, [mounted, setUser, setUserData, setRole, setLoading, setInitialized]);
+  }, [
+    mounted,
+    setUser,
+    setUserData,
+    setRole,
+    setLoading,
+    setInitialized,
+    router,
+    clearAuthStore,
+    role,
+  ]);
 
   const initRecaptcha = () => {
     try {
@@ -157,6 +187,11 @@ export const useAuth = () => {
       const snapshot = await get(userRef);
       const userData = snapshot.val();
 
+      if (userData) {
+        setUserData(userData);
+        router.push(`/${userData.role}`);
+      }
+
       return { success: true, user: userCredential.user, role: userData?.role };
     } catch (error) {
       return { success: false, error };
@@ -188,6 +223,7 @@ export const useAuth = () => {
         true
       );
       setUserData(newUserData as UserData);
+      router.push(`/${role}`);
       return { success: true, user: userCredential.user };
     } catch (error) {
       return { success: false, error };
@@ -235,6 +271,7 @@ export const useAuth = () => {
       );
 
       setUserData(newUserData as UserData);
+      router.push(`/${role}`);
       return {
         success: true,
         user: userCredential.user,
@@ -250,26 +287,24 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      setLoading(true);
       await firebaseSignOut(auth);
       clearAuthStore();
-      return { success: true };
+      router.push("/auth/login");
     } catch (error) {
-      return { success: false, error };
-    } finally {
-      setLoading(false);
+      console.error("Error signing out:", error);
     }
   };
 
   return {
-    signInWithEmail,
-    signUpWithEmail,
-    signInWithPhone,
-    verifyOTP,
-    signOut,
     user,
     role,
     isLoading,
     isInitialized,
+    signInWithEmail,
+    signUpWithEmail,
+    signOut,
+    verificationId,
+    setVerificationId,
+    initRecaptcha,
   };
 };

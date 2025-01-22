@@ -1,6 +1,5 @@
 import { auth, database } from "@/lib/firebase";
 import { ref, remove, set, update } from "firebase/database";
-import { createRouteLoader } from "next/dist/client/route-loader";
 
 const generateSystemInfo = () => {
   const timestamp = new Date().toISOString();

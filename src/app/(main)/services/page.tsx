@@ -11,6 +11,7 @@ import {
   TestTube,
   Users,
 } from "lucide-react";
+import { Testimonials } from "@/components/ui/testimonials";
 
 const services = [
   {
@@ -56,6 +57,51 @@ const services = [
     description:
       "Round-the-clock access to healthcare professionals for emergencies.",
     icon: <Clock className="h-6 w-6" />,
+  },
+];
+
+const testimonials = [
+  {
+    image: "/testimonials/patient1.jpg",
+    name: "Sarah Johnson",
+    username: "@sarah_j",
+    text: "Healthcare+ has made managing my family's health so much easier. The online consultations are incredibly convenient, and the doctors are very professional.",
+    social: "https://twitter.com",
+  },
+  {
+    image: "/testimonials/patient2.jpg",
+    name: "Michael Chen",
+    username: "@mike_chen",
+    text: "The lab test booking feature is fantastic! Got my results quickly and the whole process was seamless. Highly recommend this platform.",
+    social: "https://twitter.com",
+  },
+  {
+    image: "/testimonials/patient3.jpg",
+    name: "Emily Rodriguez",
+    username: "@em_rod",
+    text: "I needed urgent care while traveling, and Healthcare+ connected me with a local doctor within minutes. This service is a lifesaver!",
+    social: "https://twitter.com",
+  },
+  {
+    image: "/testimonials/patient4.jpg",
+    name: "David Wilson",
+    username: "@dave_wil",
+    text: "The digital health records feature helps me keep track of all my medical history in one place. No more carrying papers around!",
+    social: "https://twitter.com",
+  },
+  {
+    image: "/testimonials/patient5.jpg",
+    name: "Priya Patel",
+    username: "@priya_p",
+    text: "As a busy professional, the 24/7 support and quick appointment booking have been invaluable. The platform is user-friendly and efficient.",
+    social: "https://twitter.com",
+  },
+  {
+    image: "/testimonials/patient6.jpg",
+    name: "James Thompson",
+    username: "@james_t",
+    text: "The emergency services response time is impressive. When my son had an accident, we got immediate assistance. Thank you Healthcare+!",
+    social: "https://twitter.com",
   },
 ];
 
@@ -121,6 +167,17 @@ export default function ServicesPage() {
             <Feature key={service.title} {...service} index={index} />
           ))}
         </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="bg-gray-50 py-20">
+        <Testimonials
+          testimonials={testimonials}
+          title="What Our Users Say"
+          description="Real experiences from people who have transformed their healthcare journey with our platform."
+          maxDisplayed={6}
+          className="container mx-auto px-4"
+        />
       </div>
     </div>
   );

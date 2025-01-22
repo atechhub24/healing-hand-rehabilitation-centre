@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import {
   signInWithEmailAndPassword,
@@ -8,9 +10,11 @@ import {
   signInWithCredential,
   RecaptchaVerifier,
 } from "firebase/auth";
-import { ref, set, get, update } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { auth, database } from "../firebase";
 import { useAuthStore, UserData, UserRole } from "../store/auth-store";
+import useMounted from "./use-mounted";
+import mutateData from "../firebase/mutate-data";
 
 export const useAuth = () => {
   const [verificationId, setVerificationId] = useState<string>("");
@@ -29,10 +33,14 @@ export const useAuth = () => {
     isInitialized,
   } = useAuthStore();
 
+  const { mounted } = useMounted();
+
   const updateUserLastLogin = async (uid: string) => {
-    const userRef = ref(database, `users/${uid}`);
-    await update(userRef, {
-      lastLogin: new Date().toISOString(),
+    const lastLogin = new Date();
+    await mutateData({
+      path: `users/${uid}`,
+      data: { lastLogin: lastLogin.toISOString() },
+      action: "update",
     });
   };
 
@@ -41,18 +49,26 @@ export const useAuth = () => {
     data: Partial<UserData>,
     isNewUser: boolean = false
   ) => {
-    const userRef = ref(database, `users/${uid}`);
-    const currentData = isNewUser ? {} : (await get(userRef)).val();
-
+    const action = isNewUser ? "create" : "update";
     const updatedData = {
-      ...currentData,
       ...data,
       uid,
-      lastLogin: new Date().toISOString(),
-      ...(isNewUser && { createdAt: new Date().toISOString() }),
+      lastLogin: new Date(),
+      ...(isNewUser && { createdAt: new Date() }),
     };
 
-    await set(userRef, updatedData);
+    await mutateData({
+      path: `users/${uid}`,
+      data: {
+        ...updatedData,
+        lastLogin: updatedData.lastLogin.toISOString(),
+        ...(updatedData.createdAt && {
+          createdAt: updatedData.createdAt.toISOString(),
+        }),
+      },
+      action,
+    });
+
     return updatedData;
   };
 
@@ -61,7 +77,7 @@ export const useAuth = () => {
     setLoading(true);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (unsubscribed) return;
+      if (unsubscribed || !mounted.current) return;
 
       try {
         if (user) {
@@ -102,7 +118,7 @@ export const useAuth = () => {
         recaptchaVerifier.clear();
       }
     };
-  }, [setUser, setUserData, setRole, setLoading, setInitialized]);
+  }, [mounted, setUser, setUserData, setRole, setLoading, setInitialized]);
 
   const initRecaptcha = () => {
     try {
@@ -141,7 +157,7 @@ export const useAuth = () => {
       const snapshot = await get(userRef);
       const userData = snapshot.val();
 
-      return { success: true, user: userCredential.user, role: userData.role };
+      return { success: true, user: userCredential.user, role: userData?.role };
     } catch (error) {
       return { success: false, error };
     } finally {

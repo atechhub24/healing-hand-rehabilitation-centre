@@ -23,9 +23,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
-import { ref, set } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/lib/firebase/create-user";
+import mutateData from "@/lib/firebase/mutate-data";
 
 export default function NewParamedicPage() {
   const router = useRouter();
@@ -59,22 +59,43 @@ export default function NewParamedicPage() {
     setIsSaving(true);
     setError("");
 
-    const paramedicData = {
-      ...formData,
-      role: "paramedic",
-      experience: parseInt(formData.experience),
-      createdAt: new Date().toISOString(),
-    };
-
     try {
-      const newParamedicRef = ref(database, `/paramedics/${Date.now()}`);
-      await set(newParamedicRef, paramedicData);
+      // First create the user authentication
+      const authResponse = await createUser(formData.email, formData.password);
+      console.log({ authResponse });
+      if (!authResponse.localId) {
+        throw new Error("Failed to create user authentication");
+      }
+
+      // Prepare the paramedic data
+      const paramedicData = {
+        email: formData.email,
+        name: formData.name,
+        qualification: formData.qualification,
+        specialization: formData.specialization,
+        experience: parseInt(formData.experience),
+        availability: formData.availability,
+        serviceArea: formData.serviceArea,
+        role: "paramedic",
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        uid: authResponse.localId,
+      };
+
+      // Store the paramedic data in the database
+      await mutateData({
+        path: `/users/${authResponse.localId}`,
+        data: paramedicData,
+        action: "create",
+      });
+
       toast({
         title: "Success",
         description: "Paramedic created successfully",
       });
       router.push(`/${role}/manage/paramedics`);
     } catch (error) {
+      console.error("Error creating paramedic:", error);
       setError("Failed to create paramedic. Please try again.");
       toast({
         variant: "destructive",

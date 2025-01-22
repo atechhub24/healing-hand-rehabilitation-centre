@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,10 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import useFetch from "@/lib/hooks/use-fetch";
+import { database } from "@/lib/firebase";
+import { ref, update } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
 
 interface ClinicAddress {
   address: string;
@@ -38,177 +42,180 @@ interface ClinicAddress {
 }
 
 interface Doctor {
-  id: string;
+  uid: string;
   email: string;
-  password: string;
   name: string;
   qualification: string;
   specialization: string;
   experience: number;
   clinicAddresses: ClinicAddress[];
+  role: string;
+  createdAt: string;
+  lastLogin: string;
+  location: string;
 }
 
-export default function EditDoctorPage({ params }: { params: { id: string } }) {
+interface PageParams {
+  role: string;
+  id: string;
+}
+
+const defaultClinicAddress: ClinicAddress = {
+  address: "",
+  city: "",
+  state: "",
+  pincode: "",
+  timings: {
+    startTime: "09:00",
+    endTime: "17:00",
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+  },
+};
+
+export default function EditDoctorPage() {
   const router = useRouter();
-  const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
+  const rawParams = useParams();
+  const params: PageParams = {
+    role: rawParams.role as string,
+    id: rawParams.id as string,
+  };
+  const { role } = params;
+  const doctorId = params.id;
+
+  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([]);
+
+  const [doctor, isLoading] = useFetch<Doctor>(`/users/${doctorId}`, {
+    needRaw: true,
+  });
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+  console.log({ doctor });
+
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
     name: "",
     qualification: "",
     specialization: "",
     experience: "",
-    clinicAddresses: [
-      {
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        timings: {
-          startTime: "09:00",
-          endTime: "17:00",
-          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        },
-      },
-    ],
+    clinicAddresses: [defaultClinicAddress],
   });
 
   useEffect(() => {
-    const fetchDoctor = async () => {
+    if (doctor && !isFormInitialized) {
+      setFormData({
+        email: doctor.email || "",
+        name: doctor.name || "",
+        qualification: doctor.qualification || "",
+        specialization: doctor.specialization || "",
+        experience: doctor.experience?.toString() || "",
+        clinicAddresses: doctor.clinicAddresses || [defaultClinicAddress],
+      });
+      setIsFormInitialized(true);
+    }
+  }, [doctor, isFormInitialized]);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsSaving(true);
+      setError("");
+
+      const doctorData = {
+        ...formData,
+        experience: parseInt(formData.experience),
+        role: "doctor",
+      };
+
       try {
-        // TODO: Implement API call to fetch doctor
-        const doctor: Doctor = {
-          id: params.id,
-          email: "doctor@example.com",
-          password: "",
-          name: "Dr. John Doe",
-          qualification: "MBBS, MD",
-          specialization: "Cardiology",
-          experience: 10,
-          clinicAddresses: [
-            {
-              address: "123 Medical Plaza",
-              city: "Mumbai",
-              state: "Maharashtra",
-              pincode: "400001",
-              timings: {
-                startTime: "09:00",
-                endTime: "17:00",
-                days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-              },
-            },
-          ],
-        };
-
-        setFormData({
-          email: doctor.email,
-          password: doctor.password,
-          name: doctor.name,
-          qualification: doctor.qualification,
-          specialization: doctor.specialization,
-          experience: doctor.experience.toString(),
-          clinicAddresses: doctor.clinicAddresses,
+        const doctorRef = ref(database, `/doctors/${doctorId}`);
+        await update(doctorRef, doctorData);
+        toast({
+          title: "Success",
+          description: "Doctor updated successfully",
         });
-        setClinicAddresses(doctor.clinicAddresses);
-        setIsLoading(false);
+        router.push(`/${role}/manage/doctors`);
       } catch (error) {
-        setError("Failed to fetch doctor details.");
-        setIsLoading(false);
+        setError("Failed to update doctor. Please try again.");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to update doctor",
+        });
       }
-    };
+      setIsSaving(false);
+    },
+    [formData, doctorId, role, router, toast]
+  );
 
-    fetchDoctor();
-  }, [params.id]);
+  const handleChange = useCallback(
+    (
+      e:
+        | React.ChangeEvent<HTMLInputElement>
+        | { target: { name: string; value: string } }
+    ) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setError("");
+  const handleClinicAddressChange = useCallback(
+    (
+      index: number,
+      field: keyof Omit<ClinicAddress, "timings">,
+      value: string
+    ) => {
+      setFormData((prev) => {
+        const newAddresses = [...prev.clinicAddresses];
+        newAddresses[index] = { ...newAddresses[index], [field]: value };
+        return { ...prev, clinicAddresses: newAddresses };
+      });
+    },
+    []
+  );
 
-    const doctorData = {
-      ...formData,
-      experience: parseInt(formData.experience),
-      clinicAddresses,
-    };
+  const handleTimingsChange = useCallback(
+    (
+      index: number,
+      field: keyof ClinicAddress["timings"],
+      value: string | string[]
+    ) => {
+      setFormData((prev) => {
+        const newAddresses = [...prev.clinicAddresses];
+        newAddresses[index] = {
+          ...newAddresses[index],
+          timings: {
+            ...newAddresses[index].timings,
+            [field]: value,
+          },
+        };
+        return { ...prev, clinicAddresses: newAddresses };
+      });
+    },
+    []
+  );
 
-    try {
-      // TODO: Implement API call to update doctor
-      router.push(`/${role}/manage/doctors`);
-    } catch (error) {
-      setError("Failed to update doctor. Please try again.");
-    }
-    setIsSaving(false);
-  };
+  const addClinicAddress = useCallback(() => {
+    setFormData((prev) => ({
+      ...prev,
+      clinicAddresses: [...prev.clinicAddresses, { ...defaultClinicAddress }],
+    }));
+  }, []);
 
-  const handleChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement>
-      | { target: { name: string; value: string } }
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleClinicAddressChange = (
-    index: number,
-    field: keyof Omit<ClinicAddress, "timings">,
-    value: string
-  ) => {
-    const newAddresses = [...clinicAddresses];
-    newAddresses[index] = { ...newAddresses[index], [field]: value };
-    setClinicAddresses(newAddresses);
-  };
-
-  const handleTimingsChange = (
-    index: number,
-    field: keyof ClinicAddress["timings"],
-    value: string | string[]
-  ) => {
-    const newAddresses = [...clinicAddresses];
-    newAddresses[index] = {
-      ...newAddresses[index],
-      timings: {
-        ...newAddresses[index].timings,
-        [field]: value,
-      },
-    };
-    setClinicAddresses(newAddresses);
-  };
-
-  const addClinicAddress = () => {
-    setClinicAddresses([
-      ...clinicAddresses,
-      {
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        timings: {
-          startTime: "09:00",
-          endTime: "17:00",
-          days: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ],
-        },
-      },
-    ]);
-  };
-
-  const removeClinicAddress = (index: number) => {
-    if (clinicAddresses.length > 1) {
-      setClinicAddresses(clinicAddresses.filter((_, i) => i !== index));
-    }
-  };
+  const removeClinicAddress = useCallback(
+    (index: number) => {
+      if (formData.clinicAddresses.length > 1) {
+        setFormData((prev) => ({
+          ...prev,
+          clinicAddresses: prev.clinicAddresses.filter((_, i) => i !== index),
+        }));
+      }
+    },
+    [formData.clinicAddresses.length]
+  );
 
   if (isLoading) {
     return (
@@ -246,28 +253,6 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
                   required
                   className="pl-10"
                 />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password (leave empty to keep unchanged)"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
               </div>
             </div>
           </div>
@@ -343,11 +328,11 @@ export default function EditDoctorPage({ params }: { params: { id: string } }) {
               </Button>
             </div>
 
-            {clinicAddresses.map((clinic, index) => (
+            {formData.clinicAddresses.map((clinic, index) => (
               <div key={index} className="space-y-4 border rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-medium">Clinic {index + 1}</h3>
-                  {clinicAddresses.length > 1 && (
+                  {formData.clinicAddresses.length > 1 && (
                     <Button
                       type="button"
                       variant="ghost"

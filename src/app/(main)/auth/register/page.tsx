@@ -23,6 +23,8 @@ import {
   UserCheck,
   Plus,
   X,
+  FileText,
+  Clock,
 } from "lucide-react";
 
 type UserRole = "doctor" | "paramedic" | "lab";
@@ -49,6 +51,12 @@ interface LabAddress {
     endTime: string;
     days: string[];
   };
+}
+
+interface Test {
+  name: string;
+  price: string;
+  turnaroundTime: string;
 }
 
 export default function RegisterPage() {
@@ -100,6 +108,10 @@ export default function RegisterPage() {
     },
   ]);
 
+  const [tests, setTests] = useState<Test[]>([
+    { name: "", price: "", turnaroundTime: "" },
+  ]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -119,6 +131,7 @@ export default function RegisterPage() {
     startTime: "09:00",
     endTime: "17:00",
     workingDays: "Monday,Tuesday,Wednesday,Thursday,Friday",
+    license: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -137,12 +150,21 @@ export default function RegisterPage() {
       qualification: formData.qualification,
       specialization: formData.specialization,
       experience: parseInt(formData.experience),
-      location: formData.location,
-      ...(formData.role === "doctor" && { clinicAddresses }),
+      address: formData.role === "lab" ? formData.address : undefined,
+      ...(formData.role === "doctor" && {
+        clinicAddresses,
+        location: clinicAddresses[0]?.address || "",
+      }),
       ...(formData.role === "paramedic" && {
         certifications: formData.certifications,
+        location: `${formData.city}, ${formData.state}`,
       }),
-      ...(formData.role === "lab" && { labAddresses }),
+      ...(formData.role === "lab" && {
+        license: formData.license,
+        location: formData.address,
+      }),
+      createdAt: new Date(),
+      lastLogin: new Date(),
     };
 
     const result = await signUpWithEmail(
@@ -278,6 +300,26 @@ export default function RegisterPage() {
   const removeLabAddress = (index: number) => {
     if (labAddresses.length > 1) {
       setLabAddresses(labAddresses.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleTestChange = (
+    index: number,
+    field: keyof Test,
+    value: string
+  ) => {
+    const newTests = [...tests];
+    newTests[index] = { ...newTests[index], [field]: value };
+    setTests(newTests);
+  };
+
+  const addTest = () => {
+    setTests([...tests, { name: "", price: "", turnaroundTime: "" }]);
+  };
+
+  const removeTest = (index: number) => {
+    if (tests.length > 1) {
+      setTests(tests.filter((_, i) => i !== index));
     }
   };
 
@@ -581,173 +623,163 @@ export default function RegisterPage() {
             )}
 
             {formData.role === "paramedic" && (
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  name="certifications"
-                  placeholder="Professional Certifications"
-                  value={formData.certifications}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
+              <>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="certifications"
+                    placeholder="Professional Certifications"
+                    value={formData.certifications}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Select
+                    value={formData.workingDays}
+                    onValueChange={(value) =>
+                      handleChange({ target: { name: "workingDays", value } })
+                    }
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Working Days" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
+                        Weekdays
+                      </SelectItem>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+                        Weekdays + Saturday
+                      </SelectItem>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
+                        All Days
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Start Time
+                    </label>
+                    <Input
+                      type="time"
+                      name="startTime"
+                      value={formData.startTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      End Time
+                    </label>
+                    <Input
+                      type="time"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             {formData.role === "lab" && (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-medium">Laboratory Addresses</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addLabAddress}
-                    className="flex items-center gap-1.5"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Another Laboratory
-                  </Button>
+              <>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="license"
+                    placeholder="Laboratory License Number"
+                    value={formData.license}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
                 </div>
-                {labAddresses.map((lab, index) => (
-                  <div key={index} className="space-y-3 border rounded-lg p-3">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-medium">
-                        Laboratory {index + 1}
-                      </h4>
-                      {labAddresses.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLabAddress(index)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
 
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        type="text"
-                        placeholder="Laboratory Address"
-                        value={lab.address}
-                        onChange={(e) =>
-                          handleLabAddressChange(
-                            index,
-                            "address",
-                            e.target.value
-                          )
-                        }
-                        required
-                        className="pl-9"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        type="text"
-                        placeholder="City"
-                        value={lab.city}
-                        onChange={(e) =>
-                          handleLabAddressChange(index, "city", e.target.value)
-                        }
-                        required
-                      />
-                      <Input
-                        type="text"
-                        placeholder="State"
-                        value={lab.state}
-                        onChange={(e) =>
-                          handleLabAddressChange(index, "state", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        type="text"
-                        placeholder="PIN Code"
-                        value={lab.pincode}
-                        onChange={(e) =>
-                          handleLabAddressChange(
-                            index,
-                            "pincode",
-                            e.target.value
-                          )
-                        }
-                        required
-                      />
-                      <Select
-                        value={lab.timings.days.join(",")}
-                        onValueChange={(value) =>
-                          handleLabTimingsChange(
-                            index,
-                            "days",
-                            value.split(",")
-                          )
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Working Days" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
-                            Weekdays
-                          </SelectItem>
-                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                            Weekdays + Saturday
-                          </SelectItem>
-                          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
-                            All Days
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-gray-500 mb-1 block">
-                          Opening Time
-                        </label>
-                        <Input
-                          type="time"
-                          value={lab.timings.startTime}
-                          onChange={(e) =>
-                            handleLabTimingsChange(
-                              index,
-                              "startTime",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-500 mb-1 block">
-                          Closing Time
-                        </label>
-                        <Input
-                          type="time"
-                          value={lab.timings.endTime}
-                          onChange={(e) =>
-                            handleLabTimingsChange(
-                              index,
-                              "endTime",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium">Test Services</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addTest}
+                      className="flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Test
+                    </Button>
                   </div>
-                ))}
-              </div>
+                  {tests.map((test, index) => (
+                    <div
+                      key={index}
+                      className="space-y-3 border rounded-lg p-3"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-medium">
+                          Test {index + 1}
+                        </h4>
+                        {tests.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeTest(index)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <Input
+                        type="text"
+                        placeholder="Test Name"
+                        value={test.name}
+                        onChange={(e) =>
+                          handleTestChange(index, "name", e.target.value)
+                        }
+                        required
+                      />
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Price"
+                          value={test.price}
+                          onChange={(e) =>
+                            handleTestChange(index, "price", e.target.value)
+                          }
+                          required
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Turnaround Time"
+                          value={test.turnaroundTime}
+                          onChange={(e) =>
+                            handleTestChange(
+                              index,
+                              "turnaroundTime",
+                              e.target.value
+                            )
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

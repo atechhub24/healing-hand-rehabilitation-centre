@@ -23,13 +23,12 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
-import { ref, update } from "firebase/database";
-import { useToast } from "@/hooks/use-toast";
 import useFetch from "@/lib/hooks/use-fetch";
+import { useToast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
 
 interface Paramedic {
-  id: string;
+  uid: string;
   email: string;
   name: string;
   role: string;
@@ -47,6 +46,7 @@ interface Paramedic {
     pincode: string;
   };
   createdAt: string;
+  lastLogin: string;
 }
 
 interface PageParams {
@@ -77,7 +77,6 @@ export default function EditParamedicPage() {
   const [formData, setFormData] = useState({
     email: "",
     name: "",
-    password: "",
     qualification: "",
     specialization: "",
     experience: "",
@@ -98,7 +97,6 @@ export default function EditParamedicPage() {
       setFormData({
         email: paramedic.email || "",
         name: paramedic.name || "",
-        password: "",
         qualification: paramedic.qualification || "",
         specialization: paramedic.specialization || "",
         experience: paramedic.experience?.toString() || "",
@@ -122,21 +120,33 @@ export default function EditParamedicPage() {
     setIsSaving(true);
     setError("");
 
-    const paramedicData = {
-      ...formData,
-      role: "paramedic",
-      experience: parseInt(formData.experience),
-    };
-
     try {
-      const paramedicRef = ref(database, `/paramedics/${paramedicId}`);
-      await update(paramedicRef, paramedicData);
+      // Prepare the paramedic data - remove email from update data
+      const paramedicData = {
+        name: formData.name,
+        qualification: formData.qualification,
+        specialization: formData.specialization,
+        experience: parseInt(formData.experience),
+        availability: formData.availability,
+        serviceArea: formData.serviceArea,
+        role: "paramedic",
+        lastLogin: new Date().toISOString(),
+      };
+
+      // Update the paramedic data in the database
+      await mutateData({
+        path: `/users/${paramedicId}`,
+        data: paramedicData,
+        action: "update",
+      });
+
       toast({
         title: "Success",
         description: "Paramedic updated successfully",
       });
       router.push(`/${role}/manage/paramedics`);
     } catch (error) {
+      console.error("Error updating paramedic:", error);
       setError("Failed to update paramedic. Please try again.");
       toast({
         variant: "destructive",
@@ -214,32 +224,9 @@ export default function EditParamedicPage() {
                   name="email"
                   placeholder="Email"
                   value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
+                  disabled
+                  className="pl-10 bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password (leave empty to keep unchanged)"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
               </div>
             </div>
           </div>

@@ -1,10 +1,8 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Users, Mail, Phone, Calendar } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
-import { useMemo, useCallback } from "react";
+import { Users } from "lucide-react";
 
 interface User {
   id?: string;
@@ -24,21 +22,9 @@ interface User {
 }
 
 export default function UsersPage() {
-  const params = useParams();
   const { role } = useAuth();
 
-  // Memoize the transform function
-  const transformUsers = useCallback((data: Record<string, User> | null) => {
-    if (!data) return [];
-    return Object.values(data).map((user) => ({
-      ...user,
-      status: "active" as const,
-    }));
-  }, []);
-
   const [users, loading] = useFetch<User[]>("/users", {});
-
-  console.log(users);
 
   if (role !== "admin") {
     return null;

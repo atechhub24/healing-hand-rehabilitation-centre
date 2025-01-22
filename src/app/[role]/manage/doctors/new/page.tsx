@@ -24,6 +24,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/lib/firebase/create-user";
+import mutateData from "@/lib/firebase/mutate-data";
 
 interface ClinicAddress {
   address: string;
@@ -40,7 +43,8 @@ interface ClinicAddress {
 export default function NewDoctorPage() {
   const router = useRouter();
   const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
@@ -88,22 +92,53 @@ export default function NewDoctorPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     setError("");
 
-    const doctorData = {
-      ...formData,
-      experience: parseInt(formData.experience),
-      clinicAddresses,
-    };
-
     try {
-      // TODO: Implement API call to create doctor
+      // First create the user authentication
+      const authResponse = await createUser(formData.email, formData.password);
+
+      if (!authResponse.localId) {
+        throw new Error("Failed to create user authentication");
+      }
+
+      // Prepare the doctor data
+      const doctorData = {
+        email: formData.email,
+        name: formData.name,
+        qualification: formData.qualification,
+        specialization: formData.specialization,
+        experience: parseInt(formData.experience),
+        clinicAddresses,
+        role: "doctor",
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        uid: authResponse.localId,
+      };
+
+      // Store the doctor data in the database
+      await mutateData({
+        path: `/users/${authResponse.localId}`,
+        data: doctorData,
+        action: "create",
+      });
+
+      toast({
+        title: "Success",
+        description: "Doctor created successfully",
+      });
       router.push(`/${role}/manage/doctors`);
     } catch (error) {
+      console.error("Error creating doctor:", error);
       setError("Failed to create doctor. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create doctor",
+      });
     }
-    setIsLoading(false);
+    setIsSaving(false);
   };
 
   const handleChange = (
@@ -434,8 +469,8 @@ export default function NewDoctorPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Doctor"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Creating..." : "Create Doctor"}
             </Button>
           </div>
         </form>

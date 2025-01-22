@@ -32,31 +32,11 @@ export default function UsersPage() {
     if (!data) return [];
     return Object.values(data).map((user) => ({
       ...user,
-      status: "active" as const, // Explicitly type the status
+      status: "active" as const,
     }));
-  }, []); // Empty deps array since transform logic is static
+  }, []);
 
-  // Memoize the entire options object
-  const fetchOptions = useMemo(
-    () => ({
-      nested: true,
-      realtime: true,
-      asArray: true,
-      filter: {
-        orderBy: "createdAt",
-        limitToLast: true,
-        limit: 50,
-      },
-      transform: transformUsers,
-    }),
-    [transformUsers]
-  ); // Only depends on transformUsers
-
-  const {
-    data: users,
-    loading,
-    error,
-  } = useFetch<Record<string, User>, User[]>("/users", fetchOptions);
+  const [users, loading] = useFetch<User[]>("/users", {});
 
   console.log(users);
 
@@ -65,7 +45,7 @@ export default function UsersPage() {
   }
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (!users) return <div>No users found</div>;
 
   return (
     <div className="space-y-6">

@@ -16,14 +16,11 @@ export const deleteUser = async (email: string, password: string) => {
       throw new Error(data.error.message);
     }
     const idToken = data.idToken;
-    const deleteUserResponse = await fetch(
-      `${authUrl}:deleteAccount?key=${authKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      }
-    );
+    const deleteUserResponse = await fetch(`${authUrl}:delete?key=${authKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
     const deleteUserData = await deleteUserResponse.json();
     return deleteUserData;
   } catch (error) {

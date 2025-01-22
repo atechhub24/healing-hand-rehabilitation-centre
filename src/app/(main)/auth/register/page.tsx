@@ -688,6 +688,45 @@ export default function RegisterPage() {
                     />
                   </div>
                 </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="state"
+                    placeholder="State"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="pincode"
+                    placeholder="PIN Code"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
               </>
             )}
 
@@ -704,6 +743,110 @@ export default function RegisterPage() {
                     required
                     className="pl-10"
                   />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="address"
+                    placeholder="Laboratory Address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="state"
+                    placeholder="State"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    name="pincode"
+                    placeholder="PIN Code"
+                    value={formData.pincode}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Select
+                    value={formData.workingDays}
+                    onValueChange={(value) =>
+                      handleChange({ target: { name: "workingDays", value } })
+                    }
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Working Days" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
+                        Weekdays
+                      </SelectItem>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+                        Weekdays + Saturday
+                      </SelectItem>
+                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
+                        All Days
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Opening Time
+                    </label>
+                    <Input
+                      type="time"
+                      name="startTime"
+                      value={formData.startTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">
+                      Closing Time
+                    </label>
+                    <Input
+                      type="time"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">

@@ -80,7 +80,7 @@ export default function useFetch<T>(
   if (Array.isArray(state.data)) {
     filteredData = state.data.filter(filter) as T;
   } else if (typeof state.data === "object" && state.data !== null) {
-    filteredData = Object.values(state.data).filter(filter) as T;
+    filteredData = state.data;
   }
 
   return [filteredData, state.isLoading];

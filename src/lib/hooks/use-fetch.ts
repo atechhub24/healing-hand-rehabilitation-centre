@@ -50,7 +50,7 @@ export default function useFetch<T>(
   path: string,
   options: FetchOptions<T> = {}
 ): [T | null, boolean] {
-  const { needRaw = false, needNested = false } = options;
+  const { needRaw = false, needNested = false, filter = () => true } = options;
 
   const [state, dispatch] = useReducer(dataReducer<T>, {
     data: null,
@@ -74,5 +74,14 @@ export default function useFetch<T>(
     return () => unsubscribe();
   }, [mounted, path]);
 
-  return [state.data, state.isLoading];
+  // filter the data
+
+  let filteredData = state.data;
+  if (Array.isArray(state.data)) {
+    filteredData = state.data.filter(filter) as T;
+  } else if (typeof state.data === "object" && state.data !== null) {
+    filteredData = Object.values(state.data).filter(filter) as T;
+  }
+
+  return [filteredData, state.isLoading];
 }

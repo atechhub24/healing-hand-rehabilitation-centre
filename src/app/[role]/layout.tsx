@@ -22,6 +22,7 @@ import {
   UserCog,
   Microscope,
 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
 
 const roleConfig = {
   admin: {
@@ -213,6 +214,7 @@ export default function RoleBasedLayout({
           <div className="container mx-auto p-6">{children}</div>
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }

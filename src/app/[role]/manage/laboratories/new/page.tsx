@@ -25,9 +25,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
-import { ref, set } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/lib/firebase/create-user";
+import mutateData from "@/lib/firebase/mutate-data";
 
 interface Test {
   name: string;
@@ -44,9 +44,9 @@ export default function NewLaboratoryPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
+    name: "",
     license: "",
     address: {
       street: "",
@@ -70,24 +70,44 @@ export default function NewLaboratoryPage() {
     setIsSaving(true);
     setError("");
 
-    const laboratoryData = {
-      ...formData,
-      role: "laboratory",
-      tests: tests.filter(
-        (test) => test.name && test.price && test.turnaroundTime
-      ),
-      createdAt: new Date().toISOString(),
-    };
-
     try {
-      const newLaboratoryRef = ref(database, `/laboratories/${Date.now()}`);
-      await set(newLaboratoryRef, laboratoryData);
+      // First create the user authentication
+      const authResponse = await createUser(formData.email, formData.password);
+
+      if (!authResponse.localId) {
+        throw new Error("Failed to create user authentication");
+      }
+
+      // Prepare the laboratory data
+      const laboratoryData = {
+        email: formData.email,
+        name: formData.name,
+        license: formData.license,
+        address: formData.address,
+        operatingHours: formData.operatingHours,
+        tests: tests.filter(
+          (test) => test.name && test.price && test.turnaroundTime
+        ),
+        role: "laboratory",
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        uid: authResponse.localId,
+      };
+
+      // Store the laboratory data in the database
+      await mutateData({
+        path: `/users/${authResponse.localId}`,
+        data: laboratoryData,
+        action: "create",
+      });
+
       toast({
         title: "Success",
         description: "Laboratory created successfully",
       });
       router.push(`/${role}/manage/laboratories`);
     } catch (error) {
+      console.error("Error creating laboratory:", error);
       setError("Failed to create laboratory. Please try again.");
       toast({
         variant: "destructive",

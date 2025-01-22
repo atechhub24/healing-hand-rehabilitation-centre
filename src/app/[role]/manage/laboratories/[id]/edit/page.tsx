@@ -25,10 +25,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
-import { ref, update } from "firebase/database";
-import { useToast } from "@/hooks/use-toast";
 import useFetch from "@/lib/hooks/use-fetch";
+import { useToast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
 
 interface Test {
   name: string;
@@ -37,7 +36,7 @@ interface Test {
 }
 
 interface Laboratory {
-  id: string;
+  uid: string;
   email: string;
   name: string;
   license: string;
@@ -55,6 +54,7 @@ interface Laboratory {
   };
   tests: Test[];
   createdAt: string;
+  lastLogin: string;
 }
 
 interface PageParams {
@@ -75,7 +75,6 @@ export default function EditLaboratoryPage() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   const [laboratory, isLoading] = useFetch<Laboratory>(
     `/users/${laboratoryId}`,
@@ -88,7 +87,6 @@ export default function EditLaboratoryPage() {
   const [formData, setFormData] = useState({
     email: "",
     name: "",
-    password: "",
     license: "",
     address: {
       street: "",
@@ -112,7 +110,6 @@ export default function EditLaboratoryPage() {
       setFormData({
         email: laboratory.email || "",
         name: laboratory.name || "",
-        password: "",
         license: laboratory.license || "",
         address: laboratory.address || {
           street: "",
@@ -138,23 +135,34 @@ export default function EditLaboratoryPage() {
     setIsSaving(true);
     setError("");
 
-    const laboratoryData = {
-      ...formData,
-      tests: tests.filter(
-        (test) => test.name && test.price && test.turnaroundTime
-      ),
-      role: "laboratory",
-    };
-
     try {
-      const laboratoryRef = ref(database, `/laboratories/${laboratoryId}`);
-      await update(laboratoryRef, laboratoryData);
+      // Prepare the laboratory data - remove email from update data
+      const laboratoryData = {
+        name: formData.name,
+        license: formData.license,
+        address: formData.address,
+        operatingHours: formData.operatingHours,
+        tests: tests.filter(
+          (test) => test.name && test.price && test.turnaroundTime
+        ),
+        role: "laboratory",
+        lastLogin: new Date().toISOString(),
+      };
+
+      // Update the laboratory data in the database
+      await mutateData({
+        path: `/users/${laboratoryId}`,
+        data: laboratoryData,
+        action: "update",
+      });
+
       toast({
         title: "Success",
         description: "Laboratory updated successfully",
       });
       router.push(`/${role}/manage/laboratories`);
     } catch (error) {
+      console.error("Error updating laboratory:", error);
       setError("Failed to update laboratory. Please try again.");
       toast({
         variant: "destructive",
@@ -252,32 +260,9 @@ export default function EditLaboratoryPage() {
                   name="email"
                   placeholder="Email"
                   value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
+                  disabled
+                  className="pl-10 bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password (leave empty to keep unchanged)"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
               </div>
             </div>
           </div>

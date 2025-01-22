@@ -23,12 +23,16 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import { database } from "@/lib/firebase";
+import { ref, update } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
+import useFetch from "@/lib/hooks/use-fetch";
 
 interface Paramedic {
   id: string;
-  name: string;
   email: string;
-  password: string;
+  name: string;
+  role: string;
   qualification: string;
   specialization: string;
   experience: number;
@@ -42,24 +46,38 @@ interface Paramedic {
     state: string;
     pincode: string;
   };
+  createdAt: string;
 }
 
-export default function EditParamedicPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface PageParams {
+  role: string;
+  id: string;
+}
+
+export default function EditParamedicPage() {
   const router = useRouter();
-  const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
+  const rawParams = useParams();
+  const params: PageParams = {
+    role: rawParams.role as string,
+    id: rawParams.id as string,
+  };
+  const { role } = params;
+  const paramedicId = params.id;
+
+  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [paramedic, isLoading] = useFetch<Paramedic>(`/users/${paramedicId}`, {
+    needRaw: true,
+  });
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
     name: "",
+    password: "",
     qualification: "",
     specialization: "",
     experience: "",
@@ -76,48 +94,28 @@ export default function EditParamedicPage({
   });
 
   useEffect(() => {
-    const fetchParamedic = async () => {
-      try {
-        // TODO: Implement API call to fetch paramedic
-        const paramedic: Paramedic = {
-          id: params.id,
-          name: "John Doe",
-          email: "paramedic@example.com",
-          password: "",
-          qualification: "EMT-P",
-          specialization: "Emergency Care",
-          experience: 5,
-          availability: {
-            startTime: "09:00",
-            endTime: "17:00",
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          },
-          serviceArea: {
-            city: "Mumbai",
-            state: "Maharashtra",
-            pincode: "400001",
-          },
-        };
-
-        setFormData({
-          email: paramedic.email,
-          password: paramedic.password,
-          name: paramedic.name,
-          qualification: paramedic.qualification,
-          specialization: paramedic.specialization,
-          experience: paramedic.experience.toString(),
-          availability: paramedic.availability,
-          serviceArea: paramedic.serviceArea,
-        });
-        setIsLoading(false);
-      } catch (error) {
-        setError("Failed to fetch paramedic details.");
-        setIsLoading(false);
-      }
-    };
-
-    fetchParamedic();
-  }, [params.id]);
+    if (paramedic && !isFormInitialized) {
+      setFormData({
+        email: paramedic.email || "",
+        name: paramedic.name || "",
+        password: "",
+        qualification: paramedic.qualification || "",
+        specialization: paramedic.specialization || "",
+        experience: paramedic.experience?.toString() || "",
+        availability: paramedic.availability || {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        },
+        serviceArea: paramedic.serviceArea || {
+          city: "",
+          state: "",
+          pincode: "",
+        },
+      });
+      setIsFormInitialized(true);
+    }
+  }, [paramedic, isFormInitialized]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,14 +124,25 @@ export default function EditParamedicPage({
 
     const paramedicData = {
       ...formData,
+      role: "paramedic",
       experience: parseInt(formData.experience),
     };
 
     try {
-      // TODO: Implement API call to update paramedic
+      const paramedicRef = ref(database, `/paramedics/${paramedicId}`);
+      await update(paramedicRef, paramedicData);
+      toast({
+        title: "Success",
+        description: "Paramedic updated successfully",
+      });
       router.push(`/${role}/manage/paramedics`);
     } catch (error) {
       setError("Failed to update paramedic. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update paramedic",
+      });
     }
     setIsSaving(false);
   };

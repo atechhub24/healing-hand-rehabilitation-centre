@@ -25,6 +25,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import { database } from "@/lib/firebase";
+import { ref, set } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
 
 interface Test {
   name: string;
@@ -35,7 +38,8 @@ interface Test {
 export default function NewLaboratoryPage() {
   const router = useRouter();
   const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,7 +48,6 @@ export default function NewLaboratoryPage() {
     email: "",
     password: "",
     license: "",
-    specialties: [] as string[],
     address: {
       street: "",
       city: "",
@@ -64,23 +67,35 @@ export default function NewLaboratoryPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     setError("");
 
     const laboratoryData = {
       ...formData,
+      role: "laboratory",
       tests: tests.filter(
         (test) => test.name && test.price && test.turnaroundTime
       ),
+      createdAt: new Date().toISOString(),
     };
 
     try {
-      // TODO: Implement API call to create laboratory
+      const newLaboratoryRef = ref(database, `/laboratories/${Date.now()}`);
+      await set(newLaboratoryRef, laboratoryData);
+      toast({
+        title: "Success",
+        description: "Laboratory created successfully",
+      });
       router.push(`/${role}/manage/laboratories`);
     } catch (error) {
       setError("Failed to create laboratory. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create laboratory",
+      });
     }
-    setIsLoading(false);
+    setIsSaving(false);
   };
 
   const handleChange = (
@@ -416,8 +431,8 @@ export default function NewLaboratoryPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Laboratory"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Creating..." : "Create Laboratory"}
             </Button>
           </div>
         </form>

@@ -25,6 +25,10 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import { database } from "@/lib/firebase";
+import { ref, update } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
+import useFetch from "@/lib/hooks/use-fetch";
 
 interface Test {
   name: string;
@@ -34,11 +38,10 @@ interface Test {
 
 interface Laboratory {
   id: string;
-  name: string;
   email: string;
-  password: string;
+  name: string;
   license: string;
-  specialties: string[];
+  role: string;
   address: {
     street: string;
     city: string;
@@ -51,26 +54,42 @@ interface Laboratory {
     days: string[];
   };
   tests: Test[];
+  createdAt: string;
 }
 
-export default function EditLaboratoryPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface PageParams {
+  role: string;
+  id: string;
+}
+
+export default function EditLaboratoryPage() {
   const router = useRouter();
-  const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
+  const rawParams = useParams();
+  const params: PageParams = {
+    role: rawParams.role as string,
+    id: rawParams.id as string,
+  };
+  const { role } = params;
+  const laboratoryId = params.id;
+
+  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [laboratory, isLoading] = useFetch<Laboratory>(
+    `/users/${laboratoryId}`,
+    {
+      needRaw: true,
+    }
+  );
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
+    name: "",
     password: "",
     license: "",
-    specialties: [] as string[],
     address: {
       street: "",
       city: "",
@@ -89,55 +108,30 @@ export default function EditLaboratoryPage({
   ]);
 
   useEffect(() => {
-    const fetchLaboratory = async () => {
-      try {
-        // TODO: Implement API call to fetch laboratory
-        const laboratory: Laboratory = {
-          id: params.id,
-          name: "Example Lab",
-          email: "lab@example.com",
-          password: "",
-          license: "LAB123456",
-          specialties: ["Pathology", "Radiology"],
-          address: {
-            street: "123 Lab Street",
-            city: "Mumbai",
-            state: "Maharashtra",
-            pincode: "400001",
-          },
-          operatingHours: {
-            startTime: "09:00",
-            endTime: "17:00",
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          },
-          tests: [
-            {
-              name: "Blood Test",
-              price: "1000",
-              turnaroundTime: "24 hours",
-            },
-          ],
-        };
-
-        setFormData({
-          name: laboratory.name,
-          email: laboratory.email,
-          password: laboratory.password,
-          license: laboratory.license,
-          specialties: laboratory.specialties,
-          address: laboratory.address,
-          operatingHours: laboratory.operatingHours,
-        });
-        setTests(laboratory.tests);
-        setIsLoading(false);
-      } catch (error) {
-        setError("Failed to fetch laboratory details.");
-        setIsLoading(false);
-      }
-    };
-
-    fetchLaboratory();
-  }, [params.id]);
+    if (laboratory && !isFormInitialized) {
+      setFormData({
+        email: laboratory.email || "",
+        name: laboratory.name || "",
+        password: "",
+        license: laboratory.license || "",
+        address: laboratory.address || {
+          street: "",
+          city: "",
+          state: "",
+          pincode: "",
+        },
+        operatingHours: laboratory.operatingHours || {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        },
+      });
+      setTests(
+        laboratory.tests || [{ name: "", price: "", turnaroundTime: "" }]
+      );
+      setIsFormInitialized(true);
+    }
+  }, [laboratory, isFormInitialized]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -149,13 +143,24 @@ export default function EditLaboratoryPage({
       tests: tests.filter(
         (test) => test.name && test.price && test.turnaroundTime
       ),
+      role: "laboratory",
     };
 
     try {
-      // TODO: Implement API call to update laboratory
+      const laboratoryRef = ref(database, `/laboratories/${laboratoryId}`);
+      await update(laboratoryRef, laboratoryData);
+      toast({
+        title: "Success",
+        description: "Laboratory updated successfully",
+      });
       router.push(`/${role}/manage/laboratories`);
     } catch (error) {
       setError("Failed to update laboratory. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update laboratory",
+      });
     }
     setIsSaving(false);
   };

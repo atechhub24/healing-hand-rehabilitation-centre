@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Eye, Trash } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Eye, Pencil, Plus, Trash } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 interface Paramedic {
   id: string;
   name: string;
   email: string;
+  role: string;
   qualification: string;
   specialization: string;
   experience: number;
@@ -27,8 +30,11 @@ interface Paramedic {
 
 export default function ParamedicsPage() {
   const { role } = useParams();
-  const [paramedics, setParamedics] = useState<Paramedic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [paramedics, isLoading] = useFetch<Paramedic[]>("users", {
+    filter: (paramedic: Paramedic) => paramedic.role === "paramedic",
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -39,6 +45,16 @@ export default function ParamedicsPage() {
             <Plus className="h-4 w-4" /> Add New Paramedic
           </Button>
         </Link>
+      </div>
+
+      <div className="mb-4">
+        <Input
+          type="search"
+          placeholder="Search paramedics..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow">
@@ -61,14 +77,15 @@ export default function ParamedicsPage() {
                     Loading paramedics...
                   </td>
                 </tr>
-              ) : paramedics.length === 0 ? (
+              ) : !paramedics ||
+                (Array.isArray(paramedics) && paramedics.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center">
                     No paramedics found
                   </td>
                 </tr>
               ) : (
-                paramedics.map((paramedic) => (
+                paramedics?.map((paramedic) => (
                   <tr key={paramedic.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">{paramedic.name}</td>
                     <td className="px-6 py-4">{paramedic.email}</td>

@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Eye, Trash } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Eye, Pencil, Plus, Trash } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 interface Laboratory {
   id: string;
   name: string;
   email: string;
   license: string;
-  specialties: string[];
+  role: string;
   address: {
     street: string;
     city: string;
@@ -25,15 +27,18 @@ interface Laboratory {
   };
   tests: {
     name: string;
-    price: number;
+    price: string;
     turnaroundTime: string;
   }[];
 }
 
 export default function LaboratoriesPage() {
   const { role } = useParams();
-  const [laboratories, setLaboratories] = useState<Laboratory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [laboratories, isLoading] = useFetch<Laboratory[]>("users", {
+    filter: (laboratory: Laboratory) => laboratory.role === "laboratory",
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -46,6 +51,16 @@ export default function LaboratoriesPage() {
         </Link>
       </div>
 
+      <div className="mb-4">
+        <Input
+          type="search"
+          placeholder="Search laboratories..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -55,7 +70,7 @@ export default function LaboratoriesPage() {
                 <th className="px-6 py-3">Email</th>
                 <th className="px-6 py-3">License</th>
                 <th className="px-6 py-3">Location</th>
-                <th className="px-6 py-3">Tests Available</th>
+                <th className="px-6 py-3">Tests</th>
                 <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
@@ -66,21 +81,22 @@ export default function LaboratoriesPage() {
                     Loading laboratories...
                   </td>
                 </tr>
-              ) : laboratories.length === 0 ? (
+              ) : !laboratories ||
+                (Array.isArray(laboratories) && laboratories.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center">
                     No laboratories found
                   </td>
                 </tr>
               ) : (
-                laboratories.map((laboratory) => (
+                laboratories?.map((laboratory) => (
                   <tr key={laboratory.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">{laboratory.name}</td>
                     <td className="px-6 py-4">{laboratory.email}</td>
                     <td className="px-6 py-4">{laboratory.license}</td>
                     <td className="px-6 py-4">{laboratory.address.city}</td>
                     <td className="px-6 py-4">
-                      {laboratory.tests.length} tests
+                      {laboratory.tests?.length || 0} tests
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

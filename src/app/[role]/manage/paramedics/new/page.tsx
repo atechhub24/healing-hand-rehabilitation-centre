@@ -23,31 +23,15 @@ import {
   EyeOff,
 } from "lucide-react";
 import Link from "next/link";
-
-interface Paramedic {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  qualification: string;
-  specialization: string;
-  experience: number;
-  availability: {
-    startTime: string;
-    endTime: string;
-    days: string[];
-  };
-  serviceArea: {
-    city: string;
-    state: string;
-    pincode: string;
-  };
-}
+import { database } from "@/lib/firebase";
+import { ref, set } from "firebase/database";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewParamedicPage() {
   const router = useRouter();
   const { role } = useParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -72,21 +56,33 @@ export default function NewParamedicPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     setError("");
 
     const paramedicData = {
       ...formData,
+      role: "paramedic",
       experience: parseInt(formData.experience),
+      createdAt: new Date().toISOString(),
     };
 
     try {
-      // TODO: Implement API call to create paramedic
+      const newParamedicRef = ref(database, `/paramedics/${Date.now()}`);
+      await set(newParamedicRef, paramedicData);
+      toast({
+        title: "Success",
+        description: "Paramedic created successfully",
+      });
       router.push(`/${role}/manage/paramedics`);
     } catch (error) {
       setError("Failed to create paramedic. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create paramedic",
+      });
     }
-    setIsLoading(false);
+    setIsSaving(false);
   };
 
   const handleChange = (
@@ -347,8 +343,8 @@ export default function NewParamedicPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Paramedic"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Creating..." : "Create Paramedic"}
             </Button>
           </div>
         </form>

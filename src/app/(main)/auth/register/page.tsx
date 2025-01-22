@@ -41,23 +41,17 @@ interface ClinicAddress {
   };
 }
 
-interface LabAddress {
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  timings: {
-    startTime: string;
-    endTime: string;
-    days: string[];
-  };
-}
-
 interface Test {
   name: string;
   price: string;
   turnaroundTime: string;
 }
+
+const defaultTimings = {
+  startTime: "09:00",
+  endTime: "17:00",
+  days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+};
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -66,45 +60,14 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
     {
       address: "",
       city: "",
       state: "",
       pincode: "",
-      timings: {
-        startTime: "09:00",
-        endTime: "17:00",
-        days: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-      },
-    },
-  ]);
-
-  const [labAddresses, setLabAddresses] = useState<LabAddress[]>([
-    {
-      address: "",
-      city: "",
-      state: "",
-      pincode: "",
-      timings: {
-        startTime: "09:00",
-        endTime: "17:00",
-        days: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-      },
+      timings: defaultTimings,
     },
   ]);
 
@@ -121,8 +84,6 @@ export default function RegisterPage() {
     qualification: "",
     specialization: "",
     experience: "",
-    location: "",
-    labType: "",
     certifications: "",
     address: "",
     city: "",
@@ -225,18 +186,7 @@ export default function RegisterPage() {
         city: "",
         state: "",
         pincode: "",
-        timings: {
-          startTime: "09:00",
-          endTime: "17:00",
-          days: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ],
-        },
+        timings: defaultTimings,
       },
     ]);
   };
@@ -244,62 +194,6 @@ export default function RegisterPage() {
   const removeClinicAddress = (index: number) => {
     if (clinicAddresses.length > 1) {
       setClinicAddresses(clinicAddresses.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleLabAddressChange = (
-    index: number,
-    field: keyof Omit<LabAddress, "timings">,
-    value: string
-  ) => {
-    const newAddresses = [...labAddresses];
-    newAddresses[index] = { ...newAddresses[index], [field]: value };
-    setLabAddresses(newAddresses);
-  };
-
-  const handleLabTimingsChange = (
-    index: number,
-    field: keyof LabAddress["timings"],
-    value: string | string[]
-  ) => {
-    const newAddresses = [...labAddresses];
-    newAddresses[index] = {
-      ...newAddresses[index],
-      timings: {
-        ...newAddresses[index].timings,
-        [field]: value,
-      },
-    };
-    setLabAddresses(newAddresses);
-  };
-
-  const addLabAddress = () => {
-    setLabAddresses([
-      ...labAddresses,
-      {
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        timings: {
-          startTime: "09:00",
-          endTime: "17:00",
-          days: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ],
-        },
-      },
-    ]);
-  };
-
-  const removeLabAddress = (index: number) => {
-    if (labAddresses.length > 1) {
-      setLabAddresses(labAddresses.filter((_, i) => i !== index));
     }
   };
 
@@ -323,6 +217,84 @@ export default function RegisterPage() {
     }
   };
 
+  const renderField = (
+    icon: React.ReactNode,
+    name: string,
+    placeholder: string,
+    type = "text"
+  ) => (
+    <div className="relative">
+      {icon}
+      <Input
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        value={formData[name as keyof typeof formData]}
+        onChange={handleChange}
+        required
+        className="pl-10"
+      />
+    </div>
+  );
+
+  const renderTimingSelect = (
+    value: string,
+    onChange: (value: string) => void
+  ) => (
+    <div className="relative">
+      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="pl-10">
+          <SelectValue placeholder="Working Days" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
+            Weekdays
+          </SelectItem>
+          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+            Weekdays + Saturday
+          </SelectItem>
+          <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
+            All Days
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const renderTimeInputs = (
+    startTime: string,
+    endTime: string,
+    onChange: (
+      e:
+        | React.ChangeEvent<HTMLInputElement>
+        | { target: { name: string; value: string } }
+    ) => void
+  ) => (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">Start Time</label>
+        <Input
+          type="time"
+          name="startTime"
+          value={startTime}
+          onChange={onChange}
+          required
+        />
+      </div>
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">End Time</label>
+        <Input
+          type="time"
+          name="endTime"
+          value={endTime}
+          onChange={onChange}
+          required
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
       <div className="w-full max-w-[450px] space-y-6 rounded-lg border border-border/50 bg-card p-6 shadow-sm">
@@ -337,18 +309,13 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2 sm:space-y-3">
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
+            {renderField(
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+              "email",
+              "Email",
+              "email"
+            )}
+
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
@@ -372,6 +339,7 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
+
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
@@ -395,6 +363,7 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
+
             <div className="relative">
               <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Select
@@ -414,54 +383,28 @@ export default function RegisterPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
-            <div className="relative">
-              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                name="qualification"
-                placeholder="Qualification"
-                value={formData.qualification}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
-            <div className="relative">
-              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                name="specialization"
-                placeholder="Specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
-            <div className="relative">
-              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="number"
-                name="experience"
-                placeholder="Years of Experience"
-                value={formData.experience}
-                onChange={handleChange}
-                required
-                className="pl-10"
-              />
-            </div>
+
+            {renderField(
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+              "name",
+              "Full Name"
+            )}
+            {renderField(
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+              "qualification",
+              "Qualification"
+            )}
+            {renderField(
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+              "specialization",
+              "Specialization"
+            )}
+            {renderField(
+              <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+              "experience",
+              "Years of Experience",
+              "number"
+            )}
 
             {formData.role === "doctor" && (
               <div className="space-y-3">
@@ -624,230 +567,72 @@ export default function RegisterPage() {
 
             {formData.role === "paramedic" && (
               <>
-                <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="certifications"
-                    placeholder="Professional Certifications"
-                    value={formData.certifications}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Select
-                    value={formData.workingDays}
-                    onValueChange={(value) =>
-                      handleChange({ target: { name: "workingDays", value } })
-                    }
-                  >
-                    <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Working Days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
-                        Weekdays
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                        Weekdays + Saturday
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
-                        All Days
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Start Time
-                    </label>
-                    <Input
-                      type="time"
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      End Time
-                    </label>
-                    <Input
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="state"
-                    placeholder="State"
-                    value={formData.state}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="pincode"
-                    placeholder="PIN Code"
-                    value={formData.pincode}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
+                {renderField(
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "certifications",
+                  "Professional Certifications"
+                )}
+                {renderTimingSelect(formData.workingDays, (value) =>
+                  handleChange({ target: { name: "workingDays", value } })
+                )}
+                {renderTimeInputs(
+                  formData.startTime,
+                  formData.endTime,
+                  handleChange
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "city",
+                  "City"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "state",
+                  "State"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "pincode",
+                  "PIN Code"
+                )}
               </>
             )}
 
             {formData.role === "lab" && (
               <>
-                <div className="relative">
-                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="license"
-                    placeholder="Laboratory License Number"
-                    value={formData.license}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="address"
-                    placeholder="Laboratory Address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="state"
-                    placeholder="State"
-                    value={formData.state}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    name="pincode"
-                    placeholder="PIN Code"
-                    value={formData.pincode}
-                    onChange={handleChange}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Select
-                    value={formData.workingDays}
-                    onValueChange={(value) =>
-                      handleChange({ target: { name: "workingDays", value } })
-                    }
-                  >
-                    <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Working Days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
-                        Weekdays
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                        Weekdays + Saturday
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
-                        All Days
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Opening Time
-                    </label>
-                    <Input
-                      type="time"
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Closing Time
-                    </label>
-                    <Input
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
+                {renderField(
+                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "license",
+                  "Laboratory License Number"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "address",
+                  "Laboratory Address"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "city",
+                  "City"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "state",
+                  "State"
+                )}
+                {renderField(
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />,
+                  "pincode",
+                  "PIN Code"
+                )}
+                {renderTimingSelect(formData.workingDays, (value) =>
+                  handleChange({ target: { name: "workingDays", value } })
+                )}
+                {renderTimeInputs(
+                  formData.startTime,
+                  formData.endTime,
+                  handleChange
+                )}
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">

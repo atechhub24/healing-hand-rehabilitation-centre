@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/lib/hooks/use-fetch";
-import { database } from "@/lib/firebase";
-import { ref, update } from "firebase/database";
 import { useToast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
 
 interface ClinicAddress {
   address: string;
@@ -52,25 +51,12 @@ interface Doctor {
   role: string;
   createdAt: string;
   lastLogin: string;
-  location: string;
 }
 
 interface PageParams {
   role: string;
   id: string;
 }
-
-const defaultClinicAddress: ClinicAddress = {
-  address: "",
-  city: "",
-  state: "",
-  pincode: "",
-  timings: {
-    startTime: "09:00",
-    endTime: "17:00",
-    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-  },
-};
 
 export default function EditDoctorPage() {
   const router = useRouter();
@@ -92,15 +78,25 @@ export default function EditDoctorPage() {
   });
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  console.log({ doctor });
-
   const [formData, setFormData] = useState({
     email: "",
     name: "",
     qualification: "",
     specialization: "",
     experience: "",
-    clinicAddresses: [defaultClinicAddress],
+    clinicAddresses: [
+      {
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        timings: {
+          startTime: "09:00",
+          endTime: "17:00",
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        },
+      },
+    ],
   });
 
   useEffect(() => {
@@ -111,111 +107,132 @@ export default function EditDoctorPage() {
         qualification: doctor.qualification || "",
         specialization: doctor.specialization || "",
         experience: doctor.experience?.toString() || "",
-        clinicAddresses: doctor.clinicAddresses || [defaultClinicAddress],
+        clinicAddresses: doctor.clinicAddresses || [
+          {
+            address: "",
+            city: "",
+            state: "",
+            pincode: "",
+            timings: {
+              startTime: "09:00",
+              endTime: "17:00",
+              days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            },
+          },
+        ],
       });
       setIsFormInitialized(true);
     }
   }, [doctor, isFormInitialized]);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setIsSaving(true);
-      setError("");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setError("");
 
+    try {
+      // Prepare the doctor data - remove email from update data
       const doctorData = {
-        ...formData,
+        name: formData.name,
+        qualification: formData.qualification,
+        specialization: formData.specialization,
         experience: parseInt(formData.experience),
+        clinicAddresses: formData.clinicAddresses,
         role: "doctor",
+        lastLogin: new Date().toISOString(),
       };
 
-      try {
-        const doctorRef = ref(database, `/doctors/${doctorId}`);
-        await update(doctorRef, doctorData);
-        toast({
-          title: "Success",
-          description: "Doctor updated successfully",
-        });
-        router.push(`/${role}/manage/doctors`);
-      } catch (error) {
-        setError("Failed to update doctor. Please try again.");
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to update doctor",
-        });
-      }
-      setIsSaving(false);
-    },
-    [formData, doctorId, role, router, toast]
-  );
-
-  const handleChange = useCallback(
-    (
-      e:
-        | React.ChangeEvent<HTMLInputElement>
-        | { target: { name: string; value: string } }
-    ) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    },
-    []
-  );
-
-  const handleClinicAddressChange = useCallback(
-    (
-      index: number,
-      field: keyof Omit<ClinicAddress, "timings">,
-      value: string
-    ) => {
-      setFormData((prev) => {
-        const newAddresses = [...prev.clinicAddresses];
-        newAddresses[index] = { ...newAddresses[index], [field]: value };
-        return { ...prev, clinicAddresses: newAddresses };
+      // Update the doctor data in the database
+      await mutateData({
+        path: `/users/${doctorId}`,
+        data: doctorData,
+        action: "update",
       });
-    },
-    []
-  );
 
-  const handleTimingsChange = useCallback(
-    (
-      index: number,
-      field: keyof ClinicAddress["timings"],
-      value: string | string[]
-    ) => {
-      setFormData((prev) => {
-        const newAddresses = [...prev.clinicAddresses];
-        newAddresses[index] = {
-          ...newAddresses[index],
-          timings: {
-            ...newAddresses[index].timings,
-            [field]: value,
-          },
-        };
-        return { ...prev, clinicAddresses: newAddresses };
+      toast({
+        title: "Success",
+        description: "Doctor updated successfully",
       });
-    },
-    []
-  );
+      router.push(`/${role}/manage/doctors`);
+    } catch (error) {
+      console.error("Error updating doctor:", error);
+      setError("Failed to update doctor. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update doctor",
+      });
+    }
+    setIsSaving(false);
+  };
 
-  const addClinicAddress = useCallback(() => {
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | { target: { name: string; value: string } }
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleClinicAddressChange = (
+    index: number,
+    field: keyof Omit<ClinicAddress, "timings">,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const newAddresses = [...prev.clinicAddresses];
+      newAddresses[index] = { ...newAddresses[index], [field]: value };
+      return { ...prev, clinicAddresses: newAddresses };
+    });
+  };
+
+  const handleTimingsChange = (
+    index: number,
+    field: keyof ClinicAddress["timings"],
+    value: string | string[]
+  ) => {
+    setFormData((prev) => {
+      const newAddresses = [...prev.clinicAddresses];
+      newAddresses[index] = {
+        ...newAddresses[index],
+        timings: {
+          ...newAddresses[index].timings,
+          [field]: value,
+        },
+      };
+      return { ...prev, clinicAddresses: newAddresses };
+    });
+  };
+
+  const addClinicAddress = () => {
     setFormData((prev) => ({
       ...prev,
-      clinicAddresses: [...prev.clinicAddresses, { ...defaultClinicAddress }],
+      clinicAddresses: [
+        ...prev.clinicAddresses,
+        {
+          address: "",
+          city: "",
+          state: "",
+          pincode: "",
+          timings: {
+            startTime: "09:00",
+            endTime: "17:00",
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          },
+        },
+      ],
     }));
-  }, []);
+  };
 
-  const removeClinicAddress = useCallback(
-    (index: number) => {
-      if (formData.clinicAddresses.length > 1) {
-        setFormData((prev) => ({
-          ...prev,
-          clinicAddresses: prev.clinicAddresses.filter((_, i) => i !== index),
-        }));
-      }
-    },
-    [formData.clinicAddresses.length]
-  );
+  const removeClinicAddress = (index: number) => {
+    if (formData.clinicAddresses.length > 1) {
+      setFormData((prev) => ({
+        ...prev,
+        clinicAddresses: prev.clinicAddresses.filter((_, i) => i !== index),
+      }));
+    }
+  };
 
   if (isLoading) {
     return (
@@ -249,9 +266,8 @@ export default function EditDoctorPage() {
                   name="email"
                   placeholder="Email"
                   value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
+                  disabled
+                  className="pl-10 bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
               </div>
             </div>

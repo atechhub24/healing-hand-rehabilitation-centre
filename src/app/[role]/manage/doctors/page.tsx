@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Eye, Trash } from "lucide-react";
-import Link from "next/link";
-import useFetch from "@/lib/hooks/use-fetch";
 import { Input } from "@/components/ui/input";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Eye, Pencil, Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 interface Doctor {
   id: string;
@@ -33,28 +33,9 @@ export default function DoctorsPage() {
   const { role } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const {
-    data: doctors,
-    loading: isLoading,
-    error,
-  } = useFetch<Doctor, Doctor[]>("users", {
-    asArray: true,
-    nested: true,
-    filter: {
-      where: [{ field: "role", value: "doctor", operator: "==" }],
-      search: searchTerm
-        ? {
-            term: searchTerm,
-            fields: ["name", "email", "specialization"],
-            caseSensitive: false,
-          }
-        : undefined,
-    },
+  const [doctors, isLoading] = useFetch<Doctor[]>("users", {
+    filter: (doctor: Doctor) => doctor.role === "doctor",
   });
-
-  if (error) {
-    console.error("Error fetching doctors:", error);
-  }
 
   return (
     <div className="container mx-auto p-6">

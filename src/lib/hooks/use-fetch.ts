@@ -1,279 +1,137 @@
-import { useState, useEffect, useCallback } from "react";
-import {
-  ref,
-  get,
-  onValue,
-  query,
-  orderByChild,
-  limitToFirst,
-  limitToLast,
-  Query,
-  DataSnapshot,
-} from "firebase/database";
+import { useEffect, useReducer } from "react";
+import { getArrFromNestedSnap, getArrFromSnap } from "@ashirbad/js-core";
+import useMounted from "./use-mounted";
 import { database } from "../firebase";
+import { ref, onValue, DataSnapshot } from "firebase/database";
 
-interface UseFetchOptions<T, R = T> {
-  filter?: {
-    orderBy?: keyof T;
-    limit?: number;
-    limitToLast?: boolean;
-    search?: {
-      term: string;
-      fields: (keyof T)[];
-      caseSensitive?: boolean;
-    };
-    where?: {
-      field: keyof T;
-      value: any;
-      operator?: "==" | "!=" | ">" | "<" | ">=" | "<=";
-    }[];
-  };
-  transform?: (data: T | null) => R;
-  nested?: boolean;
-  asArray?: boolean; // New option to return data as array
-  realtime?: boolean; // Control whether to use real-time updates
-  refetchOnMount?: boolean; // Control whether to refetch when component remounts
+interface State<T> {
+  data: T | null;
+  isLoading: boolean;
 }
 
-export default function useFetch<T extends object, R = T>(
+type Action<T> = {
+  type: "needArray" | "needNested" | "raw";
+  payload: {
+    snap: DataSnapshot;
+  };
+};
+
+interface FetchOptions<T> {
+  needArray?: boolean;
+  needNested?: boolean;
+  filter?: (item: T extends any[] ? T[number] : T) => boolean;
+  sort?: (
+    a: T extends any[] ? T[number] : T,
+    b: T extends any[] ? T[number] : T
+  ) => number;
+}
+
+/**
+ * dataReducer is a reducer function that takes in a state and an action and
+ * returns a new state. The state is expected to be an object with a data
+ * property and an isLoading property. The data property is expected to be
+ * null or an array of objects. The isLoading property is expected to be a
+ * boolean.
+ *
+ * The action is expected to be an object with a type property and a payload
+ * property. The type property is expected to be one of "needArray", "needNested",
+ * or "raw". The payload property is expected to be an object with a snap
+ * property. The snap property is expected to be a Firebase Realtime Database
+ * DataSnapshot.
+ *
+ * If the type is "needArray", the reducer will return a new state with the data
+ * property set to the result of calling getArrFromSnap with the action.payload.snap.
+ * If the type is "needNested", the reducer will return a new state with the data
+ * property set to the result of calling getArrFromNestedSnap with the
+ * action.payload.snap.
+ *
+ * If the type is "raw", the reducer will return a new state with the data
+ * property set to the result of calling val() on the action.payload.snap.
+ *
+ * In all cases, the isLoading property of the new state is set to false.
+ *
+ * If the type is not one of "needArray", "needNested", or "raw", the reducer will
+ * return the original state.
+ */
+const dataReducer = <T>(state: State<T>, action: Action<T>): State<T> => {
+  switch (action.type) {
+    case "needArray":
+      return {
+        data: getArrFromSnap(action.payload.snap) as T,
+        isLoading: false,
+      };
+    case "needNested":
+      return {
+        data: getArrFromNestedSnap(action.payload.snap) as T,
+        isLoading: false,
+      };
+    case "raw":
+      return {
+        data: action.payload.snap.val() as T,
+        isLoading: false,
+      };
+    default:
+      return state;
+  }
+};
+
+/**
+ * useDB is a React hook that returns an array of two elements: the data and a boolean
+ * indicating whether the data is loading. The data is an array of objects if the
+ * needArray option is true, or an object if the needNested option is true, or the
+ * result of calling val() on the DataSnapshot if neither option is true. The data
+ * is filtered and sorted according to the filter and sort options, respectively.
+ *
+ * @param {string} path The path in the Realtime Database to retrieve data from
+ * @param {object} options An object with the following optional properties:
+ *   - needArray: a boolean indicating whether to return an array of objects
+ *   - needNested: a boolean indicating whether to return an object
+ *   - filter: a function that takes an object and returns a boolean indicating
+ *     whether to include the object in the result
+ *   - sort: a function that takes two objects and returns a number indicating
+ *     whether to sort the objects in ascending or descending order
+ * @returns {array} An array of two elements: the data and a boolean indicating
+ *   whether the data is loading
+ */
+export default function useFetch<T>(
   path: string,
-  options?: UseFetchOptions<T, R>
-) {
-  const [data, setData] = useState<R | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+  options: FetchOptions<T> = {}
+): [T | null, boolean] {
+  const needArray = options.needArray !== false;
+  const needNested = !!options.needNested;
+  const filter = options.filter || (() => true);
+  const sort = options.sort || ((a: T, b: T) => 0);
 
-  // Memoize options to prevent unnecessary rerenders
-  const memoizedOptions = useCallback(
-    () => ({
-      filter: options?.filter,
-      transform: options?.transform,
-      nested: options?.nested,
-      asArray: options?.asArray,
-      realtime: options?.realtime,
-      refetchOnMount: options?.refetchOnMount,
-    }),
-    [
-      options?.filter?.orderBy,
-      options?.filter?.limit,
-      options?.filter?.limitToLast,
-      options?.transform,
-      options?.nested,
-      options?.asArray,
-      options?.realtime,
-      options?.refetchOnMount,
-    ]
-  );
+  const [state, dispatch] = useReducer(dataReducer<T>, {
+    data: null,
+    isLoading: true,
+  });
 
-  // Create query based on options
-  const createQuery = useCallback(() => {
-    const opts = memoizedOptions();
-    let dbQuery: Query;
-    if (opts.filter) {
-      const baseRef = ref(database, path);
-      const { orderBy, limit, limitToLast: isLimitToLast } = opts.filter;
-
-      if (orderBy) {
-        dbQuery = query(baseRef, orderByChild(orderBy as string));
-
-        if (limit) {
-          dbQuery = query(
-            dbQuery,
-            isLimitToLast ? limitToLast(limit) : limitToFirst(limit)
-          );
-        }
-      } else {
-        dbQuery = baseRef;
-      }
-    } else {
-      dbQuery = ref(database, path);
-    }
-    return dbQuery;
-  }, [path, memoizedOptions]);
-
-  // Update processData function to include search functionality
-  const processData = useCallback(
-    (value: T | null) => {
-      const opts = memoizedOptions();
-      let processed: any = value;
-
-      // Apply search filter if specified
-      if (opts.filter?.search && processed) {
-        const { term, fields, caseSensitive = false } = opts.filter.search;
-        const searchTerm = caseSensitive ? term : term.toLowerCase();
-
-        if (Array.isArray(processed)) {
-          processed = processed.filter((item) =>
-            fields.some((field) => {
-              const fieldValue = String(item[field] || "");
-              return caseSensitive
-                ? fieldValue.includes(searchTerm)
-                : fieldValue.toLowerCase().includes(searchTerm);
-            })
-          );
-        } else {
-          processed = Object.entries(processed).reduce<Record<string, any>>(
-            (acc, [key, val]) => {
-              const matches = fields.some((field) => {
-                const fieldValue = String((val as any)[field] || "");
-                return caseSensitive
-                  ? fieldValue.includes(searchTerm)
-                  : fieldValue.toLowerCase().includes(searchTerm);
-              });
-              if (matches) {
-                acc[key] = val;
-              }
-              return acc;
-            },
-            {}
-          );
-        }
-      }
-
-      // Apply where filters if specified
-      if (opts.filter?.where && processed) {
-        if (Array.isArray(processed)) {
-          processed = processed.filter((item) =>
-            opts.filter!.where!.every(({ field, value, operator = "==" }) => {
-              const fieldValue = item[field];
-              switch (operator) {
-                case "==":
-                  return fieldValue === value;
-                case "!=":
-                  return fieldValue !== value;
-                case ">":
-                  return fieldValue > value;
-                case "<":
-                  return fieldValue < value;
-                case ">=":
-                  return fieldValue >= value;
-                case "<=":
-                  return fieldValue <= value;
-                default:
-                  return false;
-              }
-            })
-          );
-        } else {
-          processed = Object.entries(processed).reduce<Record<string, any>>(
-            (acc, [key, val]) => {
-              const matches = opts.filter!.where!.every(
-                ({ field, value, operator = "==" }) => {
-                  const fieldValue = (val as any)[field];
-                  switch (operator) {
-                    case "==":
-                      return fieldValue === value;
-                    case "!=":
-                      return fieldValue !== value;
-                    case ">":
-                      return fieldValue > value;
-                    case "<":
-                      return fieldValue < value;
-                    case ">=":
-                      return fieldValue >= value;
-                    case "<=":
-                      return fieldValue <= value;
-                    default:
-                      return false;
-                  }
-                }
-              );
-              if (matches) {
-                acc[key] = val;
-              }
-              return acc;
-            },
-            {}
-          );
-        }
-      }
-
-      // Handle nested data
-      if (opts.nested && processed) {
-        processed = Object.entries(processed).reduce<Record<string, any>>(
-          (acc, [key, val]) => ({
-            ...acc,
-            [key]: typeof val === "object" ? { id: key, ...val } : val,
-          }),
-          {}
-        );
-      }
-
-      // Convert to array if requested
-      if (opts.asArray && processed) {
-        processed = Object.entries(processed).map(([key, val]) =>
-          typeof val === "object"
-            ? { id: key, ...val }
-            : { id: key, value: val }
-        );
-      }
-
-      // Apply custom transform
-      if (opts.transform) {
-        processed = opts.transform(processed);
-      }
-
-      return processed as R;
-    },
-    [memoizedOptions]
-  );
-
-  // Function to fetch data once
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const dbQuery = createQuery();
-      const snapshot = await get(dbQuery);
-      const value = processData(snapshot.val());
-      setData(value);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error("Unknown error occurred")
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [createQuery, processData]);
-
-  // Manual refetch function that can be called by the consumer
-  const refetch = useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
+  const { mounted } = useMounted();
 
   useEffect(() => {
-    const opts = memoizedOptions();
-    const shouldFetch = opts.refetchOnMount ?? true;
+    const dbRef = ref(database, path);
+    const unsubscribe = onValue(dbRef, (snap) => {
+      if (mounted.current) {
+        let type: "needArray" | "needNested" | "raw" = "raw";
+        if (needNested) type = "needNested";
+        if (!needNested && needArray) type = "needArray";
+        dispatch({ type, payload: { snap } });
+      }
+    });
 
-    if (opts.realtime) {
-      // Set up real-time listener
-      const dbQuery = createQuery();
-      const unsubscribe = onValue(
-        dbQuery,
-        (snapshot: DataSnapshot) => {
-          const value = processData(snapshot.val());
-          setData(value);
-          setLoading(false);
-          setError(null);
-        },
-        (error) => {
-          setError(error);
-          setLoading(false);
-        }
-      );
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [mounted, needArray, needNested, path]);
 
-      return () => unsubscribe();
-    } else if (shouldFetch) {
-      // Fetch once
-      fetchData();
-    }
-  }, [path, memoizedOptions, createQuery, processData, fetchData]);
+  // First apply filter, then apply sort
+  let processedData = state.data;
+  if ((needArray || needNested) && Array.isArray(processedData)) {
+    processedData = processedData
+      ?.filter(filter)
+      ?.sort(sort)
+      ?.map((item, i) => ({ ...item, sl: i + 1 })) as T;
+  }
 
-  return {
-    data,
-    loading,
-    error,
-    refetch,
-    isArray: options?.asArray ?? false,
-  } as const;
+  return [processedData, state.isLoading];
 }

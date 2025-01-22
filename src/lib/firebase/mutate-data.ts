@@ -1,5 +1,6 @@
 import { auth, database } from "@/lib/firebase";
 import { ref, remove, set, update } from "firebase/database";
+import { createRouteLoader } from "next/dist/client/route-loader";
 
 const generateSystemInfo = () => {
   const timestamp = new Date().toISOString();
@@ -44,10 +45,10 @@ export default async function mutate({
 
   switch (action) {
     case "create":
-      await set(dbRef, { ...data, systemInfo });
+      await set(dbRef, { ...data, creatorInfo: systemInfo });
       break;
     case "update":
-      await update(dbRef, { ...data, systemInfo });
+      await update(dbRef, { ...data, updaterInfo: systemInfo });
       break;
     case "delete":
       await remove(dbRef);

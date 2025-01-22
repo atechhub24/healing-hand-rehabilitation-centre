@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Eye, Trash } from "lucide-react";
 import Link from "next/link";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Input } from "@/components/ui/input";
 
 interface Doctor {
   id: string;
@@ -13,6 +15,7 @@ interface Doctor {
   qualification: string;
   specialization: string;
   experience: number;
+  role: string;
   clinicAddresses: {
     address: string;
     city: string;
@@ -28,8 +31,30 @@ interface Doctor {
 
 export default function DoctorsPage() {
   const { role } = useParams();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const {
+    data: doctors,
+    loading: isLoading,
+    error,
+  } = useFetch<Doctor, Doctor[]>("users", {
+    asArray: true,
+    nested: true,
+    filter: {
+      where: [{ field: "role", value: "doctor", operator: "==" }],
+      search: searchTerm
+        ? {
+            term: searchTerm,
+            fields: ["name", "email", "specialization"],
+            caseSensitive: false,
+          }
+        : undefined,
+    },
+  });
+
+  if (error) {
+    console.error("Error fetching doctors:", error);
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -40,6 +65,16 @@ export default function DoctorsPage() {
             <Plus className="h-4 w-4" /> Add New Doctor
           </Button>
         </Link>
+      </div>
+
+      <div className="mb-4">
+        <Input
+          type="search"
+          placeholder="Search doctors..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow">
@@ -62,21 +97,22 @@ export default function DoctorsPage() {
                     Loading doctors...
                   </td>
                 </tr>
-              ) : doctors.length === 0 ? (
+              ) : !doctors ||
+                (Array.isArray(doctors) && doctors.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center">
                     No doctors found
                   </td>
                 </tr>
               ) : (
-                doctors.map((doctor) => (
+                doctors?.map((doctor) => (
                   <tr key={doctor.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">{doctor.name}</td>
                     <td className="px-6 py-4">{doctor.email}</td>
                     <td className="px-6 py-4">{doctor.specialization}</td>
                     <td className="px-6 py-4">{doctor.experience} years</td>
                     <td className="px-6 py-4">
-                      {doctor.clinicAddresses.length} locations
+                      {doctor.clinicAddresses?.length || 0} locations
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

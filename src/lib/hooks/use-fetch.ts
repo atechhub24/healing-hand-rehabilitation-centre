@@ -17,6 +17,16 @@ interface UseFetchOptions<T, R = T> {
     orderBy?: keyof T;
     limit?: number;
     limitToLast?: boolean;
+    search?: {
+      term: string;
+      fields: (keyof T)[];
+      caseSensitive?: boolean;
+    };
+    where?: {
+      field: keyof T;
+      value: any;
+      operator?: "==" | "!=" | ">" | "<" | ">=" | "<=";
+    }[];
   };
   transform?: (data: T | null) => R;
   nested?: boolean;
@@ -81,11 +91,102 @@ export default function useFetch<T extends object, R = T>(
     return dbQuery;
   }, [path, memoizedOptions]);
 
-  // Function to process the data
+  // Update processData function to include search functionality
   const processData = useCallback(
     (value: T | null) => {
       const opts = memoizedOptions();
       let processed: any = value;
+
+      // Apply search filter if specified
+      if (opts.filter?.search && processed) {
+        const { term, fields, caseSensitive = false } = opts.filter.search;
+        const searchTerm = caseSensitive ? term : term.toLowerCase();
+
+        if (Array.isArray(processed)) {
+          processed = processed.filter((item) =>
+            fields.some((field) => {
+              const fieldValue = String(item[field] || "");
+              return caseSensitive
+                ? fieldValue.includes(searchTerm)
+                : fieldValue.toLowerCase().includes(searchTerm);
+            })
+          );
+        } else {
+          processed = Object.entries(processed).reduce<Record<string, any>>(
+            (acc, [key, val]) => {
+              const matches = fields.some((field) => {
+                const fieldValue = String((val as any)[field] || "");
+                return caseSensitive
+                  ? fieldValue.includes(searchTerm)
+                  : fieldValue.toLowerCase().includes(searchTerm);
+              });
+              if (matches) {
+                acc[key] = val;
+              }
+              return acc;
+            },
+            {}
+          );
+        }
+      }
+
+      // Apply where filters if specified
+      if (opts.filter?.where && processed) {
+        if (Array.isArray(processed)) {
+          processed = processed.filter((item) =>
+            opts.filter!.where!.every(({ field, value, operator = "==" }) => {
+              const fieldValue = item[field];
+              switch (operator) {
+                case "==":
+                  return fieldValue === value;
+                case "!=":
+                  return fieldValue !== value;
+                case ">":
+                  return fieldValue > value;
+                case "<":
+                  return fieldValue < value;
+                case ">=":
+                  return fieldValue >= value;
+                case "<=":
+                  return fieldValue <= value;
+                default:
+                  return false;
+              }
+            })
+          );
+        } else {
+          processed = Object.entries(processed).reduce<Record<string, any>>(
+            (acc, [key, val]) => {
+              const matches = opts.filter!.where!.every(
+                ({ field, value, operator = "==" }) => {
+                  const fieldValue = (val as any)[field];
+                  switch (operator) {
+                    case "==":
+                      return fieldValue === value;
+                    case "!=":
+                      return fieldValue !== value;
+                    case ">":
+                      return fieldValue > value;
+                    case "<":
+                      return fieldValue < value;
+                    case ">=":
+                      return fieldValue >= value;
+                    case "<=":
+                      return fieldValue <= value;
+                    default:
+                      return false;
+                  }
+                }
+              );
+              if (matches) {
+                acc[key] = val;
+              }
+              return acc;
+            },
+            {}
+          );
+        }
+      }
 
       // Handle nested data
       if (opts.nested && processed) {

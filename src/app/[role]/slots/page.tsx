@@ -33,19 +33,28 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Clock, MapPin, Plus } from "lucide-react";
+import { Clock, MapPin, Plus, Trash2 } from "lucide-react";
 
 // Form schema for slot creation
 const slotFormSchema = z.object({
   clinicId: z.string().min(1, "Please select a clinic"),
-  slotDuration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
-  slotCost: z.coerce.number().min(0, "Cost cannot be negative"),
-  startTime: z.string().min(1, "Please select a start time"),
-  endTime: z.string().min(1, "Please select an end time"),
-  days: z.array(z.string()).min(1, "Please select at least one day"),
+  numberOfSlots: z.coerce.number().min(1, "Must create at least 1 slot"),
+  slotDuration: z.coerce
+    .number()
+    .min(15, "Slot duration must be at least 15 minutes"),
+  pricePerSlot: z.coerce.number().min(0, "Price cannot be negative"),
 });
 
 type SlotFormValues = z.infer<typeof slotFormSchema>;
+
+interface Slot {
+  id: string;
+  slotNumber: number;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  price: number;
+}
 
 interface ClinicAddress {
   id?: string;
@@ -58,6 +67,7 @@ interface ClinicAddress {
     endTime: string;
     days: string[];
   };
+  slots?: Record<string, Slot>;
 }
 
 interface Doctor {
@@ -65,40 +75,19 @@ interface Doctor {
   clinicAddresses: ClinicAddress[];
 }
 
-interface Slot {
-  id: string;
-  clinicId: string;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  cost: number;
-  days: string[];
-}
-
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
 export default function SlotsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
 
   const form = useForm<SlotFormValues>({
     resolver: zodResolver(slotFormSchema),
     defaultValues: {
       clinicId: "",
+      numberOfSlots: 1,
       slotDuration: 30,
-      slotCost: 500,
-      startTime: "09:00",
-      endTime: "17:00",
-      days: [],
+      pricePerSlot: 500,
     },
   });
 
@@ -106,9 +95,6 @@ export default function SlotsPage() {
   const [doctorData, isLoading] = useFetch<Doctor>(`/users/${user?.uid}`, {
     needRaw: true,
   });
-
-  // Fetch existing slots
-  const [slots] = useFetch<Record<string, Slot>>(`/slots/${user?.uid}`);
 
   if (isLoading) {
     return (
@@ -131,32 +117,87 @@ export default function SlotsPage() {
 
   const onSubmit = async (values: SlotFormValues) => {
     try {
-      // Create a new slot
+      const clinicIndex = parseInt(values.clinicId);
+      const clinic = doctorData.clinicAddresses[clinicIndex];
+      const { numberOfSlots, slotDuration, pricePerSlot } = values;
+
+      // Use clinic's timing
+      const baseTime = new Date(`2000-01-01T${clinic.timings.startTime}`);
+      const endTimeDate = new Date(`2000-01-01T${clinic.timings.endTime}`);
+
+      // Create slots object to update
+      const slots: Record<string, Slot> = {};
+
+      // Create slots
+      for (let i = 0; i < numberOfSlots; i++) {
+        const slotStartTime = new Date(
+          baseTime.getTime() + i * slotDuration * 60000
+        );
+        const slotEndTime = new Date(
+          slotStartTime.getTime() + slotDuration * 60000
+        );
+
+        // Skip if slot would exceed end time
+        if (slotEndTime > endTimeDate) break;
+
+        slots[i.toString()] = {
+          id: i.toString(),
+          slotNumber: i + 1,
+          startTime: slotStartTime.toLocaleTimeString("en-US", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          endTime: slotEndTime.toLocaleTimeString("en-US", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          duration: slotDuration,
+          price: pricePerSlot,
+        };
+      }
+
+      // Update clinic address with slots
       await mutateData({
-        path: `/slots/${user?.uid}/${values.clinicId}`,
-        data: {
-          clinicId: values.clinicId,
-          startTime: values.startTime,
-          endTime: values.endTime,
-          duration: values.slotDuration,
-          cost: values.slotCost,
-          days: values.days,
-        },
-        action: "create",
+        path: `/users/${user?.uid}/clinicAddresses/${clinicIndex}/slots`,
+        data: slots,
+        action: "update",
       });
 
       toast({
         title: "Success",
-        description: "Slot created successfully",
+        description: `Created ${numberOfSlots} slots successfully`,
       });
       setIsDialogOpen(false);
       form.reset();
     } catch (error) {
-      console.error("Error creating slot:", error);
+      console.error("Error creating slots:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create slot",
+        description: "Failed to create slots",
+      });
+    }
+  };
+
+  const deleteSlot = async (clinicIndex: number, slotId: string) => {
+    try {
+      await mutateData({
+        path: `/users/${user?.uid}/clinicAddresses/${clinicIndex}/slots/${slotId}`,
+        action: "delete",
+      });
+
+      toast({
+        title: "Success",
+        description: "Slot deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting slot:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete slot",
       });
     }
   };
@@ -193,7 +234,10 @@ export default function SlotsPage() {
                     <FormItem>
                       <FormLabel>Select Clinic</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedClinicId(value);
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -205,6 +249,11 @@ export default function SlotsPage() {
                           {doctorData?.clinicAddresses.map((clinic, index) => (
                             <SelectItem key={index} value={index.toString()}>
                               {clinic.address}, {clinic.city}
+                              <br />
+                              <span className="text-xs text-muted-foreground">
+                                Timings: {clinic.timings.startTime} -{" "}
+                                {clinic.timings.endTime}
+                              </span>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -217,40 +266,10 @@ export default function SlotsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="startTime"
+                    name="numberOfSlots"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Start Time</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Time</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="slotDuration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Slot Duration (minutes)</FormLabel>
+                        <FormLabel>Number of Slots</FormLabel>
                         <FormControl>
                           <Input type="number" min="1" {...field} />
                         </FormControl>
@@ -261,18 +280,12 @@ export default function SlotsPage() {
 
                   <FormField
                     control={form.control}
-                    name="slotCost"
+                    name="slotDuration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cost per Slot</FormLabel>
+                        <FormLabel>Slot Duration (minutes)</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Enter cost"
-                            {...field}
-                          />
+                          <Input type="number" min="15" step="15" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -282,34 +295,49 @@ export default function SlotsPage() {
 
                 <FormField
                   control={form.control}
-                  name="days"
+                  name="pricePerSlot"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Available Days</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {daysOfWeek.map((day) => (
-                          <Button
-                            key={day}
-                            type="button"
-                            variant={
-                              field.value.includes(day) ? "default" : "outline"
-                            }
-                            className="h-8"
-                            onClick={() => {
-                              const newValue = field.value.includes(day)
-                                ? field.value.filter((d) => d !== day)
-                                : [...field.value, day];
-                              field.onChange(newValue);
-                            }}
-                          >
-                            {day}
-                          </Button>
-                        ))}
-                      </div>
+                      <FormLabel>Price per Slot</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Enter price"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {selectedClinicId && (
+                  <div className="rounded-lg bg-muted p-4 text-sm">
+                    <h4 className="font-medium mb-2">
+                      Selected Clinic Schedule
+                    </h4>
+                    <p>
+                      Time:{" "}
+                      {
+                        doctorData.clinicAddresses[parseInt(selectedClinicId)]
+                          .timings.startTime
+                      }{" "}
+                      -{" "}
+                      {
+                        doctorData.clinicAddresses[parseInt(selectedClinicId)]
+                          .timings.endTime
+                      }
+                    </p>
+                    <p>
+                      Days:{" "}
+                      {doctorData.clinicAddresses[
+                        parseInt(selectedClinicId)
+                      ].timings.days.join(", ")}
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex justify-end">
                   <Button type="submit">Create Slots</Button>
@@ -322,9 +350,9 @@ export default function SlotsPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {doctorData?.clinicAddresses.map((clinic, clinicIndex) => {
-          const clinicSlots = slots
-            ? Object.values(slots).filter(
-                (slot) => slot.clinicId === clinicIndex.toString()
+          const clinicSlots = clinic.slots
+            ? Object.values(clinic.slots).sort(
+                (a, b) => a.slotNumber - b.slotNumber
               )
             : [];
 
@@ -341,6 +369,13 @@ export default function SlotsPage() {
                       {clinic.address}, {clinic.city}
                     </span>
                   </div>
+                  <div className="text-sm text-muted-foreground">
+                    <p>
+                      Time: {clinic.timings.startTime} -{" "}
+                      {clinic.timings.endTime}
+                    </p>
+                    <p>Days: {clinic.timings.days.join(", ")}</p>
+                  </div>
                 </div>
 
                 {clinicSlots.map((slot) => (
@@ -352,21 +387,23 @@ export default function SlotsPage() {
                       <div className="flex items-center text-sm">
                         <Clock className="mr-1 h-4 w-4" />
                         <span>
-                          {slot.startTime} - {slot.endTime} ({slot.duration}{" "}
-                          mins)
+                          Slot {slot.slotNumber}: {slot.startTime} -{" "}
+                          {slot.endTime}
                         </span>
                       </div>
-                      <span className="text-sm font-medium">₹{slot.cost}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {slot.days.map((day) => (
-                        <span
-                          key={day}
-                          className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-                        >
-                          {day}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          ₹{slot.price}
                         </span>
-                      ))}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => deleteSlot(clinicIndex, slot.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}

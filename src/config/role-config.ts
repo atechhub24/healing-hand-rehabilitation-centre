@@ -11,6 +11,8 @@ import {
   Stethoscope,
   UserCog,
   Microscope,
+  Boxes,
+  CalendarDays,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -40,6 +42,11 @@ export const roleConfig = {
       { label: "Patients", icon: Users, href: "/doctor/patients" },
       { label: "Prescriptions", icon: FileText, href: "/doctor/prescriptions" },
       { label: "Settings", icon: Settings, href: "/doctor/settings" },
+      {
+        label: "Slot Management",
+        icon: CalendarDays,
+        href: "/doctor/slots",
+      },
     ],
   },
   paramedic: {

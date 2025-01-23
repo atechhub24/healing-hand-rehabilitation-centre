@@ -116,15 +116,17 @@ export default function LaboratoriesPage() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete{" "}
-              <span className="font-medium">{laboratoryToDelete?.name}</span>'s
-              account and remove their data from our servers.
+              <span className="font-medium text-foreground">
+                {laboratoryToDelete?.name}
+              </span>
+              's account and remove their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -134,7 +136,9 @@ export default function LaboratoriesPage() {
 
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Laboratories Management</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Laboratories Management
+          </h1>
           <Link href={`/${role}/manage/laboratories/new`}>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" /> Add New Laboratory
@@ -152,10 +156,10 @@ export default function LaboratoriesPage() {
           />
         </div>
 
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 uppercase">
+              <thead className="bg-muted text-muted-foreground uppercase">
                 <tr>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Email</th>
@@ -165,28 +169,42 @@ export default function LaboratoriesPage() {
                   <th className="px-6 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-4 text-center text-muted-foreground"
+                    >
                       Loading laboratories...
                     </td>
                   </tr>
                 ) : !laboratories ||
                   (Array.isArray(laboratories) && laboratories.length === 0) ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-4 text-center text-muted-foreground"
+                    >
                       No laboratories found
                     </td>
                   </tr>
                 ) : (
                   laboratories?.map((laboratory) => (
-                    <tr key={laboratory.uid} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">{laboratory.name}</td>
-                      <td className="px-6 py-4">{laboratory.email}</td>
-                      <td className="px-6 py-4">{laboratory.license}</td>
-                      <td className="px-6 py-4">{laboratory.address.city}</td>
-                      <td className="px-6 py-4">
+                    <tr key={laboratory.uid} className="hover:bg-muted/50">
+                      <td className="px-6 py-4 text-foreground">
+                        {laboratory.name}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {laboratory.email}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {laboratory.license}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {laboratory.address.city}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
                         {laboratory.tests?.length || 0} tests
                       </td>
                       <td className="px-6 py-4">
@@ -208,7 +226,7 @@ export default function LaboratoriesPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-700"
+                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                             onClick={() => handleDelete(laboratory)}
                             disabled={isDeleting === laboratory.uid}
                           >

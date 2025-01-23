@@ -112,15 +112,17 @@ export default function DoctorsPage() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete{" "}
-              <span className="font-medium">{doctorToDelete?.name}</span>'s
-              account and remove their data from our servers.
+              <span className="font-medium text-foreground">
+                {doctorToDelete?.name}
+              </span>
+              's account and remove their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -130,7 +132,9 @@ export default function DoctorsPage() {
 
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Doctors Management</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Doctors Management
+          </h1>
           <Link href={`/${role}/manage/doctors/new`}>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" /> Add New Doctor
@@ -148,10 +152,10 @@ export default function DoctorsPage() {
           />
         </div>
 
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 uppercase">
+              <thead className="bg-muted text-muted-foreground uppercase">
                 <tr>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Email</th>
@@ -161,28 +165,42 @@ export default function DoctorsPage() {
                   <th className="px-6 py-3">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-4 text-center text-muted-foreground"
+                    >
                       Loading doctors...
                     </td>
                   </tr>
                 ) : !doctors ||
                   (Array.isArray(doctors) && doctors.length === 0) ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-4 text-center">
+                    <td
+                      colSpan={6}
+                      className="px-6 py-4 text-center text-muted-foreground"
+                    >
                       No doctors found
                     </td>
                   </tr>
                 ) : (
                   doctors?.map((doctor) => (
-                    <tr key={doctor.uid} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">{doctor.name}</td>
-                      <td className="px-6 py-4">{doctor.email}</td>
-                      <td className="px-6 py-4">{doctor.specialization}</td>
-                      <td className="px-6 py-4">{doctor.experience} years</td>
-                      <td className="px-6 py-4">
+                    <tr key={doctor.uid} className="hover:bg-muted/50">
+                      <td className="px-6 py-4 text-foreground">
+                        {doctor.name}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {doctor.email}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {doctor.specialization}
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
+                        {doctor.experience} years
+                      </td>
+                      <td className="px-6 py-4 text-foreground">
                         {doctor.clinicAddresses?.length || 0} locations
                       </td>
                       <td className="px-6 py-4">
@@ -202,7 +220,7 @@ export default function DoctorsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-700"
+                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                             onClick={() => handleDelete(doctor)}
                             disabled={isDeleting === doctor.uid}
                           >

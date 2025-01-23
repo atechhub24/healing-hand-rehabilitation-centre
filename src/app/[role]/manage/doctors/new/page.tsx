@@ -216,15 +216,19 @@ export default function NewDoctorPage() {
               Back to Doctors
             </Button>
           </Link>
-          <h1 className="text-2xl font-semibold">Add New Doctor</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Add New Doctor
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
+              Credentials
+            </h2>
             <div className="space-y-4">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="email"
                   name="email"
@@ -236,7 +240,7 @@ export default function NewDoctorPage() {
                 />
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -249,25 +253,25 @@ export default function NewDoctorPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
-              Basic Information
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
+              Personal Information
             </h2>
             <div className="space-y-4">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   name="name"
@@ -279,7 +283,7 @@ export default function NewDoctorPage() {
                 />
               </div>
               <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   name="qualification"
@@ -290,185 +294,223 @@ export default function NewDoctorPage() {
                   className="pl-10"
                 />
               </div>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  name="specialization"
-                  placeholder="Specialization"
-                  value={formData.specialization}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="number"
-                  name="experience"
-                  placeholder="Years of Experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Select
+                    name="specialization"
+                    value={formData.specialization}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "specialization", value },
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Specialization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cardiology">Cardiology</SelectItem>
+                      <SelectItem value="dermatology">Dermatology</SelectItem>
+                      <SelectItem value="endocrinology">
+                        Endocrinology
+                      </SelectItem>
+                      <SelectItem value="neurology">Neurology</SelectItem>
+                      <SelectItem value="orthopedics">Orthopedics</SelectItem>
+                      <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                      <SelectItem value="psychiatry">Psychiatry</SelectItem>
+                      <SelectItem value="surgery">Surgery</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    name="experience"
+                    placeholder="Years of Experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium">Clinic Addresses</h2>
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-border">
+              <h2 className="text-lg font-medium text-foreground">
+                Clinic Addresses
+              </h2>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={addClinicAddress}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-2"
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-4 w-4" />
                 Add Another Clinic
               </Button>
             </div>
 
-            {clinicAddresses.map((clinic, index) => (
-              <div key={index} className="space-y-4 border rounded-lg p-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-medium">Clinic {index + 1}</h3>
-                  {clinicAddresses.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeClinicAddress(index)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Clinic Address"
-                    value={clinic.address}
-                    onChange={(e) =>
-                      handleClinicAddressChange(
-                        index,
-                        "address",
-                        e.target.value
-                      )
-                    }
-                    required
-                    className="pl-9"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="text"
-                    placeholder="City"
-                    value={clinic.city}
-                    onChange={(e) =>
-                      handleClinicAddressChange(index, "city", e.target.value)
-                    }
-                    required
-                  />
-                  <Input
-                    type="text"
-                    placeholder="State"
-                    value={clinic.state}
-                    onChange={(e) =>
-                      handleClinicAddressChange(index, "state", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="text"
-                    placeholder="PIN Code"
-                    value={clinic.pincode}
-                    onChange={(e) =>
-                      handleClinicAddressChange(
-                        index,
-                        "pincode",
-                        e.target.value
-                      )
-                    }
-                    required
-                  />
-                  <Select
-                    value={clinic.timings.days.join(",")}
-                    onValueChange={(value) =>
-                      handleTimingsChange(index, "days", value.split(","))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Working Days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
-                        Weekdays
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                        Weekdays + Saturday
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
-                        All Days
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Opening Time
-                    </label>
-                    <Input
-                      type="time"
-                      value={clinic.timings.startTime}
-                      onChange={(e) =>
-                        handleTimingsChange(index, "startTime", e.target.value)
-                      }
-                      required
-                    />
+            <div className="space-y-6">
+              {clinicAddresses.map((clinic, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-lg border border-border bg-muted/50"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-sm font-medium text-foreground">
+                      Clinic {index + 1}
+                    </h3>
+                    {clinicAddresses.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeClinicAddress(index)}
+                        className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 -mt-2 -mr-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Closing Time
-                    </label>
-                    <Input
-                      type="time"
-                      value={clinic.timings.endTime}
-                      onChange={(e) =>
-                        handleTimingsChange(index, "endTime", e.target.value)
-                      }
-                      required
-                    />
+
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Street Address"
+                        value={clinic.address}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "address",
+                            e.target.value
+                          )
+                        }
+                        required
+                        className="pl-10"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <Input
+                        type="text"
+                        placeholder="City"
+                        value={clinic.city}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "city",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                      <Input
+                        type="text"
+                        placeholder="State"
+                        value={clinic.state}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "state",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                      <Input
+                        type="text"
+                        placeholder="PIN Code"
+                        value={clinic.pincode}
+                        onChange={(e) =>
+                          handleClinicAddressChange(
+                            index,
+                            "pincode",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">
+                          Working Hours
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="time"
+                            value={clinic.timings.startTime}
+                            onChange={(e) =>
+                              handleTimingsChange(
+                                index,
+                                "startTime",
+                                e.target.value
+                              )
+                            }
+                            required
+                          />
+                          <Input
+                            type="time"
+                            value={clinic.timings.endTime}
+                            onChange={(e) =>
+                              handleTimingsChange(
+                                index,
+                                "endTime",
+                                e.target.value
+                              )
+                            }
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">
+                          Working Days
+                        </label>
+                        <Select
+                          value={clinic.timings.days.join(",")}
+                          onValueChange={(value) =>
+                            handleTimingsChange(index, "days", value.split(","))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Days" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
+                              Weekdays
+                            </SelectItem>
+                            <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+                              Weekdays + Saturday
+                            </SelectItem>
+                            <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
+                              All Days
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              {error}
+            </p>
           )}
 
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(`/${role}/manage/doctors`)}
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end">
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Creating..." : "Create Doctor"}
             </Button>

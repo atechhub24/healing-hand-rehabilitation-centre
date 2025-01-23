@@ -151,15 +151,19 @@ export default function NewParamedicPage() {
               Back to Paramedics
             </Button>
           </Link>
-          <h1 className="text-2xl font-semibold">Add New Paramedic</h1>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Add New Paramedic
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">Credentials</h2>
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
+              Credentials
+            </h2>
             <div className="space-y-4">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="email"
                   name="email"
@@ -171,7 +175,7 @@ export default function NewParamedicPage() {
                 />
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -187,22 +191,22 @@ export default function NewParamedicPage() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5 text-muted-foreground" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5 text-muted-foreground" />
                   )}
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
               Basic Information
             </h2>
             <div className="space-y-4">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   name="name"
@@ -214,7 +218,7 @@ export default function NewParamedicPage() {
                 />
               </div>
               <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="text"
                   name="qualification"
@@ -225,52 +229,61 @@ export default function NewParamedicPage() {
                   className="pl-10"
                 />
               </div>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  name="specialization"
-                  placeholder="Specialization"
-                  value={formData.specialization}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="number"
-                  name="experience"
-                  placeholder="Years of Experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+                  <Select
+                    name="specialization"
+                    value={formData.specialization}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "specialization", value },
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Specialization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="emergency">Emergency Care</SelectItem>
+                      <SelectItem value="critical">Critical Care</SelectItem>
+                      <SelectItem value="trauma">Trauma Care</SelectItem>
+                      <SelectItem value="cardiac">Cardiac Care</SelectItem>
+                      <SelectItem value="pediatric">Pediatric Care</SelectItem>
+                      <SelectItem value="geriatric">Geriatric Care</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    name="experience"
+                    placeholder="Years of Experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium pb-2 border-b">
-              Service Area & Availability
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
+              Service Area
             </h2>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="City"
-                    value={formData.serviceArea.city}
-                    onChange={(e) =>
-                      handleServiceAreaChange("city", e.target.value)
-                    }
-                    required
-                    className="pl-10"
-                  />
-                </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  type="text"
+                  placeholder="City"
+                  value={formData.serviceArea.city}
+                  onChange={(e) =>
+                    handleServiceAreaChange("city", e.target.value)
+                  }
+                  required
+                />
                 <Input
                   type="text"
                   placeholder="State"
@@ -280,9 +293,6 @@ export default function NewParamedicPage() {
                   }
                   required
                 />
-              </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   type="text"
                   placeholder="PIN Code"
@@ -291,39 +301,42 @@ export default function NewParamedicPage() {
                     handleServiceAreaChange("pincode", e.target.value)
                   }
                   required
-                  className="pl-10"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-lg shadow p-6 space-y-4">
+            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
+              Availability
+            </h2>
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Working Hours
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Input
-                        type="time"
-                        value={formData.availability.startTime}
-                        onChange={(e) =>
-                          handleAvailabilityChange("startTime", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="time"
-                        value={formData.availability.endTime}
-                        onChange={(e) =>
-                          handleAvailabilityChange("endTime", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
+                    <Input
+                      type="time"
+                      value={formData.availability.startTime}
+                      onChange={(e) =>
+                        handleAvailabilityChange("startTime", e.target.value)
+                      }
+                      required
+                    />
+                    <Input
+                      type="time"
+                      value={formData.availability.endTime}
+                      onChange={(e) =>
+                        handleAvailabilityChange("endTime", e.target.value)
+                      }
+                      required
+                    />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-1 block">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Working Days
                   </label>
                   <Select
@@ -333,7 +346,7 @@ export default function NewParamedicPage() {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Working Days" />
+                      <SelectValue placeholder="Select Days" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
@@ -353,17 +366,12 @@ export default function NewParamedicPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 text-center mt-2">{error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              {error}
+            </p>
           )}
 
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push(`/${role}/manage/paramedics`)}
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end">
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Creating..." : "Create Paramedic"}
             </Button>

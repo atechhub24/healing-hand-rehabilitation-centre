@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { roleConfig } from "@/config/role-config";
 import Header from "@/components/dashboard/header";
 import Panel from "@/components/dashboard/panel";
+import { BreadcrumbNav } from "@/components/ui/breadcrumb";
+import { generateBreadcrumbs } from "@/lib/utils/breadcrumb";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +21,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
   const { user, signOut } = useAuth();
   const { userData, role } = useAuthStore();
   const currentRole = params.role as keyof typeof roleConfig;
@@ -34,6 +37,7 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const { title } = roleConfig[currentRole];
+  const breadcrumbSegments = generateBreadcrumbs(pathname);
 
   // The layout is split into two main sections:
   // 1. Sidebar (navigation)
@@ -44,6 +48,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} />
         <main className="flex-1 overflow-y-auto p-6">
+          <BreadcrumbNav segments={breadcrumbSegments} />
           <AnimatePresence mode="wait">
             <motion.div
               key={currentRole}

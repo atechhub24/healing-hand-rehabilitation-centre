@@ -125,9 +125,6 @@ export default function SlotsPage() {
       const baseTime = new Date(`2000-01-01T${clinic.timings.startTime}`);
       const endTimeDate = new Date(`2000-01-01T${clinic.timings.endTime}`);
 
-      // Create slots object to update
-      const slots: Record<string, Slot> = {};
-
       // Create slots
       for (let i = 0; i < numberOfSlots; i++) {
         const slotStartTime = new Date(
@@ -140,8 +137,9 @@ export default function SlotsPage() {
         // Skip if slot would exceed end time
         if (slotEndTime > endTimeDate) break;
 
-        slots[i.toString()] = {
-          id: i.toString(),
+        const slotId = i.toString();
+        const slotData = {
+          id: slotId,
           slotNumber: i + 1,
           startTime: slotStartTime.toLocaleTimeString("en-US", {
             hour12: false,
@@ -156,14 +154,14 @@ export default function SlotsPage() {
           duration: slotDuration,
           price: pricePerSlot,
         };
-      }
 
-      // Update clinic address with slots
-      await mutateData({
-        path: `/users/${user?.uid}/clinicAddresses/${clinicIndex}/slots`,
-        data: slots,
-        action: "update",
-      });
+        // Create slot using create action
+        await mutateData({
+          path: `/users/${user?.uid}/clinicAddresses/${clinicIndex}/slots/${slotId}`,
+          data: slotData,
+          action: "create",
+        });
+      }
 
       toast({
         title: "Success",

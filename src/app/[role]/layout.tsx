@@ -38,7 +38,7 @@ const roleConfig = {
         href: "/admin/manage/laboratories",
       },
       { label: "Analytics", icon: Activity, href: "/admin/analytics" },
-      { label: "Settings", icon: Settings, href: "/settings" },
+      { label: "Settings", icon: Settings, href: "/admin/settings" },
     ],
   },
   doctor: {

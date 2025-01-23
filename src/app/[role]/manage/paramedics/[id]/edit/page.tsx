@@ -26,6 +26,7 @@ import Link from "next/link";
 import useFetch from "@/lib/hooks/use-fetch";
 import { useToast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
+import { Label } from "@/components/ui/label";
 
 interface Paramedic {
   uid: string;
@@ -223,72 +224,95 @@ export default function EditParamedicPage() {
               Basic Information
             </h2>
             <div className="space-y-4">
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  name="qualification"
-                  placeholder="Qualification"
-                  value={formData.qualification}
-                  onChange={handleChange}
-                  required
-                  className="pl-10"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Select
-                    name="specialization"
-                    value={formData.specialization}
-                    onValueChange={(value) =>
-                      handleChange({
-                        target: { name: "specialization", value },
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Specialization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="emergency">Emergency Care</SelectItem>
-                      <SelectItem value="critical">Critical Care</SelectItem>
-                      <SelectItem value="trauma">Trauma Care</SelectItem>
-                      <SelectItem value="cardiac">Cardiac Care</SelectItem>
-                      <SelectItem value="pediatric">Pediatric Care</SelectItem>
-                      <SelectItem value="geriatric">Geriatric Care</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="paramedic@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    name="name"
+                    placeholder="Enter full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qualification">Qualification</Label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="qualification"
+                    type="text"
+                    name="qualification"
+                    placeholder="Enter qualification"
+                    value={formData.qualification}
+                    onChange={handleChange}
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="specialization">Specialization</Label>
+                <Select
+                  name="specialization"
+                  value={formData.specialization}
+                  onValueChange={(value) =>
+                    handleChange({
+                      target: { name: "specialization", value },
+                    })
+                  }
+                  required
+                >
+                  <SelectTrigger id="specialization">
+                    <SelectValue placeholder="Select specialization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Emergency Care">
+                      Emergency Care
+                    </SelectItem>
+                    <SelectItem value="Critical Care">Critical Care</SelectItem>
+                    <SelectItem value="Trauma Care">Trauma Care</SelectItem>
+                    <SelectItem value="Cardiac Care">Cardiac Care</SelectItem>
+                    <SelectItem value="Pediatric Care">
+                      Pediatric Care
+                    </SelectItem>
+                    <SelectItem value="Geriatric Care">
+                      Geriatric Care
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="experience">Experience (years)</Label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="experience"
                     type="number"
                     name="experience"
-                    placeholder="Years of Experience"
+                    placeholder="Years of experience"
                     value={formData.experience}
                     onChange={handleChange}
                     required
@@ -304,29 +328,39 @@ export default function EditParamedicPage() {
             <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
               Service Area
             </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
                 <Input
+                  id="city"
                   type="text"
-                  placeholder="City"
+                  placeholder="Enter city"
                   value={formData.serviceArea.city}
                   onChange={(e) =>
                     handleServiceAreaChange("city", e.target.value)
                   }
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
                 <Input
+                  id="state"
                   type="text"
-                  placeholder="State"
+                  placeholder="Enter state"
                   value={formData.serviceArea.state}
                   onChange={(e) =>
                     handleServiceAreaChange("state", e.target.value)
                   }
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pincode">Pincode</Label>
                 <Input
+                  id="pincode"
                   type="text"
-                  placeholder="PIN Code"
+                  placeholder="Enter pincode"
                   value={formData.serviceArea.pincode}
                   onChange={(e) =>
                     handleServiceAreaChange("pincode", e.target.value)
@@ -341,68 +375,54 @@ export default function EditParamedicPage() {
             <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
               Availability
             </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Working Hours
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="time"
-                      value={formData.availability.startTime}
-                      onChange={(e) =>
-                        handleAvailabilityChange("startTime", e.target.value)
-                      }
-                      required
-                    />
-                    <Input
-                      type="time"
-                      value={formData.availability.endTime}
-                      onChange={(e) =>
-                        handleAvailabilityChange("endTime", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Working Days
-                  </label>
-                  <Select
-                    value={formData.availability.days.join(",")}
-                    onValueChange={(value) =>
-                      handleAvailabilityChange("days", value.split(","))
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startTime">Start Time</Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={formData.availability.startTime}
+                    onChange={(e) =>
+                      handleAvailabilityChange("startTime", e.target.value)
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Days" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday">
-                        Weekdays
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                        Weekdays + Saturday
-                      </SelectItem>
-                      <SelectItem value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">
-                        All Days
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">End Time</Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={formData.availability.endTime}
+                    onChange={(e) =>
+                      handleAvailabilityChange("endTime", e.target.value)
+                    }
+                    required
+                    className="pl-10"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
           {error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+            <div className="bg-destructive/10 text-destructive px-4 py-2 rounded-lg text-sm">
               {error}
-            </p>
+            </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4">
+            <Link href={`/${role}/manage/paramedics`}>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </Link>
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>

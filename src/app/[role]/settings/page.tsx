@@ -2,18 +2,26 @@
 
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Bell, Lock, User, Globe, Moon } from "lucide-react";
+import { Bell, Lock, User, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { changePassword } from "@/lib/firebase/change-password";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const settingsSections = [
   {
     title: "Profile Settings",
     icon: User,
     settings: [
-      {
-        name: "Update Profile Picture",
-        description: "Change your profile photo",
-        action: "Upload",
-      },
       {
         name: "Personal Information",
         description: "Update your personal details",
@@ -29,11 +37,7 @@ const settingsSections = [
         name: "Change Password",
         description: "Update your password",
         action: "Change",
-      },
-      {
-        name: "Two-Factor Authentication",
-        description: "Add extra security to your account",
-        action: "Enable",
+        onClick: "handleChangePassword",
       },
     ],
   },
@@ -53,25 +57,146 @@ const settingsSections = [
       },
     ],
   },
-  {
-    title: "Preferences",
-    icon: Globe,
-    settings: [
-      {
-        name: "Language",
-        description: "Choose your preferred language",
-        action: "Select",
-      },
-      {
-        name: "Theme",
-        description: "Choose light or dark theme",
-        action: "Select",
-      },
-    ],
-  },
 ];
 
-function SettingsSection({ title, icon: Icon, settings }) {
+interface SettingProps {
+  name: string;
+  description: string;
+  action: string;
+  onClick?: string;
+}
+
+interface SectionProps {
+  title: string;
+  icon: any;
+  settings: SettingProps[];
+}
+
+function ChangePasswordDialog() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No email found for the current user.",
+      });
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "New passwords do not match.",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await changePassword(
+        user.email,
+        formData.currentPassword,
+        formData.newPassword
+      );
+      toast({
+        title: "Success",
+        description: "Password changed successfully.",
+      });
+      setIsOpen(false);
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description:
+          "Failed to change password. Please check your current password and try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Change</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change Password</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <Input
+              id="currentPassword"
+              type="password"
+              value={formData.currentPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, currentPassword: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={formData.newPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, newPassword: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Changing..." : "Change Password"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
   return (
     <div className="bg-white rounded-xl border p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
@@ -90,9 +215,11 @@ function SettingsSection({ title, icon: Icon, settings }) {
               <p className="font-medium text-gray-900">{setting.name}</p>
               <p className="text-sm text-gray-500">{setting.description}</p>
             </div>
-            <button className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700">
-              {setting.action}
-            </button>
+            {setting.onClick === "handleChangePassword" ? (
+              <ChangePasswordDialog />
+            ) : (
+              <Button variant="outline">{setting.action}</Button>
+            )}
           </div>
         ))}
       </div>
@@ -102,7 +229,11 @@ function SettingsSection({ title, icon: Icon, settings }) {
 
 export default function SettingsPage() {
   const params = useParams();
-  const { role } = useAuth();
+  const { user, role } = useAuth();
+
+  if (!user || !role) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

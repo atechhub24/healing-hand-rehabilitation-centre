@@ -214,12 +214,12 @@ export default function RoleBasedLayout({
   // 1. Sidebar (navigation)
   // 2. Main content area (header + page content)
   return (
-    <div className="flex h-screen bg-[#f8fafc]">
+    <div className="flex h-screen bg-background">
       {/* Mobile Menu Button */}
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden bg-white/50 backdrop-blur-sm border shadow-sm"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-background/50 backdrop-blur-sm border shadow-sm"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
         {isMobileMenuOpen ? (
@@ -236,7 +236,7 @@ export default function RoleBasedLayout({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.3 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm lg:hidden z-40"
+            className="fixed inset-0 bg-foreground/80 backdrop-blur-sm lg:hidden z-40"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
@@ -245,23 +245,25 @@ export default function RoleBasedLayout({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex w-72 bg-background/80 backdrop-blur-md border-r border-border/50",
+          "hidden lg:flex w-72 bg-card/80 backdrop-blur-md border-r border-border",
           !isSidebarOpen && "lg:w-20"
         )}
       >
         <div className="flex h-full flex-col w-full">
           {/* Brand/Logo Section */}
           <motion.div
-            className="flex items-center gap-3 px-6 py-5 border-b border-gray-200/50"
+            className="flex items-center gap-3 px-6 py-5 border-b border-border"
             whileHover={{ scale: 1.01 }}
           >
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-bold text-lg">H+</span>
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="text-primary-foreground font-bold text-lg">
+                H+
+              </span>
             </div>
             {isSidebarOpen && (
               <motion.span
                 variants={menuItemVariants}
-                className="font-semibold text-gray-800 text-lg"
+                className="font-semibold text-foreground text-lg"
               >
                 Healthcare+
               </motion.span>
@@ -280,9 +282,9 @@ export default function RoleBasedLayout({
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-4 py-2.5 text-gray-700 hover:bg-blue-50/50 hover:text-blue-700 transition-all duration-200",
-                      activeItem === item.href &&
-                        "bg-blue-50/80 text-blue-700 font-medium shadow-sm"
+                      "flex items-center gap-3 rounded-xl px-4 py-2.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200",
+                      currentPath === item.href &&
+                        "bg-accent text-accent-foreground font-medium"
                     )}
                     onClick={() => setActiveItem(item.href)}
                   >
@@ -300,30 +302,32 @@ export default function RoleBasedLayout({
 
           {/* User Profile Section */}
           <motion.div
-            className="border-t border-gray-200/50 p-4 bg-gray-50/50"
-            whileHover={{ backgroundColor: "#f1f5f9" }}
+            className="border-t border-border p-4 bg-muted/50"
+            whileHover={{ backgroundColor: "var(--muted)" }}
           >
             <div className="flex items-center gap-3 mb-4">
               <motion.div
-                className="h-10 w-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm"
+                className="h-10 w-10 rounded-xl bg-card flex items-center justify-center shadow-sm"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <User className="h-5 w-5 text-gray-600" />
+                <User className="h-5 w-5 text-muted-foreground" />
               </motion.div>
               {isSidebarOpen && (
                 <motion.div variants={menuItemVariants}>
-                  <p className="text-sm font-medium text-gray-800">
+                  <p className="text-sm font-medium text-foreground">
                     {user.email || user.phoneNumber}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">{role}</p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {role}
+                  </p>
                 </motion.div>
               )}
             </div>
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-2 text-red-600 hover:bg-red-50/50 hover:text-red-700 rounded-xl"
+                className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
                 onClick={handleSignOut}
               >
                 <LogOut className="h-5 w-5" />
@@ -346,21 +350,23 @@ export default function RoleBasedLayout({
             animate="open"
             exit="closed"
             variants={sidebarVariants}
-            className="fixed inset-y-0 left-0 z-50 w-72 bg-background/80 backdrop-blur-md border-r border-border/50 shadow-lg lg:hidden"
+            className="fixed inset-y-0 left-0 z-50 w-72 bg-card/80 backdrop-blur-md border-r border-border shadow-lg lg:hidden"
           >
             <div className="flex h-full flex-col">
               {/* Brand/Logo Section */}
               <motion.div
-                className="flex items-center gap-3 px-6 py-5 border-b border-gray-200/50"
+                className="flex items-center gap-3 px-6 py-5 border-b border-border"
                 whileHover={{ scale: 1.01 }}
               >
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                  <span className="text-white font-bold text-lg">H+</span>
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
+                  <span className="text-primary-foreground font-bold text-lg">
+                    H+
+                  </span>
                 </div>
                 {isSidebarOpen && (
                   <motion.span
                     variants={menuItemVariants}
-                    className="font-semibold text-gray-800 text-lg"
+                    className="font-semibold text-foreground text-lg"
                   >
                     Healthcare+
                   </motion.span>
@@ -379,9 +385,9 @@ export default function RoleBasedLayout({
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl px-4 py-2.5 text-gray-700 hover:bg-blue-50/50 hover:text-blue-700 transition-all duration-200",
-                          activeItem === item.href &&
-                            "bg-blue-50/80 text-blue-700 font-medium shadow-sm"
+                          "flex items-center gap-3 rounded-xl px-4 py-2.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200",
+                          currentPath === item.href &&
+                            "bg-accent text-accent-foreground font-medium"
                         )}
                         onClick={() => setActiveItem(item.href)}
                       >
@@ -399,23 +405,25 @@ export default function RoleBasedLayout({
 
               {/* User Profile Section */}
               <motion.div
-                className="border-t border-gray-200/50 p-4 bg-gray-50/50"
-                whileHover={{ backgroundColor: "#f1f5f9" }}
+                className="border-t border-border p-4 bg-muted/50"
+                whileHover={{ backgroundColor: "var(--muted)" }}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <motion.div
-                    className="h-10 w-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm"
+                    className="h-10 w-10 rounded-xl bg-card flex items-center justify-center shadow-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <User className="h-5 w-5 text-gray-600" />
+                    <User className="h-5 w-5 text-muted-foreground" />
                   </motion.div>
                   {isSidebarOpen && (
                     <motion.div variants={menuItemVariants}>
-                      <p className="text-sm font-medium text-gray-800">
+                      <p className="text-sm font-medium text-foreground">
                         {user.email || user.phoneNumber}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">{role}</p>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {role}
+                      </p>
                     </motion.div>
                   )}
                 </div>
@@ -425,7 +433,7 @@ export default function RoleBasedLayout({
                 >
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-2 text-red-600 hover:bg-red-50/50 hover:text-red-700 rounded-xl"
+                    className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
                     onClick={handleSignOut}
                   >
                     <LogOut className="h-5 w-5" />
@@ -448,7 +456,7 @@ export default function RoleBasedLayout({
         <motion.header
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-30"
+          className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-30"
         >
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
@@ -474,7 +482,7 @@ export default function RoleBasedLayout({
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-64 pl-10 pr-4 py-2 rounded-xl border border-border/50 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200 bg-muted/50"
+                  className="w-64 pl-10 pr-4 py-2 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-200 bg-muted/50"
                 />
               </motion.div>
               {/* Theme Switcher */}

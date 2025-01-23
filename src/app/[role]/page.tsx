@@ -185,16 +185,20 @@ function DashboardCard({
   icon: Icon,
 }: DashboardCard) {
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-semibold text-gray-900">{value}</p>
+            <p className="text-2xl font-semibold text-card-foreground">
+              {value}
+            </p>
             {change && (
               <span
                 className={`inline-flex items-center gap-1 text-sm font-medium ${
-                  change.trend === "up" ? "text-green-600" : "text-red-600"
+                  change.trend === "up"
+                    ? "text-emerald-500 dark:text-emerald-400"
+                    : "text-red-500 dark:text-red-400"
                 }`}
               >
                 {change.value}
@@ -206,10 +210,10 @@ function DashboardCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500">{description}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        <div className="rounded-lg bg-gray-100 p-3">
-          <Icon className="h-6 w-6 text-gray-600" />
+        <div className="rounded-lg bg-muted p-3">
+          <Icon className="h-6 w-6 text-muted-foreground" />
         </div>
       </div>
     </div>
@@ -218,21 +222,27 @@ function DashboardCard({
 
 function RecentActivityCard({ activities }: { activities: RecentActivity[] }) {
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <h3 className="text-lg font-semibold text-card-foreground mb-4">
         Recent Activity
       </h3>
       <div className="space-y-4">
         {activities.map((activity) => (
           <div key={activity.id} className="flex gap-4">
             <div className="relative">
-              <div className="h-3 w-3 rounded-full bg-blue-600" />
-              <div className="absolute top-3 bottom-0 left-1.5 w-px bg-gray-200" />
+              <div className="h-3 w-3 rounded-full bg-primary" />
+              <div className="absolute top-3 bottom-0 left-1.5 w-px bg-muted" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{activity.title}</p>
-              <p className="text-sm text-gray-500">{activity.description}</p>
-              <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+              <p className="font-medium text-card-foreground">
+                {activity.title}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {activity.description}
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                {activity.time}
+              </p>
             </div>
           </div>
         ))}
@@ -254,8 +264,10 @@ export default function RoleDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-800">Overview</h2>
-        <p className="text-sm text-gray-500">Here's what's happening today</p>
+        <h2 className="text-lg font-medium text-foreground">Overview</h2>
+        <p className="text-sm text-muted-foreground">
+          Here's what's happening today
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

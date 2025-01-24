@@ -303,6 +303,8 @@ export const useAuth = () => {
     signInWithEmail,
     signUpWithEmail,
     signOut,
+    signInWithPhone,
+    verifyOTP,
     verificationId,
     setVerificationId,
     initRecaptcha,

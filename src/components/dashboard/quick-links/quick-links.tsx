@@ -10,7 +10,6 @@ import {
   TestTube,
   MessageSquare,
   Phone,
-  UserPlus,
   Building2,
   Stethoscope,
   Ambulance,
@@ -21,6 +20,7 @@ import {
   BadgeDollarSign,
   Pill,
   HeartPulse,
+  UserCog,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,12 @@ interface QuickLink {
 
 const quickLinks: Record<string, QuickLink[]> = {
   admin: [
+    {
+      title: "Edit Profile",
+      href: "/admin/profile/edit",
+      icon: UserCog,
+      color: "text-blue-500",
+    },
     {
       title: "New Doctor",
       href: "/admin/manage/doctors/new",
@@ -89,6 +95,12 @@ const quickLinks: Record<string, QuickLink[]> = {
   ],
   doctor: [
     {
+      title: "Edit Profile",
+      href: "/doctor/profile/edit",
+      icon: UserCog,
+      color: "text-blue-500",
+    },
+    {
       title: "New Appointment",
       href: "/doctor/appointments/new",
       icon: CalendarPlus,
@@ -128,6 +140,12 @@ const quickLinks: Record<string, QuickLink[]> = {
     },
   ],
   paramedic: [
+    {
+      title: "Edit Profile",
+      href: "/paramedic/profile/edit",
+      icon: UserCog,
+      color: "text-blue-500",
+    },
     {
       title: "New Emergency",
       href: "/paramedic/emergency/new",
@@ -169,6 +187,12 @@ const quickLinks: Record<string, QuickLink[]> = {
   ],
   lab: [
     {
+      title: "Edit Profile",
+      href: "/lab/profile/edit",
+      icon: UserCog,
+      color: "text-blue-500",
+    },
+    {
       title: "New Test",
       href: "/lab/tests/new",
       icon: TestTube,
@@ -208,6 +232,12 @@ const quickLinks: Record<string, QuickLink[]> = {
     },
   ],
   customer: [
+    {
+      title: "Edit Profile",
+      href: "/customer/profile/edit",
+      icon: UserCog,
+      color: "text-blue-500",
+    },
     {
       title: "Book Appointment",
       href: "/customer/appointments/new",

@@ -45,7 +45,7 @@ const formSchema = z.object({
   age: z.coerce.number().min(1, "Age is required"),
   gender: z.enum(["male", "female", "other"]),
   bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
-  height: z.coerce.number().optional(),
+  height: z.coerce.number().min(0, "Height must be positive").optional(),
   weight: z.coerce.number().min(1, "Weight is required"),
   emergencyContact: z.string().optional(),
   allergies: z.string().optional(),
@@ -369,11 +369,12 @@ export default function EditProfilePage() {
                         <FormControl>
                           <Input
                             type="number"
+                            step="0.1"
                             className="h-12"
                             placeholder="Enter height in cm (optional)"
                             {...field}
                             onChange={(e) => {
-                              const value = parseInt(e.target.value);
+                              const value = parseFloat(e.target.value);
                               if (!isNaN(value) && value >= 0) {
                                 field.onChange(value);
                               }

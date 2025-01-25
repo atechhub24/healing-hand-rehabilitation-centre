@@ -9,7 +9,7 @@ interface State<T> {
   isLoading: boolean;
 }
 
-type Action<T> = {
+type Action = {
   type: "needRaw" | "needNested" | "needArray";
   payload: {
     snap: DataSnapshot;
@@ -19,14 +19,14 @@ type Action<T> = {
 interface FetchOptions<T> {
   needRaw?: boolean;
   needNested?: boolean;
-  filter?: (item: T extends any[] ? T[number] : T) => boolean;
+  filter?: (item: T extends T[] ? T[number] : T) => boolean;
   sort?: (
-    a: T extends any[] ? T[number] : T,
-    b: T extends any[] ? T[number] : T
+    a: T extends T[] ? T[number] : T,
+    b: T extends T[] ? T[number] : T
   ) => number;
 }
 
-const dataReducer = <T>(state: State<T>, action: Action<T>): State<T> => {
+const dataReducer = <T>(state: State<T>, action: Action): State<T> => {
   switch (action.type) {
     case "needNested":
       return {
@@ -72,7 +72,7 @@ export default function useFetch<T>(
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [mounted, path]);
+  }, [mounted, needNested, needRaw, path]);
 
   // filter the data
 

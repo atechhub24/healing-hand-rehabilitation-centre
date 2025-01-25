@@ -420,7 +420,7 @@ export default function EditProfilePage() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                           className="grid grid-cols-3 gap-4"
                         >
                           {genderOptions.map((option) => (
@@ -467,7 +467,7 @@ export default function EditProfilePage() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                           className="grid grid-cols-4 gap-4"
                         >
                           {bloodGroupOptions.map((option) => (

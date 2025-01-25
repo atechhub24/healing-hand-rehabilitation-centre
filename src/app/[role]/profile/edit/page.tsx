@@ -1,343 +1,663 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import mutate from "@/lib/firebase/mutate-data";
+import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import mutateData from "@/lib/firebase/mutate-data";
-import { useAuth } from "@/lib/hooks/use-auth";
-import useFetch from "@/lib/hooks/use-fetch";
-import { useAuthStore } from "@/lib/store/auth-store";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  User,
+  UserCircle,
+  Users2,
+  Users,
+  AlertCircle,
+  FileText,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { useAuthStore } from "@/lib/store/auth-store";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phoneNumber: z.string(),
+  age: z.coerce.number().min(1, "Age is required"),
+  gender: z.enum(["male", "female", "other"]),
+  bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
+  height: z.coerce.number().optional(),
+  weight: z.coerce.number().min(1, "Weight is required"),
+  emergencyContact: z.string().optional(),
+  allergies: z.string().optional(),
+  medicalHistory: z.string().optional(),
+  currentMedications: z.string().optional(),
+  chronicConditions: z.string().optional(),
+  surgicalHistory: z.string().optional(),
+  familyHistory: z.string().optional(),
+  lifestyle: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface UserData {
-  uid: string;
-  role: string;
-  phoneNumber: string;
   name?: string;
+  phoneNumber: string;
   age?: number;
   gender?: "male" | "female" | "other";
   bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+  height?: number;
+  weight?: number;
+  emergencyContact?: string;
   allergies?: string;
   medicalHistory?: string;
-  createdAt: string;
-  lastLogin: string;
-  creatorInfo?: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-  updaterInfo?: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
+  currentMedications?: string;
+  chronicConditions?: string;
+  surgicalHistory?: string;
+  familyHistory?: string;
+  lifestyle?: string;
 }
 
-const profileFormSchema = z.object({
-  name: z.string().min(1, "Full name is required"),
-  phoneNumber: z.string().min(10, "Valid phone number is required"),
-  age: z.coerce.number().min(1, "Age is required"),
-  gender: z.enum(["male", "female", "other"], {
-    required_error: "Please select your gender",
-  }),
-  bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], {
-    required_error: "Please select your blood group",
-  }),
-  allergies: z.string().optional(),
-  medicalHistory: z.string().optional(),
-});
+const genderOptions = [
+  {
+    value: "male",
+    label: "Male",
+    icon: <UserCircle className="h-5 w-5" />,
+    description: "I identify as male",
+    color:
+      "hover:border-blue-500 [&:has([data-state=checked])]:border-blue-500 [&:has([data-state=checked])]:bg-blue-50",
+  },
+  {
+    value: "female",
+    label: "Female",
+    icon: <Users2 className="h-5 w-5" />,
+    description: "I identify as female",
+    color:
+      "hover:border-pink-500 [&:has([data-state=checked])]:border-pink-500 [&:has([data-state=checked])]:bg-pink-50",
+  },
+  {
+    value: "other",
+    label: "Other",
+    icon: <Users className="h-5 w-5" />,
+    description: "I identify as non-binary",
+    color:
+      "hover:border-purple-500 [&:has([data-state=checked])]:border-purple-500 [&:has([data-state=checked])]:bg-purple-50",
+  },
+];
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+const bloodGroupOptions = [
+  {
+    value: "A+",
+    label: "A+",
+    color:
+      "hover:border-red-500 [&:has([data-state=checked])]:border-red-500 [&:has([data-state=checked])]:bg-red-50",
+  },
+  {
+    value: "A-",
+    label: "A-",
+    color:
+      "hover:border-red-500 [&:has([data-state=checked])]:border-red-500 [&:has([data-state=checked])]:bg-red-50",
+  },
+  {
+    value: "B+",
+    label: "B+",
+    color:
+      "hover:border-blue-500 [&:has([data-state=checked])]:border-blue-500 [&:has([data-state=checked])]:bg-blue-50",
+  },
+  {
+    value: "B-",
+    label: "B-",
+    color:
+      "hover:border-blue-500 [&:has([data-state=checked])]:border-blue-500 [&:has([data-state=checked])]:bg-blue-50",
+  },
+  {
+    value: "AB+",
+    label: "AB+",
+    color:
+      "hover:border-purple-500 [&:has([data-state=checked])]:border-purple-500 [&:has([data-state=checked])]:bg-purple-50",
+  },
+  {
+    value: "AB-",
+    label: "AB-",
+    color:
+      "hover:border-purple-500 [&:has([data-state=checked])]:border-purple-500 [&:has([data-state=checked])]:bg-purple-50",
+  },
+  {
+    value: "O+",
+    label: "O+",
+    color:
+      "hover:border-green-500 [&:has([data-state=checked])]:border-green-500 [&:has([data-state=checked])]:bg-green-50",
+  },
+  {
+    value: "O-",
+    label: "O-",
+    color:
+      "hover:border-green-500 [&:has([data-state=checked])]:border-green-500 [&:has([data-state=checked])]:bg-green-50",
+  },
+];
 
-export default function ProfileEditPage() {
+export default function EditProfilePage() {
   const { user } = useAuth();
   const { userData } = useAuthStore();
-  const router = useRouter();
   const { toast } = useToast();
+  const router = useRouter();
   const [profileData] = useFetch<UserData>(`/users/${user?.uid}`, {
     needRaw: true,
   });
 
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      phoneNumber: profileData?.phoneNumber || "",
+      phoneNumber: "",
       age: 0,
-      gender: undefined,
-      bloodGroup: undefined,
+      gender: "male",
+      bloodGroup: "A+",
+      height: 0,
+      weight: 0,
+      emergencyContact: "",
       allergies: "",
       medicalHistory: "",
+      currentMedications: "",
+      chronicConditions: "",
+      surgicalHistory: "",
+      familyHistory: "",
+      lifestyle: "",
     },
   });
 
   useEffect(() => {
     if (profileData) {
-      // Only update form with existing data, preserving phoneNumber
       form.reset({
-        ...profileData,
-        phoneNumber: profileData.phoneNumber || "",
-        // Ensure optional fields are empty strings if undefined
         name: profileData.name || "",
+        phoneNumber: profileData.phoneNumber,
         age: profileData.age || 0,
-        gender: profileData.gender || undefined,
-        bloodGroup: profileData.bloodGroup || undefined,
+        gender: profileData.gender || "male",
+        bloodGroup: profileData.bloodGroup || "A+",
+        height: profileData.height || 0,
+        weight: profileData.weight || 0,
+        emergencyContact: profileData.emergencyContact || "",
         allergies: profileData.allergies || "",
         medicalHistory: profileData.medicalHistory || "",
+        currentMedications: profileData.currentMedications || "",
+        chronicConditions: profileData.chronicConditions || "",
+        surgicalHistory: profileData.surgicalHistory || "",
+        familyHistory: profileData.familyHistory || "",
+        lifestyle: profileData.lifestyle || "",
       });
     }
   }, [profileData, form]);
 
-  const onSubmit = async (data: ProfileFormValues) => {
+  const onSubmit = async (data: FormValues) => {
     try {
-      // Preserve existing data that shouldn't be modified
       const updateData: Partial<UserData> = {
         ...data,
-        phoneNumber: profileData?.phoneNumber, // Keep original phone number
-        role: profileData?.role, // Preserve role
-        uid: profileData?.uid, // Preserve uid
+        phoneNumber: profileData?.phoneNumber,
       };
 
-      await mutateData({
+      await mutate({
+        action: "update",
         path: `/users/${user?.uid}`,
         data: updateData,
-        action: "update",
       });
 
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
       });
 
-      // Check if we came from appointment booking
-      const returnUrl = new URLSearchParams(window.location.search).get(
-        "returnUrl"
-      );
-      if (returnUrl) {
-        router.push(returnUrl);
-      } else {
-        router.push(`/${userData?.role}/profile/view`);
-      }
+      // Redirect to view page after successful update
+      router.push(`/${userData?.role}/profile/view`);
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to update profile",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update profile. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
+  if (!profileData) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <p className="text-muted-foreground">Loading profile information...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="container px-0">
+      <div className="mb-8">
         <h2 className="text-3xl font-bold tracking-tight">Edit Profile</h2>
         <p className="text-muted-foreground">
-          Update your personal and medical information
+          Update your profile information below
         </p>
       </div>
 
-      <Card className="p-6">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your full name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-1">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Personal Information
+                </CardTitle>
+                <CardDescription>Your basic profile details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Full Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-12"
+                            placeholder="Enter your full name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your phone number"
-                        {...field}
-                        disabled
-                        className="bg-muted"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Phone number cannot be changed
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Phone Number
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-12 bg-muted"
+                            {...field}
+                            disabled
+                          />
+                        </FormControl>
+                        <p className="text-sm text-muted-foreground">
+                          Phone number cannot be changed
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Enter your age"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="age"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Age</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            className="h-12"
+                            placeholder="Enter your age"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (!isNaN(value) && value >= 0) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                  <FormField
+                    control={form.control}
+                    name="emergencyContact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Emergency Contact (Optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="h-12"
+                            placeholder="Emergency contact number (optional)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="height"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Height (Optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            className="h-12"
+                            placeholder="Enter height in cm (optional)"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (!isNaN(value) && value >= 0) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="weight"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Weight (kg)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            className="h-12"
+                            placeholder="Enter weight in kg"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              if (!isNaN(value) && value >= 0) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-base">Gender</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your gender" />
-                        </SelectTrigger>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-3 gap-4"
+                        >
+                          {genderOptions.map((option) => (
+                            <FormItem key={option.value}>
+                              <FormControl>
+                                <RadioGroupItem
+                                  value={option.value}
+                                  id={option.value}
+                                  className="peer sr-only"
+                                />
+                              </FormControl>
+                              <label
+                                htmlFor={option.value}
+                                className={cn(
+                                  "flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all duration-200",
+                                  option.color
+                                )}
+                              >
+                                {option.icon}
+                                <div className="mt-3 space-y-1 text-center">
+                                  <div className="text-base font-medium leading-none">
+                                    {option.label}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {option.description}
+                                  </div>
+                                </div>
+                              </label>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="bloodGroup"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Blood Group</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                <FormField
+                  control={form.control}
+                  name="bloodGroup"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-base">Blood Group</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your blood group" />
-                        </SelectTrigger>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-4 gap-4"
+                        >
+                          {bloodGroupOptions.map((option) => (
+                            <FormItem key={option.value}>
+                              <FormControl>
+                                <RadioGroupItem
+                                  value={option.value}
+                                  id={option.value}
+                                  className="peer sr-only"
+                                />
+                              </FormControl>
+                              <label
+                                htmlFor={option.value}
+                                className={cn(
+                                  "flex h-16 items-center justify-center rounded-xl border-2 border-muted bg-popover hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer text-lg font-semibold transition-all duration-200",
+                                  option.color
+                                )}
+                              >
+                                {option.label}
+                              </label>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
                       </FormControl>
-                      <SelectContent>
-                        {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
-                          (group) => (
-                            <SelectItem key={group} value={group}>
-                              {group}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="allergies"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Allergies</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="List any allergies you have (optional)"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Include any food, drug, or environmental allergies
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="space-y-6">
+              <Card className="shadow-sm">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-primary" />
+                    Medical Information
+                  </CardTitle>
+                  <CardDescription>Your health-related details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="allergies"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">Allergies</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="List any allergies you have..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="medicalHistory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Medical History</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your medical history (optional)"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Include any chronic conditions, surgeries, or ongoing
-                      treatments
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                  <FormField
+                    control={form.control}
+                    name="currentMedications"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Current Medications
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="List your current medications..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
+                  <FormField
+                    control={form.control}
+                    name="chronicConditions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Chronic Conditions
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="List any chronic conditions..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Medical History
+                  </CardTitle>
+                  <CardDescription>Your past medical records</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="surgicalHistory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Surgical History
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="List any past surgeries..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="familyHistory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Family Medical History
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe any significant family medical history..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="lifestyle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          Lifestyle & Habits
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your lifestyle (exercise, smoking, alcohol, etc.)..."
+                            className="min-h-[80px] resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
             </div>
-          </form>
-        </Form>
-      </Card>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={() => router.back()}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="lg" className="w-full">
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

@@ -16,14 +16,11 @@ type Action = {
   };
 };
 
-interface FetchOptions<T> {
+interface FetchOptions {
   needRaw?: boolean;
   needNested?: boolean;
-  filter?: (item: T extends T[] ? T[number] : T) => boolean;
-  sort?: (
-    a: T extends T[] ? T[number] : T,
-    b: T extends T[] ? T[number] : T
-  ) => number;
+  filter?: (item: unknown) => boolean;
+  sort?: (a: unknown, b: unknown) => number;
 }
 
 const dataReducer = <T>(state: State<T>, action: Action): State<T> => {
@@ -48,7 +45,7 @@ const dataReducer = <T>(state: State<T>, action: Action): State<T> => {
 
 export default function useFetch<T>(
   path: string,
-  options: FetchOptions<T> = {}
+  options: FetchOptions = {}
 ): [T | null, boolean] {
   const { needRaw = false, needNested = false, filter = () => true } = options;
 

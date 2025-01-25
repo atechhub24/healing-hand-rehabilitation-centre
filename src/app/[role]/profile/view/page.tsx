@@ -9,7 +9,6 @@ import {
   Phone,
   Calendar,
   UserCircle2,
-  Droplets,
   AlertCircle,
   FileText,
   PenSquare,
@@ -21,6 +20,7 @@ import {
   Stethoscope,
   HeartPulse,
   Users,
+  Users2,
   Bike,
   Globe,
   Languages,
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { cn } from "@/lib/utils";
 
 interface UserData {
   uid: string;
@@ -178,6 +179,89 @@ function SystemInfoCard({
   );
 }
 
+const genderOptions = [
+  {
+    value: "male",
+    label: "Male",
+    icon: <UserCircle2 className="h-5 w-5" />,
+    description: "I identify as male",
+    color: "text-blue-500 bg-blue-50",
+  },
+  {
+    value: "female",
+    label: "Female",
+    icon: <Users2 className="h-5 w-5" />,
+    description: "I identify as female",
+    color: "text-pink-500 bg-pink-50",
+  },
+  {
+    value: "other",
+    label: "Other",
+    icon: <Users className="h-5 w-5" />,
+    description: "I identify as non-binary",
+    color: "text-purple-500 bg-purple-50",
+  },
+];
+
+const bloodGroupOptions = [
+  { value: "A+", label: "A+", color: "text-red-500 bg-red-50" },
+  { value: "A-", label: "A-", color: "text-red-500 bg-red-50" },
+  { value: "B+", label: "B+", color: "text-blue-500 bg-blue-50" },
+  { value: "B-", label: "B-", color: "text-blue-500 bg-blue-50" },
+  { value: "AB+", label: "AB+", color: "text-purple-500 bg-purple-50" },
+  { value: "AB-", label: "AB-", color: "text-purple-500 bg-purple-50" },
+  { value: "O+", label: "O+", color: "text-green-500 bg-green-50" },
+  { value: "O-", label: "O-", color: "text-green-500 bg-green-50" },
+];
+
+function GenderDisplay({ value }: { value?: string }) {
+  if (!value) return null;
+  const option = genderOptions.find((opt) => opt.value === value);
+  if (!option) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-medium text-muted-foreground">Gender</p>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-between rounded-xl border-2 border-muted p-4",
+          option.color
+        )}
+      >
+        {option.icon}
+        <div className="mt-3 space-y-1 text-center">
+          <div className="text-base font-medium leading-none">
+            {option.label}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {option.description}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BloodGroupDisplay({ value }: { value?: string }) {
+  if (!value) return null;
+  const option = bloodGroupOptions.find((opt) => opt.value === value);
+  if (!option) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-medium text-muted-foreground">Blood Group</p>
+      <div
+        className={cn(
+          "flex h-16 items-center justify-center rounded-xl border-2 border-muted text-lg font-semibold",
+          option.color
+        )}
+      >
+        {option.label}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileViewPage() {
   const { user } = useAuth();
   const { userData } = useAuthStore();
@@ -265,18 +349,8 @@ export default function ProfileViewPage() {
               }
               colorClass="text-blue-500"
             />
-            <InfoItem
-              icon={<UserCircle2 className="h-4 w-4" />}
-              label="Gender"
-              value={profileData.gender}
-              colorClass="text-blue-500"
-            />
-            <InfoItem
-              icon={<Droplets className="h-4 w-4" />}
-              label="Blood Group"
-              value={profileData.bloodGroup}
-              colorClass="text-blue-500"
-            />
+            <GenderDisplay value={profileData.gender} />
+            <BloodGroupDisplay value={profileData.bloodGroup} />
           </div>
         </Card>
 

@@ -226,7 +226,7 @@ export default function EditProfilePage() {
       });
 
       // Redirect to view page after successful update
-      router.push(`/${userData?.role}/profile/view`);
+      router.push(`/${userData?.role}/profile`);
     } catch (error) {
       toast({
         title: "Error",

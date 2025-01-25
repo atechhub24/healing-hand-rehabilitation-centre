@@ -8,7 +8,6 @@ import {
   User,
   Phone,
   Calendar,
-  UserCircle2,
   AlertCircle,
   FileText,
   PenSquare,
@@ -20,89 +19,19 @@ import {
   Stethoscope,
   HeartPulse,
   Users,
-  Users2,
   Bike,
+  Monitor,
+  History,
   Globe,
-  Languages,
   Laptop,
   LayoutGrid,
   Clock,
-  History,
-  Monitor,
+  CircleUser as Mars,
+  CircleUserRound as Venus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { cn } from "@/lib/utils";
-
-interface UserData {
-  uid: string;
-  role: string;
-  phoneNumber: string;
-  name?: string;
-  age?: number;
-  gender?: "male" | "female" | "other";
-  bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-  height?: number;
-  weight?: number;
-  emergencyContact?: string;
-  allergies?: string;
-  medicalHistory?: string;
-  currentMedications?: string;
-  chronicConditions?: string;
-  surgicalHistory?: string;
-  familyHistory?: string;
-  lifestyle?: string;
-  createdAt: string;
-  lastLogin: string;
-  creatorInfo?: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-  updaterInfo?: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-}
-
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value?: string | number;
-  isAlert?: boolean;
-  colorClass?: string;
-}
-
-function InfoItem({
-  icon,
-  label,
-  value,
-  isAlert,
-  colorClass = "text-primary",
-}: InfoItemProps) {
-  if (!value) return null;
-
-  return (
-    <div className="flex items-start gap-3">
-      <div className={`mt-0.5 ${isAlert ? "text-yellow-500" : colorClass}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="text-base whitespace-pre-wrap">{value}</p>
-      </div>
-    </div>
-  );
-}
 
 interface SystemInfo {
   actionBy: string;
@@ -110,8 +39,141 @@ interface SystemInfo {
   language: string;
   platform: string;
   screenResolution: string;
-  timestamp: string;
+  timestamp: number;
   userAgent: string;
+}
+
+interface UserData {
+  name: string;
+  phoneNumber: string;
+  age: number;
+  gender: "male" | "female" | "other";
+  bloodGroup: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+  allergies?: string;
+  medicalHistory?: string;
+  height?: number;
+  weight?: number;
+  emergencyContact?: string;
+  currentMedications?: string;
+  chronicConditions?: string;
+  surgicalHistory?: string;
+  familyHistory?: string;
+  lifestyle?: string;
+  createdAt: number;
+  lastLogin: number;
+  creatorInfo: SystemInfo;
+  updaterInfo: SystemInfo;
+}
+
+interface InfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value?: string | number;
+  colorClass?: string;
+  isAlert?: boolean;
+}
+
+function InfoItem({ icon, label, value, colorClass, isAlert }: InfoItemProps) {
+  return (
+    <div className="flex items-start gap-2">
+      <div
+        className={cn(
+          "mt-0.5",
+          colorClass || (isAlert ? "text-red-500" : "text-gray-500")
+        )}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-medium">{label}</p>
+        <p
+          className={cn(
+            "text-sm whitespace-pre-wrap",
+            value ? "text-foreground" : "text-muted-foreground"
+          )}
+        >
+          {value || "Not provided"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const genderOptions = [
+  {
+    label: "Male",
+    icon: Mars,
+    description: "Male gender",
+    value: "male",
+    colorClass: "text-blue-500",
+  },
+  {
+    label: "Female",
+    icon: Venus,
+    description: "Female gender",
+    value: "female",
+    colorClass: "text-pink-500",
+  },
+  {
+    label: "Other",
+    icon: Users,
+    description: "Other gender",
+    value: "other",
+    colorClass: "text-purple-500",
+  },
+] as const;
+
+const bloodGroupOptions = [
+  { label: "A+", value: "A+", colorClass: "text-red-500" },
+  { label: "A-", value: "A-", colorClass: "text-red-500" },
+  { label: "B+", value: "B+", colorClass: "text-red-500" },
+  { label: "B-", value: "B-", colorClass: "text-red-500" },
+  { label: "AB+", value: "AB+", colorClass: "text-red-500" },
+  { label: "AB-", value: "AB-", colorClass: "text-red-500" },
+  { label: "O+", value: "O+", colorClass: "text-red-500" },
+  { label: "O-", value: "O-", colorClass: "text-red-500" },
+] as const;
+
+function GenderDisplay({ value }: { value: UserData["gender"] }) {
+  const option = genderOptions.find((opt) => opt.value === value);
+  if (!option) return null;
+
+  const Icon = option.icon;
+  return (
+    <div className="flex items-start gap-2">
+      <div className={cn("mt-0.5", option.colorClass)}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-sm font-medium">Gender</p>
+        <p className="text-sm text-foreground">{option.label}</p>
+      </div>
+    </div>
+  );
+}
+
+function BloodGroupDisplay({ value }: { value: UserData["bloodGroup"] }) {
+  const option = bloodGroupOptions.find((opt) => opt.value === value);
+  if (!option) return null;
+
+  return (
+    <div className="flex items-start gap-2">
+      <div className={cn("mt-0.5", option.colorClass)}>
+        <AlertCircle className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-sm font-medium">Blood Group</p>
+        <p className="text-sm text-foreground">{option.label}</p>
+      </div>
+    </div>
+  );
+}
+
+interface SystemInfoCardProps {
+  title: string;
+  info?: SystemInfo;
+  icon: React.ReactNode;
+  colorClass?: string;
 }
 
 function SystemInfoCard({
@@ -119,17 +181,12 @@ function SystemInfoCard({
   info,
   icon,
   colorClass,
-}: {
-  title: string;
-  info: SystemInfo | undefined;
-  icon: React.ReactNode;
-  colorClass: string;
-}) {
+}: SystemInfoCardProps) {
   if (!info) return null;
 
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex items-center gap-2">
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-4">
         <div className={colorClass}>{icon}</div>
         <div>
           <h3 className="text-lg font-semibold">{title}</h3>
@@ -137,15 +194,21 @@ function SystemInfoCard({
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <InfoItem
-          icon={<Globe className="h-4 w-4" />}
+          icon={<User className="h-4 w-4" />}
+          label="Action By"
+          value={info.actionBy}
+          colorClass={colorClass}
+        />
+        <InfoItem
+          icon={<Monitor className="h-4 w-4" />}
           label="Browser"
           value={info.browser}
           colorClass={colorClass}
         />
         <InfoItem
-          icon={<Languages className="h-4 w-4" />}
+          icon={<Globe className="h-4 w-4" />}
           label="Language"
           value={info.language}
           colorClass={colorClass}
@@ -165,7 +228,7 @@ function SystemInfoCard({
         <InfoItem
           icon={<Clock className="h-4 w-4" />}
           label="Timestamp"
-          value={new Date(info.timestamp).toLocaleString("en-US", {
+          value={new Date(info.timestamp).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -179,90 +242,7 @@ function SystemInfoCard({
   );
 }
 
-const genderOptions = [
-  {
-    value: "male",
-    label: "Male",
-    icon: <UserCircle2 className="h-5 w-5" />,
-    description: "I identify as male",
-    color: "text-blue-500 bg-blue-50",
-  },
-  {
-    value: "female",
-    label: "Female",
-    icon: <Users2 className="h-5 w-5" />,
-    description: "I identify as female",
-    color: "text-pink-500 bg-pink-50",
-  },
-  {
-    value: "other",
-    label: "Other",
-    icon: <Users className="h-5 w-5" />,
-    description: "I identify as non-binary",
-    color: "text-purple-500 bg-purple-50",
-  },
-];
-
-const bloodGroupOptions = [
-  { value: "A+", label: "A+", color: "text-red-500 bg-red-50" },
-  { value: "A-", label: "A-", color: "text-red-500 bg-red-50" },
-  { value: "B+", label: "B+", color: "text-blue-500 bg-blue-50" },
-  { value: "B-", label: "B-", color: "text-blue-500 bg-blue-50" },
-  { value: "AB+", label: "AB+", color: "text-purple-500 bg-purple-50" },
-  { value: "AB-", label: "AB-", color: "text-purple-500 bg-purple-50" },
-  { value: "O+", label: "O+", color: "text-green-500 bg-green-50" },
-  { value: "O-", label: "O-", color: "text-green-500 bg-green-50" },
-];
-
-function GenderDisplay({ value }: { value?: string }) {
-  if (!value) return null;
-  const option = genderOptions.find((opt) => opt.value === value);
-  if (!option) return null;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm font-medium text-muted-foreground">Gender</p>
-      <div
-        className={cn(
-          "flex flex-col items-center justify-between rounded-xl border-2 border-muted p-4",
-          option.color
-        )}
-      >
-        {option.icon}
-        <div className="mt-3 space-y-1 text-center">
-          <div className="text-base font-medium leading-none">
-            {option.label}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {option.description}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BloodGroupDisplay({ value }: { value?: string }) {
-  if (!value) return null;
-  const option = bloodGroupOptions.find((opt) => opt.value === value);
-  if (!option) return null;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm font-medium text-muted-foreground">Blood Group</p>
-      <div
-        className={cn(
-          "flex h-16 items-center justify-center rounded-xl border-2 border-muted text-lg font-semibold",
-          option.color
-        )}
-      >
-        {option.label}
-      </div>
-    </div>
-  );
-}
-
-export default function ProfileViewPage() {
+export default function ProfilePage() {
   const { user } = useAuth();
   const { userData } = useAuthStore();
   const router = useRouter();

@@ -7,6 +7,14 @@ import mutateData from "@/lib/firebase/mutate-data";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -26,7 +34,9 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Clock, MapPin, Stethoscope } from "lucide-react";
+import { Clock, MapPin, Stethoscope, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 // Form schema for doctor search
 const searchFormSchema = z.object({
@@ -69,14 +79,30 @@ interface Doctor {
   }[];
 }
 
+interface PatientInfo {
+  name?: string;
+  phoneNumber?: string;
+  email: string;
+  age?: number;
+  gender?: string;
+  bloodGroup?: string;
+  allergies?: string;
+  medicalHistory?: string;
+}
+
 export default function NewAppointmentPage() {
   const { user } = useAuth();
+  const { userData } = useAuthStore();
   const { toast } = useToast();
+  const router = useRouter();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedClinicIndex, setSelectedClinicIndex] = useState<number | null>(
     null
   );
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [specialization, setSpecialization] = useState<string>("");
 
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
@@ -88,14 +114,41 @@ export default function NewAppointmentPage() {
 
   // Fetch all doctors
   const [doctors, isLoading] = useFetch<Doctor[]>("users", {
-    filter: (doctor: Doctor) => doctor.role === "doctor",
+    filter: (item: unknown) => {
+      const doctor = item as Doctor;
+      return doctor.role === "doctor";
+    },
   });
 
   // Filter doctors based on search criteria
   const filteredDoctors = doctors?.filter((doctor) => {
-    if (!form.getValues("specialization")) return true;
-    return doctor.specialization === form.getValues("specialization");
+    if (!specialization) return true;
+    return doctor.specialization === specialization;
   });
+
+  // Fetch patient information
+  const [patientInfo] = useFetch<PatientInfo>(`/users/${user?.uid}`);
+
+  // Handle form submission
+  const onSubmit = (values: SearchFormValues) => {
+    setSpecialization(values.specialization);
+  };
+
+  const validateRequiredFields = (info: PatientInfo | null) => {
+    if (!info) return [];
+
+    const required = [
+      { field: "name", label: "Full Name" },
+      { field: "phoneNumber", label: "Phone Number" },
+      { field: "age", label: "Age" },
+      { field: "gender", label: "Gender" },
+      { field: "bloodGroup", label: "Blood Group" },
+    ];
+
+    return required
+      .filter(({ field }) => !info[field as keyof PatientInfo])
+      .map(({ label }) => label);
+  };
 
   const handleBookSlot = async () => {
     if (
@@ -109,6 +162,14 @@ export default function NewAppointmentPage() {
         title: "Error",
         description: "Please select a slot to book",
       });
+      return;
+    }
+
+    // Check for required patient information
+    const missing = validateRequiredFields(patientInfo);
+    if (missing.length > 0) {
+      setMissingFields(missing);
+      setShowProfileDialog(true);
       return;
     }
 
@@ -168,7 +229,7 @@ export default function NewAppointmentPage() {
 
       <Card className="p-6">
         <Form {...form}>
-          <form className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -213,6 +274,9 @@ export default function NewAppointmentPage() {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit">Search</Button>
             </div>
           </form>
         </Form>
@@ -312,6 +376,53 @@ export default function NewAppointmentPage() {
           <p className="text-muted-foreground">No doctors found</p>
         )}
       </div>
+
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              Complete Your Profile
+            </DialogTitle>
+            <div className="space-y-2">
+              <DialogDescription>
+                Please update your profile with the following required
+                information before booking an appointment:
+              </DialogDescription>
+              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                {missingFields.map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-start">
+            <Button
+              type="button"
+              variant="default"
+              onClick={() => {
+                setShowProfileDialog(false);
+                router.push(
+                  `/${
+                    userData?.role
+                  }/profile/edit?returnUrl=${encodeURIComponent(
+                    window.location.pathname
+                  )}`
+                );
+              }}
+            >
+              Update Profile
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowProfileDialog(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {selectedSlotId && (
         <div className="flex justify-end">

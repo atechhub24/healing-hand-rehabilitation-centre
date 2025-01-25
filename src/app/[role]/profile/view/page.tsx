@@ -13,18 +13,25 @@ import {
   AlertCircle,
   FileText,
   PenSquare,
+  Ruler,
+  Weight,
+  PhoneCall,
+  Pill,
+  Activity,
+  Stethoscope,
+  HeartPulse,
+  Users,
+  Bike,
   Globe,
-  Monitor,
   Languages,
-  Clock,
   Laptop,
   LayoutGrid,
-  Shield,
+  Clock,
   History,
+  Monitor,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { Badge } from "@/components/ui/badge";
 
 interface UserData {
   uid: string;
@@ -34,8 +41,16 @@ interface UserData {
   age?: number;
   gender?: "male" | "female" | "other";
   bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
+  height?: number;
+  weight?: number;
+  emergencyContact?: string;
   allergies?: string;
   medicalHistory?: string;
+  currentMedications?: string;
+  chronicConditions?: string;
+  surgicalHistory?: string;
+  familyHistory?: string;
+  lifestyle?: string;
   createdAt: string;
   lastLogin: string;
   creatorInfo?: {
@@ -82,7 +97,7 @@ function InfoItem({
       </div>
       <div>
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className="text-base">{value}</p>
+        <p className="text-base whitespace-pre-wrap">{value}</p>
       </div>
     </div>
   );
@@ -184,18 +199,11 @@ export default function ProfileViewPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="space-y-1">
+    <div className="container px-0">
+      <div className="flex justify-between items-center mb-6">
+        <div>
           <h2 className="text-3xl font-bold tracking-tight">Profile</h2>
-          <div className="flex items-center gap-2">
-            <p className="text-muted-foreground">
-              View your profile information
-            </p>
-            <Badge variant="outline" className="capitalize">
-              {profileData.role}
-            </Badge>
-          </div>
+          <p className="text-muted-foreground">View your profile information</p>
         </div>
         <Button onClick={handleEdit} className="gap-2">
           <PenSquare className="h-4 w-4" />
@@ -203,11 +211,11 @@ export default function ProfileViewPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Personal Information */}
-        <Card className="p-6 space-y-6">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-500" />
+      <div className="grid gap-4 xl:grid-cols-3 lg:grid-cols-2">
+        {/* Personal Information - Takes full width on smaller screens, 1/3 on xl */}
+        <Card className="p-4 xl:row-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="h-5 w-5 text-blue-500" />
             <div>
               <h3 className="text-lg font-semibold">Personal Information</h3>
               <p className="text-sm text-muted-foreground">
@@ -216,7 +224,7 @@ export default function ProfileViewPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <InfoItem
               icon={<User className="h-4 w-4" />}
               label="Full Name"
@@ -236,6 +244,28 @@ export default function ProfileViewPage() {
               colorClass="text-blue-500"
             />
             <InfoItem
+              icon={<PhoneCall className="h-4 w-4" />}
+              label="Emergency Contact"
+              value={profileData.emergencyContact}
+              colorClass="text-blue-500"
+            />
+            <InfoItem
+              icon={<Ruler className="h-4 w-4" />}
+              label="Height"
+              value={
+                profileData.height ? `${profileData.height} cm` : undefined
+              }
+              colorClass="text-blue-500"
+            />
+            <InfoItem
+              icon={<Weight className="h-4 w-4" />}
+              label="Weight"
+              value={
+                profileData.weight ? `${profileData.weight} kg` : undefined
+              }
+              colorClass="text-blue-500"
+            />
+            <InfoItem
               icon={<UserCircle2 className="h-4 w-4" />}
               label="Gender"
               value={profileData.gender}
@@ -250,19 +280,19 @@ export default function ProfileViewPage() {
           </div>
         </Card>
 
-        {/* Medical Information */}
-        <Card className="p-6 space-y-6">
-          <div className="flex items-center gap-2">
+        {/* Current Medical Information - Takes 2/3 width on xl */}
+        <Card className="p-4 xl:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
             <AlertCircle className="h-5 w-5 text-yellow-500" />
             <div>
-              <h3 className="text-lg font-semibold">Medical Information</h3>
+              <h3 className="text-lg font-semibold">Current Medical Status</h3>
               <p className="text-sm text-muted-foreground">
-                Your health-related details
+                Your current health conditions
               </p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <InfoItem
               icon={<AlertCircle className="h-4 w-4" />}
               label="Allergies"
@@ -270,20 +300,64 @@ export default function ProfileViewPage() {
               isAlert
             />
             <InfoItem
-              icon={<FileText className="h-4 w-4" />}
-              label="Medical History"
-              value={
-                profileData.medicalHistory || "No medical history reported"
-              }
+              icon={<Pill className="h-4 w-4" />}
+              label="Current Medications"
+              value={profileData.currentMedications || "No current medications"}
+              colorClass="text-yellow-500"
+            />
+            <InfoItem
+              icon={<Activity className="h-4 w-4" />}
+              label="Chronic Conditions"
+              value={profileData.chronicConditions || "No chronic conditions"}
               colorClass="text-yellow-500"
             />
           </div>
         </Card>
 
-        {/* Account Information */}
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-green-500" />
+        {/* Medical History - Takes 2/3 width on xl */}
+        <Card className="p-4 xl:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <Stethoscope className="h-5 w-5 text-green-500" />
+            <div>
+              <h3 className="text-lg font-semibold">Medical History</h3>
+              <p className="text-sm text-muted-foreground">
+                Your past medical records
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <InfoItem
+              icon={<FileText className="h-4 w-4" />}
+              label="Surgical History"
+              value={profileData.surgicalHistory || "No surgical history"}
+              colorClass="text-green-500"
+            />
+            <InfoItem
+              icon={<HeartPulse className="h-4 w-4" />}
+              label="Medical History"
+              value={profileData.medicalHistory || "No medical history"}
+              colorClass="text-green-500"
+            />
+            <InfoItem
+              icon={<Users className="h-4 w-4" />}
+              label="Family Medical History"
+              value={profileData.familyHistory || "No family medical history"}
+              colorClass="text-green-500"
+            />
+            <InfoItem
+              icon={<Bike className="h-4 w-4" />}
+              label="Lifestyle & Habits"
+              value={profileData.lifestyle || "No lifestyle information"}
+              colorClass="text-green-500"
+            />
+          </div>
+        </Card>
+
+        {/* Account Information - Takes 1/3 width on xl */}
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="h-5 w-5 text-purple-500" />
             <div>
               <h3 className="text-lg font-semibold">Account Information</h3>
               <p className="text-sm text-muted-foreground">
@@ -292,15 +366,9 @@ export default function ProfileViewPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <InfoItem
-              icon={<Shield className="h-4 w-4" />}
-              label="User ID"
-              value={profileData.uid}
-              colorClass="text-green-500"
-            />
-            <InfoItem
-              icon={<Clock className="h-4 w-4" />}
+              icon={<Calendar className="h-4 w-4" />}
               label="Account Created"
               value={new Date(profileData.createdAt).toLocaleDateString(
                 "en-US",
@@ -312,10 +380,10 @@ export default function ProfileViewPage() {
                   minute: "numeric",
                 }
               )}
-              colorClass="text-green-500"
+              colorClass="text-purple-500"
             />
             <InfoItem
-              icon={<History className="h-4 w-4" />}
+              icon={<Calendar className="h-4 w-4" />}
               label="Last Login"
               value={new Date(profileData.lastLogin).toLocaleDateString(
                 "en-US",
@@ -327,20 +395,18 @@ export default function ProfileViewPage() {
                   minute: "numeric",
                 }
               )}
-              colorClass="text-green-500"
+              colorClass="text-purple-500"
             />
           </div>
         </Card>
 
-        {/* Creation Info */}
+        {/* System Information Cards - Each takes 1/3 width on xl */}
         <SystemInfoCard
           title="Creation Information"
           info={profileData.creatorInfo}
           icon={<Monitor className="h-5 w-5" />}
           colorClass="text-purple-500"
         />
-
-        {/* Update Info */}
         <SystemInfoCard
           title="Last Update Information"
           info={profileData.updaterInfo}

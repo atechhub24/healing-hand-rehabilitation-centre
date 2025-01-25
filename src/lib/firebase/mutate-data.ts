@@ -35,7 +35,7 @@ export default async function mutate({
   action = "update",
 }: {
   path: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   action: "create" | "update" | "delete";
 }) {
   const systemInfo = generateSystemInfo();

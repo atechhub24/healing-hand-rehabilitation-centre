@@ -18,3 +18,30 @@ export interface UserData {
   createdAt: Date;
   lastLogin: Date;
 }
+
+export interface Slot {
+  id: string;
+  slotNumber: number;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  price: number;
+  isBooked?: boolean;
+}
+
+export interface ClinicAddress {
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  timings: {
+    startTime: string;
+    endTime: string;
+    days: string[];
+  };
+  slots?: Record<string, Slot>;
+}
+
+export interface Doctor extends UserData {
+  clinicAddresses: ClinicAddress[];
+}

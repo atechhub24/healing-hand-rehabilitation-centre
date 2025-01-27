@@ -29,9 +29,10 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
-import { useAuth, type UserData } from "@/lib/hooks/use-auth";
+import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { cn } from "@/lib/utils";
+import { ClinicAddress, Doctor, UserData } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertCircle,
@@ -56,33 +57,6 @@ const searchFormSchema = z.object({
 });
 
 type SearchFormValues = z.infer<typeof searchFormSchema>;
-
-interface Slot {
-  id: string;
-  slotNumber: number;
-  startTime: string;
-  endTime: string;
-  duration: number;
-  price: number;
-  isBooked?: boolean;
-}
-
-interface ClinicAddress {
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  timings: {
-    startTime: string;
-    endTime: string;
-    days: string[];
-  };
-  slots?: Record<string, Slot>;
-}
-
-interface Doctor extends UserData {
-  clinicAddresses: ClinicAddress[];
-}
 
 const specializations = [
   "General Medicine",

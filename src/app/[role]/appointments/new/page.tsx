@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/lib/hooks/use-auth";
-import useFetch from "@/lib/hooks/use-fetch";
-import mutateData from "@/lib/firebase/mutate-data";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -31,12 +28,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuthStore } from "@/lib/store/auth-store";
+import useFetch from "@/lib/hooks/use-fetch";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  AlertCircle,
+  Building2,
+  CalendarDays,
+  Clock,
+  IndianRupee,
+  Mail,
+  MapPin,
+  Stethoscope,
+  Timer,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Clock, MapPin, Stethoscope, AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/auth-store";
 
 // Form schema for doctor search
 const searchFormSchema = z.object({
@@ -46,6 +58,29 @@ const searchFormSchema = z.object({
 
 type SearchFormValues = z.infer<typeof searchFormSchema>;
 
+interface Slot {
+  id: string;
+  slotNumber: number;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  price: number;
+  isBooked?: boolean;
+}
+
+interface ClinicAddress {
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  timings: {
+    startTime: string;
+    endTime: string;
+    days: string[];
+  };
+  slots?: Record<string, Slot>;
+}
+
 interface Doctor {
   uid: string;
   name: string;
@@ -54,29 +89,7 @@ interface Doctor {
   specialization: string;
   experience: number;
   role: string;
-  clinicAddresses: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    timings: {
-      startTime: string;
-      endTime: string;
-      days: string[];
-    };
-    slots?: Record<
-      string,
-      {
-        id: string;
-        slotNumber: number;
-        startTime: string;
-        endTime: string;
-        duration: number;
-        price: number;
-        isBooked?: boolean;
-      }
-    >;
-  }[];
+  clinicAddresses: ClinicAddress[];
 }
 
 interface PatientInfo {
@@ -90,9 +103,33 @@ interface PatientInfo {
   medicalHistory?: string;
 }
 
+const specializations = [
+  "General Medicine",
+  "Pediatrics",
+  "Cardiology",
+  "Dermatology",
+  "Orthopedics",
+  "Gynecology",
+  "ENT",
+  "Ophthalmology",
+  "Neurology",
+  "Psychiatry",
+  "Dental",
+] as const;
+
+const daysOfWeek = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
 export default function NewAppointmentPage() {
   const { user } = useAuth();
-  const { userData } = useAuthStore();
+  const { role } = useAuthStore();
   const { toast } = useToast();
   const router = useRouter();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -132,22 +169,23 @@ export default function NewAppointmentPage() {
   // Handle form submission
   const onSubmit = (values: SearchFormValues) => {
     setSpecialization(values.specialization);
+    // Reset selections when search criteria changes
+    setSelectedDoctor(null);
+    setSelectedClinicIndex(null);
+    setSelectedSlotId(null);
   };
 
   const validateRequiredFields = (info: PatientInfo | null) => {
     if (!info) return [];
 
-    const required = [
-      { field: "name", label: "Full Name" },
-      { field: "phoneNumber", label: "Phone Number" },
-      { field: "age", label: "Age" },
-      { field: "gender", label: "Gender" },
-      { field: "bloodGroup", label: "Blood Group" },
-    ];
+    const missing = [];
+    if (!info.name) missing.push("Full Name");
+    if (!info.phoneNumber) missing.push("Phone Number");
+    if (!info.age) missing.push("Age");
+    if (!info.gender) missing.push("Gender");
+    if (!info.bloodGroup) missing.push("Blood Group");
 
-    return required
-      .filter(({ field }) => !info[field as keyof PatientInfo])
-      .map(({ label }) => label);
+    return missing;
   };
 
   const handleBookSlot = async () => {
@@ -170,6 +208,11 @@ export default function NewAppointmentPage() {
     if (missing.length > 0) {
       setMissingFields(missing);
       setShowProfileDialog(true);
+      toast({
+        variant: "destructive",
+        title: "Profile Incomplete",
+        description: "Please update your profile to continue booking.",
+      });
       return;
     }
 
@@ -178,11 +221,19 @@ export default function NewAppointmentPage() {
       const appointmentData = {
         doctorId: selectedDoctor.uid,
         doctorName: selectedDoctor.name,
+        doctorSpecialization: selectedDoctor.specialization,
         patientId: user.uid,
+        patientName: patientInfo?.name,
+        patientPhone: patientInfo?.phoneNumber,
         clinicIndex: selectedClinicIndex,
+        clinicAddress: selectedDoctor.clinicAddresses[selectedClinicIndex],
         slotId: selectedSlotId,
+        slotInfo:
+          selectedDoctor.clinicAddresses[selectedClinicIndex].slots?.[
+            selectedSlotId
+          ],
         status: "scheduled",
-        createdAt: new Date().toISOString(),
+        createdAt: Date.now(),
       };
 
       // Create appointment record
@@ -204,18 +255,38 @@ export default function NewAppointmentPage() {
         description: "Appointment booked successfully",
       });
 
-      // Reset selection
-      setSelectedDoctor(null);
-      setSelectedClinicIndex(null);
-      setSelectedSlotId(null);
+      // Redirect to appointments list
+      router.push(`/${role}/appointments`);
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to book appointment",
+        description:
+          error instanceof Error ? error.message : "Failed to book appointment",
       });
     }
+  };
+
+  const formatTime = (time: string) => {
+    return new Date(`2000-01-01T${time}`).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+  };
+
+  const getAvailableSlots = (clinic: ClinicAddress) => {
+    if (!clinic.slots) return [];
+    return Object.entries(clinic.slots)
+      .filter(([, slot]) => !slot.isBooked)
+      .map(([slotId, slot]) => ({ ...slot, id: slotId }))
+      .sort((a, b) => a.slotNumber - b.slotNumber);
+  };
+
+  const isClinicOpen = (clinic: ClinicAddress) => {
+    const today = daysOfWeek[new Date().getDay()];
+    return clinic.timings.days.includes(today);
   };
 
   return (
@@ -247,13 +318,11 @@ export default function NewAppointmentPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="General Medicine">
-                          General Medicine
-                        </SelectItem>
-                        <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                        <SelectItem value="Cardiology">Cardiology</SelectItem>
-                        <SelectItem value="Dermatology">Dermatology</SelectItem>
-                        <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                        {specializations.map((spec) => (
+                          <SelectItem key={spec} value={spec}>
+                            {spec}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -285,89 +354,164 @@ export default function NewAppointmentPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           <p className="text-muted-foreground">Loading doctors...</p>
-        ) : filteredDoctors && filteredDoctors.length > 0 ? (
+        ) : filteredDoctors?.length ? (
           filteredDoctors.map((doctor) => (
-            <Card key={doctor.uid} className="p-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-primary" />
-                    <h3 className="text-xl font-semibold">Dr. {doctor.name}</h3>
+            <Card
+              key={doctor.uid}
+              className={cn(
+                "transition-all duration-200",
+                selectedDoctor?.uid === doctor.uid
+                  ? "ring-2 ring-primary"
+                  : "hover:shadow-md"
+              )}
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {doctor.qualification}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {doctor.specialization} • {doctor.experience} years exp.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {doctor.qualification}
-                  </p>
+                  <Badge variant="secondary">{doctor.experience}+ Years</Badge>
                 </div>
 
-                <div className="space-y-4">
-                  {doctor.clinicAddresses.map((clinic, clinicIndex) => {
-                    const availableSlots = clinic.slots
-                      ? Object.values(clinic.slots).filter(
-                          (slot) => !slot.isBooked
-                        )
-                      : [];
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Stethoscope className="h-4 w-4 text-primary" />
+                    <span>{doctor.specialization}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <span>{doctor.email}</span>
+                  </div>
+                </div>
 
-                    return (
+                <div className="mt-6">
+                  <h4 className="font-medium mb-3">Clinic Locations</h4>
+                  <div className="space-y-4">
+                    {doctor.clinicAddresses.map((clinic, index) => (
                       <div
-                        key={clinicIndex}
-                        className="rounded-lg border p-4 space-y-2"
+                        key={index}
+                        className={cn(
+                          "rounded-lg border p-4 transition-all duration-200",
+                          selectedDoctor?.uid === doctor.uid &&
+                            selectedClinicIndex === index
+                            ? "border-primary bg-primary/5"
+                            : "hover:border-primary/50"
+                        )}
                       >
-                        <div className="flex items-center text-sm">
-                          <MapPin className="mr-1 h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {clinic.address}, {clinic.city}
-                          </span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          <p>
-                            Time: {clinic.timings.startTime} -{" "}
-                            {clinic.timings.endTime}
-                          </p>
-                          <p>Days: {clinic.timings.days.join(", ")}</p>
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-primary" />
+                              <span className="font-medium">
+                                {clinic.address}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              <span>
+                                {clinic.city}, {clinic.state} - {clinic.pincode}
+                              </span>
+                            </div>
+                          </div>
+                          <Badge
+                            variant={
+                              isClinicOpen(clinic) ? "default" : "secondary"
+                            }
+                          >
+                            {isClinicOpen(clinic) ? "Open" : "Closed"}
+                          </Badge>
                         </div>
 
-                        {availableSlots.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-2 pt-2">
-                            {availableSlots.map((slot) => (
-                              <Button
-                                key={slot.id}
-                                variant={
-                                  selectedSlotId === slot.id
-                                    ? "default"
-                                    : "outline"
-                                }
-                                className="h-auto py-2"
-                                onClick={() => {
-                                  setSelectedDoctor(doctor);
-                                  setSelectedClinicIndex(clinicIndex);
-                                  setSelectedSlotId(slot.id);
-                                }}
-                              >
-                                <div className="text-left">
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    <span className="text-xs">
-                                      {slot.startTime} - {slot.endTime}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs font-medium pt-1">
-                                    ₹{slot.price}
-                                  </p>
-                                </div>
-                              </Button>
-                            ))}
+                        <div className="mt-4 space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <CalendarDays className="h-4 w-4 text-primary" />
+                            <span>
+                              Available on: {clinic.timings.days.join(", ")}
+                            </span>
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pt-2">
-                            No slots available
-                          </p>
-                        )}
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span>
+                              {formatTime(clinic.timings.startTime)} -{" "}
+                              {formatTime(clinic.timings.endTime)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {selectedDoctor?.uid === doctor.uid &&
+                          selectedClinicIndex === index && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-medium text-sm">
+                                Available Slots
+                              </h5>
+                              <div className="grid grid-cols-2 gap-2">
+                                {getAvailableSlots(clinic).map((slot) => (
+                                  <button
+                                    key={slot.id}
+                                    onClick={() => setSelectedSlotId(slot.id)}
+                                    className={cn(
+                                      "flex flex-col items-center rounded-lg border p-3 transition-all duration-200",
+                                      selectedSlotId === slot.id
+                                        ? "border-primary bg-primary/5"
+                                        : "hover:border-primary/50"
+                                    )}
+                                  >
+                                    <div className="flex items-center gap-1 text-sm font-medium">
+                                      <Timer className="h-4 w-4" />
+                                      <span>
+                                        {formatTime(slot.startTime)} -{" "}
+                                        {formatTime(slot.endTime)}
+                                      </span>
+                                    </div>
+                                    <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                                      <IndianRupee className="h-3 w-3" />
+                                      <span>{slot.price}</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                        <div className="mt-4">
+                          <Button
+                            type="button"
+                            variant={
+                              selectedDoctor?.uid === doctor.uid &&
+                              selectedClinicIndex === index
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="w-full"
+                            onClick={() => {
+                              if (
+                                selectedDoctor?.uid === doctor.uid &&
+                                selectedClinicIndex === index
+                              ) {
+                                // Reset all selections when hiding slots
+                                setSelectedDoctor(null);
+                                setSelectedClinicIndex(null);
+                                setSelectedSlotId(null);
+                              } else {
+                                // Set selections when viewing slots
+                                setSelectedDoctor(doctor);
+                                setSelectedClinicIndex(index);
+                                setSelectedSlotId(null);
+                              }
+                            }}
+                          >
+                            {selectedDoctor?.uid === doctor.uid &&
+                            selectedClinicIndex === index
+                              ? "Hide Slots"
+                              : "View Slots"}
+                          </Button>
+                        </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
               </div>
             </Card>
@@ -403,9 +547,7 @@ export default function NewAppointmentPage() {
               onClick={() => {
                 setShowProfileDialog(false);
                 router.push(
-                  `/${
-                    userData?.role
-                  }/profile/edit?returnUrl=${encodeURIComponent(
+                  `/${role}/profile/edit?returnUrl=${encodeURIComponent(
                     window.location.pathname
                   )}`
                 );

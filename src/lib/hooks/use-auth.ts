@@ -148,6 +148,7 @@ export const useAuth = () => {
     router,
     clearAuthStore,
     role,
+    recaptchaVerifier,
   ]);
 
   const initRecaptcha = () => {

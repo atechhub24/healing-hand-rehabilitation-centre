@@ -102,7 +102,7 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
       ) : (
         <div className="mt-4">
           <Link
-            href={`/${role}/appointments/${appointment.slotId}`}
+            href={`/${role}/appointments/${appointment.id}`}
             className="w-full"
           >
             <Button className="w-full">View Details</Button>
@@ -117,16 +117,7 @@ export default function AppointmentsPage() {
   const { role, user } = useAuth();
 
   const [appointments, isLoading] = useFetch<Record<string, Appointment>>(
-    `appointments/${user?.uid}`,
-    {
-      // filter: (item: unknown) => {
-      //   const appointment = item as Appointment;
-      //   if (role === "doctor") {
-      //     return appointment.doctorId === user?.uid;
-      //   }
-      //   return appointment.patientId === user?.uid;
-      // },
-    }
+    `appointments/${user?.uid}`
   );
 
   if (!role || !["doctor", "customer"].includes(role)) {

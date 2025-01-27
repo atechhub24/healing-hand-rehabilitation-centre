@@ -19,27 +19,7 @@ import { auth, database } from "../firebase";
 import useMounted from "./use-mounted";
 import mutateData from "../firebase/mutate-data";
 import { useRouter } from "next/navigation";
-
-type UserRole = "admin" | "doctor" | "paramedic" | "lab" | "customer";
-
-interface UserData {
-  uid: string;
-  email?: string | null;
-  phoneNumber?: string | null;
-  role: UserRole;
-  name?: string;
-  age?: number;
-  gender?: string;
-  bloodGroup?: string;
-  dateOfBirth?: string;
-  address?: string;
-  qualification?: string;
-  specialization?: string;
-  experience?: number;
-  location?: string;
-  createdAt: Date;
-  lastLogin: Date;
-}
+import { UserData, UserRole } from "@/types";
 
 interface AuthState {
   user: UserData | null;
@@ -357,5 +337,3 @@ export const useAuth = () => {
     initRecaptcha,
   };
 };
-
-export type { UserRole, UserData };

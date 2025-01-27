@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/auth-store";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ export const ProtectedRoute = ({
   allowedRoles,
 }: ProtectedRouteProps) => {
   const router = useRouter();
-  const { user, role, isLoading } = useAuthStore();
+  const { user, role, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && (!user || !role || !allowedRoles.includes(role))) {

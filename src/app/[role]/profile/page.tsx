@@ -30,7 +30,6 @@ import {
   CircleUserRound as Venus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/auth-store";
 import { cn } from "@/lib/utils";
 
 interface SystemInfo {
@@ -244,14 +243,13 @@ function SystemInfoCard({
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const { userData } = useAuthStore();
   const router = useRouter();
   const [profileData] = useFetch<UserData>(`/users/${user?.uid}`, {
     needRaw: true,
   });
 
   const handleEdit = () => {
-    router.push(`/${userData?.role}/profile/edit`);
+    router.push(`/${user?.role}/profile/edit`);
   };
 
   if (!profileData) {

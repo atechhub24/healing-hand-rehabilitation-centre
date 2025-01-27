@@ -29,8 +29,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useAuthStore } from "@/lib/store/auth-store";
+import { useAuth, type UserData } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,24 +80,11 @@ interface ClinicAddress {
   slots?: Record<string, Slot>;
 }
 
-interface Doctor {
-  uid: string;
-  name: string;
-  email: string;
-  qualification: string;
-  specialization: string;
-  experience: number;
-  role: string;
+interface Doctor extends UserData {
   clinicAddresses: ClinicAddress[];
 }
 
-interface PatientInfo {
-  name?: string;
-  phoneNumber?: string;
-  email: string;
-  age?: number;
-  gender?: string;
-  bloodGroup?: string;
+interface PatientInfo extends UserData {
   allergies?: string;
   medicalHistory?: string;
 }
@@ -128,8 +114,7 @@ const daysOfWeek = [
 ] as const;
 
 export default function NewAppointmentPage() {
-  const { user } = useAuth();
-  const { role } = useAuthStore();
+  const { user, role } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);

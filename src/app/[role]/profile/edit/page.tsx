@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/auth-store";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -156,8 +155,8 @@ const bloodGroupOptions = [
 ];
 
 export default function EditProfilePage() {
-  const { user } = useAuth();
-  const { userData } = useAuthStore();
+  const { user, role } = useAuth();
+  console.log(user, role);
   const { toast } = useToast();
   const router = useRouter();
   const [profileData] = useFetch<UserData>(`/users/${user?.uid}`, {
@@ -226,7 +225,7 @@ export default function EditProfilePage() {
       });
 
       // Redirect to view page after successful update
-      router.push(`/${userData?.role}/profile`);
+      router.push(`/${role}/profile`);
     } catch (error) {
       toast({
         title: "Error",

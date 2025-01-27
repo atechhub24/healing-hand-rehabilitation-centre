@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Phone, User, Calendar, MapPin, Lock } from "lucide-react";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Calendar, Lock, MapPin, User } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CustomerRegisterPage() {
   const router = useRouter();
@@ -216,9 +217,9 @@ export default function CustomerRegisterPage() {
 
         <p className="text-sm text-center text-muted-foreground">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-500 hover:underline">
-            Sign in
-          </a>
+          <Link href="/auth/login">
+            <a className="text-blue-500 hover:underline">Sign in</a>
+          </Link>
         </p>
       </div>
     </div>

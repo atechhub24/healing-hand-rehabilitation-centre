@@ -1,5 +1,7 @@
 "use client";
 
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { useEffect, useState } from "react";
 import {
   signInWithEmailAndPassword,
@@ -14,30 +16,72 @@ import {
 } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, database } from "../firebase";
-import { useAuthStore, UserData, UserRole } from "../store/auth-store";
 import useMounted from "./use-mounted";
 import mutateData from "../firebase/mutate-data";
 import { useRouter } from "next/navigation";
+
+type UserRole = "admin" | "doctor" | "paramedic" | "lab" | "customer";
+
+interface UserData {
+  uid: string;
+  email?: string | null;
+  phoneNumber?: string | null;
+  role: UserRole;
+  name?: string;
+  age?: number;
+  gender?: string;
+  bloodGroup?: string;
+  dateOfBirth?: string;
+  address?: string;
+  qualification?: string;
+  specialization?: string;
+  experience?: number;
+  location?: string;
+  createdAt: Date;
+  lastLogin: Date;
+}
+
+interface AuthState {
+  user: UserData | null;
+  role: UserRole | null;
+  isLoading: boolean;
+  isInitialized: boolean;
+  setAuthState: (state: Partial<AuthState>) => void;
+}
+
+const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      role: null,
+      isLoading: true,
+      isInitialized: false,
+      setAuthState: (state: Partial<AuthState>) =>
+        set((prev) => ({ ...prev, ...state })),
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({
+        user: state.user,
+        role: state.role,
+      }),
+    }
+  )
+);
 
 export const useAuth = () => {
   const router = useRouter();
   const [verificationId, setVerificationId] = useState<string>("");
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier | null>(null);
-  const {
-    setUser,
-    setUserData,
-    setRole,
-    setLoading,
-    setInitialized,
-    signOut: clearAuthStore,
-    user,
-    role,
-    isLoading,
-    isInitialized,
-  } = useAuthStore();
-
   const { mounted } = useMounted();
+
+  const state = useAuthStore();
+  const setAuthState = useAuthStore(
+    (
+      state: AuthState & { setAuthState: (state: Partial<AuthState>) => void }
+    ) => state.setAuthState
+  );
 
   const updateUserLastLogin = async (uid: string) => {
     const lastLogin = new Date();
@@ -78,7 +122,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     let unsubscribed = false;
-    setLoading(true);
+    setAuthState({ isLoading: true });
 
     // Set persistence to LOCAL
     setPersistence(auth, browserLocalPersistence);
@@ -93,9 +137,12 @@ export const useAuth = () => {
           const userData = snapshot.val();
 
           if (userData) {
-            setUser(user);
-            setUserData(userData);
-            setRole(userData.role);
+            setAuthState({
+              user: userData,
+              role: userData.role,
+              isLoading: false,
+              isInitialized: true,
+            });
             await updateUserLastLogin(user.uid);
 
             // Only redirect if on auth pages and current path doesn't include role
@@ -105,18 +152,28 @@ export const useAuth = () => {
             }
           } else {
             await firebaseSignOut(auth);
-            clearAuthStore();
+            setAuthState({
+              user: null,
+              role: null,
+              isLoading: false,
+              isInitialized: true,
+            });
             if (!window.location.pathname.startsWith("/auth")) {
               router.push("/auth/login");
             }
           }
         } else {
-          clearAuthStore();
+          setAuthState({
+            user: null,
+            role: null,
+            isLoading: false,
+            isInitialized: true,
+          });
           // Only redirect to login if not on public pages and not already on a role page
           const currentPath = window.location.pathname;
           const isPublicPath =
             currentPath.startsWith("/auth") || currentPath === "/";
-          const hasRoleInPath = currentPath.split("/")[1] === role;
+          const hasRoleInPath = currentPath.split("/")[1] === state.role;
 
           if (!isPublicPath && !hasRoleInPath) {
             router.push("/auth/login");
@@ -124,32 +181,147 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        clearAuthStore();
-      } finally {
-        setLoading(false);
-        setInitialized(true);
+        setAuthState({
+          user: null,
+          role: null,
+          isLoading: false,
+          isInitialized: true,
+        });
       }
     });
 
     return () => {
       unsubscribed = true;
       unsubscribe();
-      if (recaptchaVerifier) {
-        recaptchaVerifier.clear();
-      }
     };
-  }, [
-    mounted,
-    setUser,
-    setUserData,
-    setRole,
-    setLoading,
-    setInitialized,
-    router,
-    clearAuthStore,
-    role,
-    recaptchaVerifier,
-  ]);
+  }, [mounted, router, state.role, setAuthState]);
+
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+      setAuthState({
+        user: null,
+        role: null,
+        isLoading: false,
+        isInitialized: true,
+      });
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setAuthState({ isLoading: true });
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await updateUserLastLogin(userCredential.user.uid);
+
+      const userRef = ref(database, `users/${userCredential.user.uid}`);
+      const snapshot = await get(userRef);
+      const userData = snapshot.val();
+
+      if (userData) {
+        setAuthState({ user: userData });
+        router.push(`/${userData.role}`);
+      }
+
+      return { success: true, user: userCredential.user, role: userData?.role };
+    } catch (error) {
+      return { success: false, error };
+    } finally {
+      setAuthState({ isLoading: false });
+    }
+  };
+
+  const signUpWithEmail = async (
+    email: string,
+    password: string,
+    role: UserRole,
+    userData: Partial<UserData>
+  ) => {
+    try {
+      setAuthState({ isLoading: true });
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const newUserData = await createOrUpdateUserData(
+        userCredential.user.uid,
+        {
+          ...userData,
+          email,
+          role,
+        },
+        true
+      );
+      setAuthState({ user: newUserData as UserData });
+      router.push(`/${role}`);
+      return { success: true, user: userCredential.user };
+    } catch (error) {
+      return { success: false, error };
+    } finally {
+      setAuthState({ isLoading: false });
+    }
+  };
+
+  const signInWithPhone = async (phoneNumber: string) => {
+    try {
+      setAuthState({ isLoading: true });
+      const verifier = initRecaptcha();
+      const formattedPhoneNumber = phoneNumber.startsWith("+")
+        ? phoneNumber
+        : `+${phoneNumber}`;
+      const provider = new PhoneAuthProvider(auth);
+      const verificationId = await provider.verifyPhoneNumber(
+        formattedPhoneNumber,
+        verifier
+      );
+      setVerificationId(verificationId);
+      return { success: true };
+    } catch (error) {
+      console.error("Error in phone authentication:", error);
+      return { success: false, error };
+    } finally {
+      setAuthState({ isLoading: false });
+    }
+  };
+
+  const verifyOTP = async (otp: string, userData?: Partial<UserData>) => {
+    try {
+      setAuthState({ isLoading: true });
+      const credential = PhoneAuthProvider.credential(verificationId, otp);
+      const userCredential = await signInWithCredential(auth, credential);
+
+      const newUserData = await createOrUpdateUserData(
+        userCredential.user.uid,
+        {
+          ...userData,
+          phoneNumber: userCredential.user.phoneNumber,
+          role: "customer" as UserRole,
+        },
+        true
+      );
+
+      setAuthState({ user: newUserData as UserData });
+      router.push(`/${state.role}`);
+      return {
+        success: true,
+        user: userCredential.user,
+        role: newUserData.role,
+      };
+    } catch (error) {
+      console.error("Error in OTP verification:", error);
+      return { success: false, error };
+    } finally {
+      setAuthState({ isLoading: false });
+    }
+  };
 
   const initRecaptcha = () => {
     try {
@@ -173,134 +345,8 @@ export const useAuth = () => {
     }
   };
 
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      await updateUserLastLogin(userCredential.user.uid);
-
-      // Get user role from database
-      const userRef = ref(database, `users/${userCredential.user.uid}`);
-      const snapshot = await get(userRef);
-      const userData = snapshot.val();
-
-      if (userData) {
-        setUserData(userData);
-        router.push(`/${userData.role}`);
-      }
-
-      return { success: true, user: userCredential.user, role: userData?.role };
-    } catch (error) {
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signUpWithEmail = async (
-    email: string,
-    password: string,
-    role: UserRole,
-    userData: Partial<UserData>
-  ) => {
-    try {
-      setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const newUserData = await createOrUpdateUserData(
-        userCredential.user.uid,
-        {
-          ...userData,
-          email,
-          role,
-        },
-        true
-      );
-      setUserData(newUserData as UserData);
-      router.push(`/${role}`);
-      return { success: true, user: userCredential.user };
-    } catch (error) {
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInWithPhone = async (phoneNumber: string) => {
-    try {
-      setLoading(true);
-      const verifier = initRecaptcha();
-      const formattedPhoneNumber = phoneNumber.startsWith("+")
-        ? phoneNumber
-        : `+${phoneNumber}`;
-      const provider = new PhoneAuthProvider(auth);
-      const verificationId = await provider.verifyPhoneNumber(
-        formattedPhoneNumber,
-        verifier
-      );
-      setVerificationId(verificationId);
-      return { success: true };
-    } catch (error) {
-      console.error("Error in phone authentication:", error);
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOTP = async (otp: string, userData?: Partial<UserData>) => {
-    try {
-      setLoading(true);
-      const credential = PhoneAuthProvider.credential(verificationId, otp);
-      const userCredential = await signInWithCredential(auth, credential);
-
-      const newUserData = await createOrUpdateUserData(
-        userCredential.user.uid,
-        {
-          ...userData,
-          phoneNumber: userCredential.user.phoneNumber,
-          role: "customer" as UserRole,
-        },
-        true
-      );
-
-      setUserData(newUserData as UserData);
-      router.push(`/${role}`);
-      return {
-        success: true,
-        user: userCredential.user,
-        role: newUserData.role,
-      };
-    } catch (error) {
-      console.error("Error in OTP verification:", error);
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      await firebaseSignOut(auth);
-      clearAuthStore();
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
-
   return {
-    user,
-    role,
-    isLoading,
-    isInitialized,
+    ...state,
     signInWithEmail,
     signUpWithEmail,
     signOut,
@@ -311,3 +357,5 @@ export const useAuth = () => {
     initRecaptcha,
   };
 };
+
+export type { UserRole, UserData };

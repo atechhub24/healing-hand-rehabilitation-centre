@@ -1,5 +1,5 @@
 import { auth, database } from "@/lib/firebase";
-import { ref, remove, set, update } from "firebase/database";
+import { ref, remove, set, push, update } from "firebase/database";
 
 const generateSystemInfo = () => {
   const timestamp = new Date().toISOString();
@@ -36,7 +36,7 @@ export default async function mutate({
 }: {
   path: string;
   data?: Record<string, unknown>;
-  action: "create" | "update" | "delete";
+  action: "create" | "update" | "delete" | "createWithId";
 }) {
   const systemInfo = generateSystemInfo();
   const db = database;
@@ -45,6 +45,9 @@ export default async function mutate({
   switch (action) {
     case "create":
       await set(dbRef, { ...data, creatorInfo: systemInfo });
+      break;
+    case "createWithId":
+      await push(dbRef, { ...data, creatorInfo: systemInfo });
       break;
     case "update":
       await update(dbRef, { ...data, updaterInfo: systemInfo });

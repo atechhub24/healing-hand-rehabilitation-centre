@@ -215,9 +215,9 @@ export default function NewAppointmentPage() {
 
       // Create appointment record
       await mutateData({
-        path: `/appointments/${user.uid}_${selectedSlotId}`,
+        path: `/appointments/${user.uid}`,
         data: appointmentData,
-        action: "create",
+        action: "createWithId",
       });
 
       // Mark slot as booked

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 interface Appointment {
+  id: string;
   doctorId: string;
   doctorName: string;
   doctorSpecialization: string;
@@ -36,6 +37,7 @@ interface AppointmentCardProps {
 }
 
 function AppointmentCard({ appointment }: AppointmentCardProps) {
+  const { role } = useAuth();
   const isUpcoming = appointment.status === "scheduled";
   const date = new Date(appointment.createdAt).toLocaleDateString();
 
@@ -87,10 +89,24 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
           </span>
         </div>
       </div>
-      {isUpcoming && (
+      {isUpcoming ? (
         <div className="mt-4 flex gap-2">
-          <Button className="flex-1">Start Session</Button>
+          <Link
+            href={`/${role}/appointments/${appointment.id}`}
+            className="flex-1"
+          >
+            <Button className="w-full">View Details</Button>
+          </Link>
           <Button variant="outline">Reschedule</Button>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <Link
+            href={`/${role}/appointments/${appointment.slotId}`}
+            className="w-full"
+          >
+            <Button className="w-full">View Details</Button>
+          </Link>
         </div>
       )}
     </div>
@@ -101,15 +117,15 @@ export default function AppointmentsPage() {
   const { role, user } = useAuth();
 
   const [appointments, isLoading] = useFetch<Record<string, Appointment>>(
-    "appointments",
+    `appointments/${user?.uid}`,
     {
-      filter: (item: unknown) => {
-        const appointment = item as Appointment;
-        if (role === "doctor") {
-          return appointment.doctorId === user?.uid;
-        }
-        return appointment.patientId === user?.uid;
-      },
+      // filter: (item: unknown) => {
+      //   const appointment = item as Appointment;
+      //   if (role === "doctor") {
+      //     return appointment.doctorId === user?.uid;
+      //   }
+      //   return appointment.patientId === user?.uid;
+      // },
     }
   );
 

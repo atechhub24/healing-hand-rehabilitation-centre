@@ -1,102 +1,96 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Calendar, Clock, User, Video } from "lucide-react";
+import { Calendar, Clock, User, MapPin, Stethoscope } from "lucide-react";
+import useFetch from "@/lib/hooks/use-fetch";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Appointment {
-  id: number;
+  doctorId: string;
+  doctorName: string;
+  doctorSpecialization: string;
+  patientId: string;
   patientName: string;
-  date: string;
-  time: string;
-  type: "Video Consultation" | "In-Person";
-  status: "upcoming" | "completed" | "cancelled";
-  reason: string;
+  patientPhone: string;
+  clinicIndex: number;
+  clinicAddress: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  slotId: string;
+  slotInfo: {
+    startTime: string;
+    endTime: string;
+    duration: number;
+    price: number;
+  };
+  status: "scheduled" | "completed" | "cancelled";
+  createdAt: number;
 }
-
-const appointments: Appointment[] = [
-  {
-    id: 1,
-    patientName: "John Doe",
-    date: "2024-01-22",
-    time: "10:00 AM",
-    type: "Video Consultation",
-    status: "upcoming",
-    reason: "Regular Checkup",
-  },
-  {
-    id: 2,
-    patientName: "Jane Smith",
-    date: "2024-01-22",
-    time: "11:30 AM",
-    type: "In-Person",
-    status: "upcoming",
-    reason: "Follow-up",
-  },
-  {
-    id: 3,
-    patientName: "Robert Johnson",
-    date: "2024-01-21",
-    time: "3:00 PM",
-    type: "Video Consultation",
-    status: "completed",
-    reason: "Prescription Renewal",
-  },
-];
 
 interface AppointmentCardProps {
   appointment: Appointment;
 }
 
 function AppointmentCard({ appointment }: AppointmentCardProps) {
-  const isUpcoming = appointment.status === "upcoming";
+  const isUpcoming = appointment.status === "scheduled";
+  const date = new Date(appointment.createdAt).toLocaleDateString();
 
   return (
-    <div className="bg-white rounded-xl border p-6 shadow-sm">
+    <div className="bg-card rounded-xl border p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-            <User className="h-5 w-5 text-gray-600" />
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <User className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-medium text-gray-900">
-              {appointment.patientName}
-            </h3>
-            <p className="text-sm text-gray-500">{appointment.reason}</p>
+            <h3 className="font-medium">{appointment.patientName}</h3>
+            <p className="text-sm text-muted-foreground">
+              {appointment.patientPhone}
+            </p>
           </div>
         </div>
         <span
           className={`px-2 py-1 text-xs font-medium rounded-full ${
             isUpcoming
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
+              ? "bg-primary/10 text-primary"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {appointment.status}
         </span>
       </div>
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Calendar className="h-4 w-4" />
-          <span>{appointment.date}</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Stethoscope className="h-4 w-4 text-primary" />
+          <span>{appointment.doctorName}</span>
+          <span className="text-xs">({appointment.doctorSpecialization})</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Clock className="h-4 w-4" />
-          <span>{appointment.time}</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 text-primary" />
+          <span>{date}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Video className="h-4 w-4" />
-          <span>{appointment.type}</span>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 text-primary" />
+          <span>
+            {appointment.slotInfo.startTime} - {appointment.slotInfo.endTime}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 text-primary" />
+          <span>
+            {appointment.clinicAddress.address},{" "}
+            {appointment.clinicAddress.city}
+          </span>
         </div>
       </div>
       {isUpcoming && (
         <div className="mt-4 flex gap-2">
-          <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Start Session
-          </button>
-          <button className="px-4 py-2 text-blue-600 hover:text-blue-700">
-            Reschedule
-          </button>
+          <Button className="flex-1">Start Session</Button>
+          <Button variant="outline">Reschedule</Button>
         </div>
       )}
     </div>
@@ -104,8 +98,20 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
 }
 
 export default function AppointmentsPage() {
-  const params = useParams();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
+
+  const [appointments, isLoading] = useFetch<Record<string, Appointment>>(
+    "appointments",
+    {
+      filter: (item: unknown) => {
+        const appointment = item as Appointment;
+        if (role === "doctor") {
+          return appointment.doctorId === user?.uid;
+        }
+        return appointment.patientId === user?.uid;
+      },
+    }
+  );
 
   if (!role || !["doctor", "customer"].includes(role)) {
     return null;
@@ -117,24 +123,33 @@ export default function AppointmentsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Appointments</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
+          <p className="text-muted-foreground">
             {isDoctor
               ? "Manage your patient appointments"
               : "View and manage your appointments"}
           </p>
         </div>
         {!isDoctor && (
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Book New Appointment
-          </button>
+          <Link href={`/${role}/appointments/new`}>
+            <Button>Book New Appointment</Button>
+          </Link>
         )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {appointments.map((appointment) => (
-          <AppointmentCard key={appointment.id} appointment={appointment} />
-        ))}
+        {isLoading ? (
+          <p className="text-muted-foreground">Loading appointments...</p>
+        ) : appointments && Object.keys(appointments).length > 0 ? (
+          Object.values(appointments).map((appointment) => (
+            <AppointmentCard
+              key={appointment.slotId}
+              appointment={appointment}
+            />
+          ))
+        ) : (
+          <p className="text-muted-foreground">No appointments found</p>
+        )}
       </div>
     </div>
   );

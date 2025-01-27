@@ -84,11 +84,6 @@ interface Doctor extends UserData {
   clinicAddresses: ClinicAddress[];
 }
 
-interface PatientInfo extends UserData {
-  allergies?: string;
-  medicalHistory?: string;
-}
-
 const specializations = [
   "General Medicine",
   "Pediatrics",
@@ -148,9 +143,6 @@ export default function NewAppointmentPage() {
     return doctor.specialization === specialization;
   });
 
-  // Fetch patient information
-  const [patientInfo] = useFetch<PatientInfo>(`/users/${user?.uid}`);
-
   // Handle form submission
   const onSubmit = (values: SearchFormValues) => {
     setSpecialization(values.specialization);
@@ -160,7 +152,7 @@ export default function NewAppointmentPage() {
     setSelectedSlotId(null);
   };
 
-  const validateRequiredFields = (info: PatientInfo | null) => {
+  const validateRequiredFields = (info: UserData | null) => {
     if (!info) return [];
 
     const missing = [];
@@ -189,7 +181,7 @@ export default function NewAppointmentPage() {
     }
 
     // Check for required patient information
-    const missing = validateRequiredFields(patientInfo);
+    const missing = validateRequiredFields(user);
     if (missing.length > 0) {
       setMissingFields(missing);
       setShowProfileDialog(true);
@@ -208,8 +200,8 @@ export default function NewAppointmentPage() {
         doctorName: selectedDoctor.name,
         doctorSpecialization: selectedDoctor.specialization,
         patientId: user.uid,
-        patientName: patientInfo?.name,
-        patientPhone: patientInfo?.phoneNumber,
+        patientName: user.name,
+        patientPhone: user.phoneNumber,
         clinicIndex: selectedClinicIndex,
         clinicAddress: selectedDoctor.clinicAddresses[selectedClinicIndex],
         slotId: selectedSlotId,

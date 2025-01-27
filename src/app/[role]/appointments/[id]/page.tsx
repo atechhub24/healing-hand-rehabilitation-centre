@@ -1,56 +1,21 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Appointment } from "@/types";
 import {
+  ArrowLeft,
   Calendar,
   Clock,
-  User,
-  MapPin,
-  Stethoscope,
-  ArrowLeft,
-  Monitor,
   Globe,
+  MapPin,
+  Monitor,
+  Stethoscope,
+  User,
 } from "lucide-react";
-import useFetch from "@/lib/hooks/use-fetch";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
-
-interface CreatorInfo {
-  actionBy: string;
-  browser: string;
-  language: string;
-  platform: string;
-  screenResolution: string;
-  timestamp: string;
-  userAgent: string;
-}
-
-interface Appointment {
-  doctorId: string;
-  doctorName: string;
-  doctorSpecialization: string;
-  patientId: string;
-  patientName: string;
-  patientPhone: string;
-  clinicIndex: number;
-  clinicAddress: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  slotId: string;
-  slotInfo: {
-    startTime: string;
-    endTime: string;
-    duration: number;
-    price: number;
-  };
-  status: "scheduled" | "completed" | "cancelled";
-  createdAt: number;
-  creatorInfo: CreatorInfo;
-}
 
 export default function AppointmentDetailsPage() {
   const { role, user } = useAuth();

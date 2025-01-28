@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,7 @@ export default function ParamedicBookingsPage() {
     BookingWithParamedic[]
   >([]);
   const isParamedic = userRole === "paramedic";
+  const router = useRouter();
 
   // Fetch user's paramedic bookings
   const [bookingsData] = useFetch<Record<string, BookingWithParamedic>>(
@@ -153,7 +154,13 @@ export default function ParamedicBookingsPage() {
       <div className="grid gap-4">
         {filteredBookings.length > 0 ? (
           filteredBookings.map((booking) => (
-            <Card key={booking.id} className="p-6">
+            <Card
+              key={booking.id}
+              className="p-6 cursor-pointer hover:border-primary transition-colors"
+              onClick={() =>
+                router.push(`/${role}/paramedic-booking/bookings/${booking.id}`)
+              }
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">

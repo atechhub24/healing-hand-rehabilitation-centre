@@ -54,6 +54,7 @@ export default function BookingDetailsPage() {
   const bookingId = params.bookingId as string;
   const isParamedic = userRole === "paramedic";
   const isPatient = userRole === "patient";
+  const isAdmin = userRole === "admin";
 
   // Generate 6-digit OTP with timestamp to ensure uniqueness
   const generateOTP = () => {
@@ -218,13 +219,15 @@ export default function BookingDetailsPage() {
           </div>
 
           {/* Show OTP for patient when booking is confirmed */}
-          {isPatient &&
+          {(isPatient || isAdmin) &&
             bookingData.status === "CONFIRMED" &&
             bookingData.completionOtp && (
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <h3 className="font-medium mb-2">Completion OTP</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Share this OTP with the paramedic after service completion
+                  {isAdmin
+                    ? "OTP provided to patient"
+                    : "Share this OTP with the paramedic after service completion"}
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="bg-background px-4 py-2 rounded text-lg font-mono">
@@ -242,7 +245,7 @@ export default function BookingDetailsPage() {
             )}
 
           {/* Paramedic Actions */}
-          {isParamedic && (
+          {(isParamedic || isAdmin) && (
             <div className="space-y-4">
               {bookingData.status === "PENDING" && (
                 <>
@@ -250,11 +253,14 @@ export default function BookingDetailsPage() {
                     placeholder="Add notes about this booking..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
+                    disabled={isAdmin}
                   />
                   <div className="flex gap-4">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="destructive">Decline</Button>
+                        <Button variant="destructive" disabled={isAdmin}>
+                          Decline
+                        </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
@@ -268,7 +274,7 @@ export default function BookingDetailsPage() {
                           <Button
                             variant="destructive"
                             onClick={() => handleStatusUpdate("CANCELLED")}
-                            disabled={isLoading}
+                            disabled={isLoading || isAdmin}
                           >
                             {isLoading ? "Declining..." : "Decline Booking"}
                           </Button>
@@ -277,7 +283,7 @@ export default function BookingDetailsPage() {
                     </Dialog>
                     <Button
                       onClick={() => handleStatusUpdate("CONFIRMED")}
-                      disabled={isLoading}
+                      disabled={isLoading || isAdmin}
                       className="flex-1"
                     >
                       {isLoading ? "Accepting..." : "Accept Booking"}

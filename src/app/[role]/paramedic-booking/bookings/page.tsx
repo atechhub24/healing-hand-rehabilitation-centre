@@ -39,6 +39,7 @@ export default function ParamedicBookingsPage() {
     BookingWithParamedic[]
   >([]);
   const isParamedic = userRole === "paramedic";
+  const isAdmin = userRole === "admin";
   const router = useRouter();
 
   // Fetch user's paramedic bookings
@@ -70,6 +71,8 @@ export default function ParamedicBookingsPage() {
   // Filter bookings based on role and search query
   const filteredBookings = bookingsWithParamedics
     .filter((booking) => {
+      // For admin, show all bookings
+      if (isAdmin) return true;
       // For paramedics, show bookings assigned to them
       if (isParamedic) {
         return booking.paramedicId === user?.uid;
@@ -79,19 +82,32 @@ export default function ParamedicBookingsPage() {
     })
     .filter((booking) => {
       if (!searchQuery) return true;
+      const searchLower = searchQuery.toLowerCase();
+
+      if (isAdmin) {
+        // Admins can search by patient condition, service type, or paramedic name
+        return (
+          booking.patientDetails.condition
+            .toLowerCase()
+            .includes(searchLower) ||
+          booking.serviceType.toLowerCase().includes(searchLower) ||
+          (booking.paramedic?.name || "").toLowerCase().includes(searchLower)
+        );
+      }
+
       if (isParamedic) {
         // Paramedics search by patient condition or service type
         return (
           booking.patientDetails.condition
             .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          booking.serviceType.toLowerCase().includes(searchQuery.toLowerCase())
+            .includes(searchLower) ||
+          booking.serviceType.toLowerCase().includes(searchLower)
         );
       }
       // Patients search by paramedic name
       return (booking.paramedic?.name || "")
         .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+        .includes(searchLower);
     })
     .sort(
       (a, b) =>
@@ -117,10 +133,16 @@ export default function ParamedicBookingsPage() {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {isParamedic ? "My Assigned Bookings" : "My Paramedic Bookings"}
+          {isAdmin
+            ? "All Paramedic Bookings"
+            : isParamedic
+            ? "My Assigned Bookings"
+            : "My Paramedic Bookings"}
         </h1>
         <p className="text-muted-foreground">
-          {isParamedic
+          {isAdmin
+            ? "View and manage all paramedic bookings in the system"
+            : isParamedic
             ? "View and manage your assigned paramedic requests"
             : "View and manage your paramedic appointments"}
         </p>
@@ -131,7 +153,9 @@ export default function ParamedicBookingsPage() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={
-              isParamedic
+              isAdmin
+                ? "Search by condition, service type, or paramedic name..."
+                : isParamedic
                 ? "Search by condition or service type..."
                 : "Search by paramedic name..."
             }
@@ -140,7 +164,7 @@ export default function ParamedicBookingsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {!isParamedic && (
+        {!isParamedic && !isAdmin && (
           <Button
             onClick={() =>
               (window.location.href = `/${role}/paramedic-booking`)

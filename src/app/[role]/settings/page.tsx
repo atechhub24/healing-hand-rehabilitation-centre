@@ -1,12 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { Bell, Lock, User, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { changePassword } from "@/lib/firebase/change-password";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { changePassword } from "@/lib/firebase/change-password";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Bell, Lock, User, LucideIcon, Eye, PenSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const settingsSections = [
   {
@@ -23,9 +23,18 @@ const settingsSections = [
     icon: User,
     settings: [
       {
-        name: "Personal Information",
+        name: "View Profile",
+        description: "View your profile information",
+        action: "View",
+        onClick: "handleViewProfile",
+        icon: Eye,
+      },
+      {
+        name: "Edit Profile",
         description: "Update your personal details",
         action: "Edit",
+        onClick: "handleEditProfile",
+        icon: PenSquare,
       },
     ],
   },
@@ -64,11 +73,12 @@ interface SettingProps {
   description: string;
   action: string;
   onClick?: string;
+  icon?: LucideIcon;
 }
 
 interface SectionProps {
   title: string;
-  icon: any;
+  icon: LucideIcon;
   settings: SettingProps[];
 }
 
@@ -120,7 +130,7 @@ function ChangePasswordDialog() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -197,6 +207,17 @@ function ChangePasswordDialog() {
 }
 
 function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
+  const router = useRouter();
+  const { role } = useAuth();
+
+  const handleViewProfile = () => {
+    router.push(`/${role}/profile`);
+  };
+
+  const handleEditProfile = () => {
+    router.push(`/${role}/profile/edit`);
+  };
+
   return (
     <div className="bg-white rounded-xl border p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
@@ -211,12 +232,25 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
             key={index}
             className="flex items-center justify-between py-3 border-t"
           >
-            <div>
-              <p className="font-medium text-gray-900">{setting.name}</p>
-              <p className="text-sm text-gray-500">{setting.description}</p>
+            <div className="flex items-center gap-3">
+              {setting.icon && (
+                <setting.icon className="h-4 w-4 text-gray-500" />
+              )}
+              <div>
+                <p className="font-medium text-gray-900">{setting.name}</p>
+                <p className="text-sm text-gray-500">{setting.description}</p>
+              </div>
             </div>
             {setting.onClick === "handleChangePassword" ? (
               <ChangePasswordDialog />
+            ) : setting.onClick === "handleEditProfile" ? (
+              <Button variant="outline" onClick={handleEditProfile}>
+                {setting.action}
+              </Button>
+            ) : setting.onClick === "handleViewProfile" ? (
+              <Button variant="outline" onClick={handleViewProfile}>
+                {setting.action}
+              </Button>
             ) : (
               <Button variant="outline">{setting.action}</Button>
             )}
@@ -228,7 +262,6 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
 }
 
 export default function SettingsPage() {
-  const params = useParams();
   const { user, role } = useAuth();
 
   if (!user || !role) {

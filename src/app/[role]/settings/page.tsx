@@ -13,7 +13,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { changePassword } from "@/lib/firebase/change-password";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Bell, Lock, User, LucideIcon, Eye, PenSquare } from "lucide-react";
+import {
+  Bell,
+  Eye,
+  EyeOff,
+  Lock,
+  LucideIcon,
+  PenSquare,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -87,6 +95,11 @@ function ChangePasswordDialog() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -104,11 +117,30 @@ function ChangePasswordDialog() {
       return;
     }
 
+    // Password validation
+    if (formData.newPassword.length < 8) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description: "New password must be at least 8 characters long.",
+      });
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Password Mismatch",
         description: "New passwords do not match.",
+      });
+      return;
+    }
+
+    if (formData.currentPassword === formData.newPassword) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Password",
+        description: "New password must be different from current password.",
       });
       return;
     }
@@ -130,10 +162,10 @@ function ChangePasswordDialog() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch {
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: error instanceof Error ? error.message : "Error",
         description:
           "Failed to change password. Please check your current password and try again.",
       });
@@ -142,62 +174,137 @@ function ChangePasswordDialog() {
     }
   };
 
+  const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Change</Button>
+        <Button
+          variant="outline"
+          className="transition-all duration-200 hover:border-primary"
+        >
+          Change
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Change Password
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, currentPassword: e.target.value })
-              }
-              required
-            />
+            <div className="relative">
+              <Input
+                id="currentPassword"
+                type={showPasswords.current ? "text" : "password"}
+                value={formData.currentPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, currentPassword: e.target.value })
+                }
+                required
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                onClick={() => togglePasswordVisibility("current")}
+              >
+                {showPasswords.current ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={formData.newPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, newPassword: e.target.value })
-              }
-              required
-            />
+            <div className="relative">
+              <Input
+                id="newPassword"
+                type={showPasswords.new ? "text" : "password"}
+                value={formData.newPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, newPassword: e.target.value })
+                }
+                required
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                onClick={() => togglePasswordVisibility("new")}
+              >
+                {showPasswords.new ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Password must be at least 8 characters long
+            </p>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, confirmPassword: e.target.value })
-              }
-              required
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showPasswords.confirm ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
+                required
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                onClick={() => togglePasswordVisibility("confirm")}
+              >
+                {showPasswords.confirm ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
-          <div className="flex justify-end gap-2">
+
+          <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Changing..." : "Change Password"}
+              {isLoading ? (
+                <>
+                  <span className="mr-2">Changing...</span>
+                </>
+              ) : (
+                "Change Password"
+              )}
             </Button>
           </div>
         </form>
@@ -219,9 +326,9 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
   };
 
   return (
-    <div className="bg-background rounded-xl border border-border p-6 shadow-sm">
+    <div className="bg-background rounded-xl border border-border p-6 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center gap-3 mb-6">
-        <div className="rounded-lg bg-muted p-3">
+        <div className="rounded-lg bg-muted p-3 transition-colors duration-200">
           <Icon className="h-6 w-6 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
@@ -230,14 +337,16 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
         {settings.map((setting, index) => (
           <div
             key={index}
-            className="flex items-center justify-between py-3 border-t border-border"
+            className="group flex items-center justify-between py-3 border-t border-border transition-colors duration-200 hover:bg-muted/50"
           >
             <div className="flex items-center gap-3">
               {setting.icon && (
-                <setting.icon className="h-4 w-4 text-muted-foreground" />
+                <setting.icon className="h-4 w-4 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
               )}
               <div>
-                <p className="font-medium text-foreground">{setting.name}</p>
+                <p className="font-medium text-foreground transition-colors duration-200 group-hover:text-primary">
+                  {setting.name}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {setting.description}
                 </p>
@@ -246,15 +355,28 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
             {setting.onClick === "handleChangePassword" ? (
               <ChangePasswordDialog />
             ) : setting.onClick === "handleEditProfile" ? (
-              <Button variant="outline" onClick={handleEditProfile}>
+              <Button
+                variant="outline"
+                onClick={handleEditProfile}
+                className="transition-all duration-200 hover:border-primary"
+              >
                 {setting.action}
               </Button>
             ) : setting.onClick === "handleViewProfile" ? (
-              <Button variant="outline" onClick={handleViewProfile}>
+              <Button
+                variant="outline"
+                onClick={handleViewProfile}
+                className="transition-all duration-200 hover:border-primary"
+              >
                 {setting.action}
               </Button>
             ) : (
-              <Button variant="outline">{setting.action}</Button>
+              <Button
+                variant="outline"
+                className="transition-all duration-200 hover:border-primary"
+              >
+                {setting.action}
+              </Button>
             )}
           </div>
         ))}
@@ -267,16 +389,22 @@ export default function SettingsPage() {
   const { user, role } = useAuth();
 
   if (!user || !role) {
-    return null;
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-muted-foreground">Loading settings...</div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your account settings and preferences
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage your account settings and preferences
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

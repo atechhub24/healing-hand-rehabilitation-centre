@@ -1,15 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import useFetch from "@/lib/hooks/use-fetch";
-import { Eye, Pencil, Plus, Trash } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { deleteUser } from "@/lib/firebase/delete-user";
-import mutateData from "@/lib/firebase/mutate-data";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +10,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { deleteUser } from "@/lib/firebase/delete-user";
+import mutateData from "@/lib/firebase/mutate-data";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Eye, Pencil, Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 interface Paramedic {
   uid: string;
@@ -50,9 +50,11 @@ export default function ParamedicsPage() {
   const [paramedicToDelete, setParamedicToDelete] = useState<Paramedic | null>(
     null
   );
-
   const [paramedics, isLoading] = useFetch<Paramedic[]>("users", {
-    filter: (paramedic: Paramedic) => paramedic.role === "paramedic",
+    filter: (item: unknown) => {
+      const paramedic = item as Paramedic;
+      return paramedic.role === "paramedic";
+    },
   });
 
   const handleDelete = async (paramedic: Paramedic) => {
@@ -116,7 +118,7 @@ export default function ParamedicsPage() {
               <span className="font-medium text-foreground">
                 {paramedicToDelete?.name}
               </span>
-              's account and remove their data from our servers.
+              &apos;s account and remove their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

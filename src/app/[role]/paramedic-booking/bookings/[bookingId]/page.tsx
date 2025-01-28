@@ -1,15 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
-import useFetch from "@/lib/hooks/use-fetch";
-import mutateData from "@/lib/firebase/mutate-data";
-import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -19,19 +12,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import type { Paramedic, Patient } from "@/types";
+import type { ParamedicBooking } from "@/types/paramedic";
 import {
   AlertCircle,
   ArrowLeft,
   Calendar,
+  Copy,
   Mail,
   MapPin,
   Phone,
   User,
-  Copy,
 } from "lucide-react";
-import type { ParamedicBooking } from "@/types/paramedic";
-import type { Paramedic, Patient } from "@/types";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface BookingWithDetails extends ParamedicBooking {
   paramedic?: Paramedic;
@@ -304,17 +308,23 @@ export default function BookingDetailsPage() {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <Input
-                        type="text"
+                      <InputOTP
                         maxLength={6}
-                        placeholder="Enter 6-digit OTP"
                         value={enteredOtp}
-                        onChange={(e) => {
+                        onChange={(value) => {
                           setOtpError("");
-                          setEnteredOtp(e.target.value);
+                          setEnteredOtp(value);
                         }}
-                        className="text-center text-lg font-mono"
-                      />
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
                       {otpError && (
                         <p className="text-sm text-destructive">{otpError}</p>
                       )}

@@ -23,151 +23,7 @@ import { format } from "date-fns";
 import useFetch from "@/lib/hooks/use-fetch";
 import { useAuth } from "@/lib/hooks/use-auth";
 import Link from "next/link";
-
-interface DoctorData {
-  uid: string;
-  name: string;
-  email: string;
-  qualification: string;
-  specialization: string;
-  experience: number;
-  clinicAddresses: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    slots: {
-      creatorInfo: {
-        actionBy: string;
-        browser: string;
-        language: string;
-        platform: string;
-        screenResolution: string;
-        timestamp: string;
-        userAgent: string;
-      };
-      duration: number;
-      endTime: string;
-      id: string;
-      isBooked?: boolean;
-      price: number;
-      slotNumber: number;
-      startTime: string;
-      updaterInfo?: {
-        actionBy: string;
-        browser: string;
-        language: string;
-        platform: string;
-        screenResolution: string;
-        timestamp: string;
-        userAgent: string;
-      };
-    }[];
-    timings: {
-      days: string[];
-      endTime: string;
-      startTime: string;
-    };
-  }[];
-  role: string;
-  createdAt: string;
-  lastLogin: string;
-  creatorInfo: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-  updaterInfo?: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-}
-
-interface Appointment {
-  clinicAddress: {
-    address: string;
-    city: string;
-    pincode: string;
-    state: string;
-    slots: {
-      creatorInfo: {
-        actionBy: string;
-        browser: string;
-        language: string;
-        platform: string;
-        screenResolution: string;
-        timestamp: string;
-        userAgent: string;
-      };
-      duration: number;
-      endTime: string;
-      id: string;
-      price: number;
-      slotNumber: number;
-      startTime: string;
-      updaterInfo?: {
-        actionBy: string;
-        browser: string;
-        language: string;
-        platform: string;
-        screenResolution: string;
-        timestamp: string;
-        userAgent: string;
-      };
-    }[];
-    timings: {
-      days: string[];
-      endTime: string;
-      startTime: string;
-    };
-  };
-  clinicIndex: number;
-  createdAt: number;
-  creatorInfo: {
-    actionBy: string;
-    browser: string;
-    language: string;
-    platform: string;
-    screenResolution: string;
-    timestamp: string;
-    userAgent: string;
-  };
-  doctorId: string;
-  doctorName: string;
-  doctorSpecialization: string;
-  patientId: string;
-  patientName: string;
-  patientPhone: string;
-  slotId: string;
-  slotInfo: {
-    creatorInfo: {
-      actionBy: string;
-      browser: string;
-      language: string;
-      platform: string;
-      screenResolution: string;
-      timestamp: string;
-      userAgent: string;
-    };
-    duration: number;
-    endTime: string;
-    id: string;
-    price: number;
-    slotNumber: number;
-    startTime: string;
-  };
-  status: "scheduled" | "completed" | "cancelled";
-}
-
+import { Doctor, Appointment } from "@/types";
 interface InfoItemProps {
   icon: React.ReactNode;
   label: string;
@@ -252,7 +108,11 @@ function AppointmentCard({ appointmentId, appointment }: AppointmentCardProps) {
       {isUpcoming ? (
         <div className="mt-4 flex gap-2">
           <Link
-            href={`/${role}/appointments/${appointmentId}`}
+            href={
+              role === "admin" || role === "doctor"
+                ? `/${role}/appointments/${appointmentId}?userId=${appointment.patientId}`
+                : `/${role}/appointments/${appointmentId}`
+            }
             className="flex-1"
           >
             <Button className="w-full">View Details</Button>
@@ -262,7 +122,11 @@ function AppointmentCard({ appointmentId, appointment }: AppointmentCardProps) {
       ) : (
         <div className="mt-4">
           <Link
-            href={`/${role}/appointments/${appointmentId}`}
+            href={
+              role === "admin" || role === "doctor"
+                ? `/${role}/appointments/${appointmentId}?userId=${appointment.patientId}`
+                : `/${role}/appointments/${appointmentId}`
+            }
             className="w-full"
           >
             <Button className="w-full">View Details</Button>
@@ -278,12 +142,9 @@ export default function DoctorDetailsPage() {
   const params = useParams();
 
   // Fetch doctor data
-  const [doctorData, isLoadingDoctor] = useFetch<DoctorData>(
-    `users/${params.id}`,
-    {
-      needRaw: true,
-    }
-  );
+  const [doctorData, isLoadingDoctor] = useFetch<Doctor>(`users/${params.id}`, {
+    needRaw: true,
+  });
 
   // Fetch appointments data - need to fetch from the correct path
   const [appointmentsData, isLoadingAppointments] = useFetch<

@@ -1,0 +1,209 @@
+# PROJECT OVERVIEW
+
+This project is a web application for managing appointments for doctors, paramedics, and labs. It is built using Next.js, Tailwind CSS, Shadcn UI, Firebase Realtime Database, and Firebase Authentication.
+
+# PERSONALITY
+
+You are a senior software engineer having experience in React, Next.js, Tailwind CSS, Shadcn UI, Firebase Realtime Database, and Firebase Authentication. You always try to find the best solution for the problem.
+
+# TECH STACK
+
+1. Frontend
+
+- React
+- Next.js
+- Tailwind CSS
+- Shadcn UI
+
+2. Database
+
+- Firebase Realtime Database
+
+3. Authentication
+
+- Firebase Authentication
+
+4. Testing
+
+- Playwright
+
+5. Version Control
+
+- Git
+- GitHub
+
+6. Form Management
+
+- React Hook Form
+- Zod
+
+7. UI Components
+
+- Shadcn UI
+
+8. State Management
+
+- Zustand
+
+9. Routing
+
+- Next.js
+
+10. Animation
+
+- Framer Motion
+
+11. Icons
+
+- Lucide
+
+# ERROR FIXING
+
+- If you encounter an error, you should first explain the error to the in simple words.
+- Create 3 paragraphs explaining the error and how to fix it.
+- All the solving approach of the error why we use each method explain in detail.
+- After doing all the steps, you should proceed to fix the error.
+
+# CURRENT FILE STRUCTURE
+
+├── .cursorrules
+├── .env.local
+├── .gitignore
+├── README.md
+├── components.json
+├── eslint.config.mjs
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── playwright.config.ts
+├── pnpm-lock.yaml
+├── postcss.config.mjs
+├── public
+│ ├── file.svg
+│ ├── globe.svg
+│ ├── next.svg
+│ ├── team
+│ │ ├── doctor1.jpg
+│ │ ├── doctor2.jpg
+│ │ └── doctor3.jpg
+│ ├── testimonials
+│ │ ├── patient1.jpg
+│ │ ├── patient2.jpg
+│ │ ├── patient3.jpg
+│ │ ├── patient4.jpg
+│ │ ├── patient5.jpg
+│ │ └── patient6.jpg
+│ ├── vercel.svg
+│ └── window.svg
+├── src
+│ ├── app
+│ │ ├── (main)
+│ │ │ ├── about
+│ │ │ ├── auth
+│ │ │ ├── contact
+│ │ │ ├── layout.tsx
+│ │ │ ├── page.tsx
+│ │ │ └── services
+│ │ ├── [role]
+│ │ │ ├── analytics
+│ │ │ ├── appointments
+│ │ │ ├── inventory
+│ │ │ ├── layout.tsx
+│ │ │ ├── manage
+│ │ │ ├── medical-records
+│ │ │ ├── page.tsx
+│ │ │ ├── patients
+│ │ │ ├── prescriptions
+│ │ │ ├── profile
+│ │ │ ├── reports
+│ │ │ ├── settings
+│ │ │ ├── slots
+│ │ │ ├── test-orders
+│ │ │ └── users
+│ │ ├── favicon.ico
+│ │ ├── globals.css
+│ │ └── layout.tsx
+│ ├── components
+│ │ ├── auth
+│ │ │ └── protected-route.tsx
+│ │ ├── dashboard
+│ │ │ ├── activity
+│ │ │ ├── header.tsx
+│ │ │ ├── panel
+│ │ │ ├── quick-links
+│ │ │ └── stats
+│ │ ├── footer.tsx
+│ │ ├── home
+│ │ │ ├── cta-section.tsx
+│ │ │ ├── faq-section.tsx
+│ │ │ ├── features-section.tsx
+│ │ │ └── hero-section.tsx
+│ │ ├── nav-bar.tsx
+│ │ ├── providers
+│ │ │ ├── auth-provider.tsx
+│ │ │ └── theme-provider.tsx
+│ │ ├── theme-switcher.tsx
+│ │ └── ui
+│ │ ├── accordion.tsx
+│ │ ├── alert-dialog.tsx
+│ │ ├── badge.tsx
+│ │ ├── breadcrumb.tsx
+│ │ ├── button.tsx
+│ │ ├── card.tsx
+│ │ ├── checkbox.tsx
+│ │ ├── command.tsx
+│ │ ├── dialog.tsx
+│ │ ├── dropdown-menu.tsx
+│ │ ├── form.tsx
+│ │ ├── icons.tsx
+│ │ ├── input.tsx
+│ │ ├── label.tsx
+│ │ ├── popover.tsx
+│ │ ├── radio-group.tsx
+│ │ ├── scroll-area.tsx
+│ │ ├── select.tsx
+│ │ ├── switch.tsx
+│ │ ├── tabs.tsx
+│ │ ├── testimonials.tsx
+│ │ ├── textarea.tsx
+│ │ ├── toast.tsx
+│ │ └── toaster.tsx
+│ ├── config
+│ │ └── role-config.ts
+│ ├── hooks
+│ │ └── use-toast.ts
+│ ├── lib
+│ │ ├── firebase
+│ │ │ ├── change-password.ts
+│ │ │ ├── create-user.ts
+│ │ │ ├── delete-user.ts
+│ │ │ └── mutate-data.ts
+│ │ ├── firebase.ts
+│ │ ├── hooks
+│ │ │ ├── use-auth.ts
+│ │ │ ├── use-fetch.ts
+│ │ │ └── use-mounted.ts
+│ │ ├── store
+│ │ │ ├── sidebar-store.ts
+│ │ │ └── theme-store.ts
+│ │ ├── utils
+│ │ │ └── breadcrumb.ts
+│ │ └── utils.ts
+│ └── types
+│ └── index.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── tsconfig.tsbuildinfo
+
+# IMPORTANT
+
+- Always use pnpm to install the dependencies
+- When add new shadcn ui components, use pnpm dlx shadcn@latest add <component-name> to add the component to the project.
+- To modify, delete or create data in firebase realtime database, use the mutate-data.ts file in the lib/firebase folder.
+- All the protected pages present in the src/app/(main)/[role] folder are protected pages and can only be accessed by the authenticated users.
+- All the pages present in the src/app/(main) folder are public pages and can be accessed by all the users.
+
+# COMMENTS
+
+- Make always include comments to the code to explain the code.
+- Do not delete the comments from the code unless it is not required.

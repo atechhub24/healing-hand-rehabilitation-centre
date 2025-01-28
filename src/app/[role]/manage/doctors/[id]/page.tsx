@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   User,
   Mail,
-  Phone,
   MapPin,
   Calendar,
   Clock,
@@ -17,10 +15,14 @@ import {
   Timer,
   GraduationCap,
   Stethoscope,
+  ArrowRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import useFetch from "@/lib/hooks/use-fetch";
+import { useAuth } from "@/lib/hooks/use-auth";
+import Link from "next/link";
 
 interface DoctorData {
   uid: string;
@@ -34,40 +36,136 @@ interface DoctorData {
     city: string;
     state: string;
     pincode: string;
-    timings: {
-      startTime: string;
+    slots: {
+      creatorInfo: {
+        actionBy: string;
+        browser: string;
+        language: string;
+        platform: string;
+        screenResolution: string;
+        timestamp: string;
+        userAgent: string;
+      };
+      duration: number;
       endTime: string;
+      id: string;
+      isBooked?: boolean;
+      price: number;
+      slotNumber: number;
+      startTime: string;
+      updaterInfo?: {
+        actionBy: string;
+        browser: string;
+        language: string;
+        platform: string;
+        screenResolution: string;
+        timestamp: string;
+        userAgent: string;
+      };
+    }[];
+    timings: {
       days: string[];
+      endTime: string;
+      startTime: string;
     };
   }[];
   role: string;
   createdAt: string;
   lastLogin: string;
+  creatorInfo: {
+    actionBy: string;
+    browser: string;
+    language: string;
+    platform: string;
+    screenResolution: string;
+    timestamp: string;
+    userAgent: string;
+  };
+  updaterInfo?: {
+    actionBy: string;
+    browser: string;
+    language: string;
+    platform: string;
+    screenResolution: string;
+    timestamp: string;
+    userAgent: string;
+  };
 }
 
 interface Appointment {
-  clinicAddress: string;
+  clinicAddress: {
+    address: string;
+    city: string;
+    pincode: string;
+    state: string;
+    slots: {
+      creatorInfo: {
+        actionBy: string;
+        browser: string;
+        language: string;
+        platform: string;
+        screenResolution: string;
+        timestamp: string;
+        userAgent: string;
+      };
+      duration: number;
+      endTime: string;
+      id: string;
+      price: number;
+      slotNumber: number;
+      startTime: string;
+      updaterInfo?: {
+        actionBy: string;
+        browser: string;
+        language: string;
+        platform: string;
+        screenResolution: string;
+        timestamp: string;
+        userAgent: string;
+      };
+    }[];
+    timings: {
+      days: string[];
+      endTime: string;
+      startTime: string;
+    };
+  };
   clinicIndex: number;
   createdAt: number;
   creatorInfo: {
-    doctorId: string;
-    doctorName: string;
-    doctorSpecialization: string;
-    patientId: string;
-    patientName: string;
-    patientPhone: string;
+    actionBy: string;
+    browser: string;
+    language: string;
+    platform: string;
+    screenResolution: string;
+    timestamp: string;
+    userAgent: string;
   };
+  doctorId: string;
+  doctorName: string;
+  doctorSpecialization: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
   slotId: string;
   slotInfo: {
+    creatorInfo: {
+      actionBy: string;
+      browser: string;
+      language: string;
+      platform: string;
+      screenResolution: string;
+      timestamp: string;
+      userAgent: string;
+    };
     duration: number;
     endTime: string;
     id: string;
-    isBooked: boolean;
     price: number;
     slotNumber: number;
     startTime: string;
   };
-  status: string;
+  status: "scheduled" | "completed" | "cancelled";
 }
 
 interface InfoItemProps {
@@ -91,150 +189,138 @@ function InfoItem({ icon, label, value, colorClass }: InfoItemProps) {
   );
 }
 
-function AppointmentCard({ appointment }: { appointment: Appointment }) {
-  const statusColors = {
-    scheduled:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-    completed:
-      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-    cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
-  };
+interface AppointmentCardProps {
+  appointmentId: string;
+  appointment: Appointment;
+}
 
-  const appointmentDate = new Date(appointment.createdAt);
+function AppointmentCard({ appointmentId, appointment }: AppointmentCardProps) {
+  const { role } = useAuth();
+  const isUpcoming = appointment.status === "scheduled";
+  const date = new Date(appointment.createdAt).toLocaleDateString();
 
   return (
-    <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    <div className="bg-card rounded-xl border p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             <User className="h-5 w-5 text-primary" />
-            {appointment.creatorInfo.patientName}
-            <span className="text-sm font-normal text-muted-foreground">
-              ({appointment.creatorInfo.patientPhone})
-            </span>
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Slot ID: {appointment.slotId}
-          </p>
+          </div>
+          <div>
+            <h3 className="font-medium">{appointment.patientName}</h3>
+            <p className="text-sm text-muted-foreground">
+              {appointment.patientPhone}
+            </p>
+          </div>
         </div>
-        <Badge
-          className={cn(
-            "capitalize",
-            statusColors[appointment.status as keyof typeof statusColors]
-          )}
-        >
+        <Badge variant={isUpcoming ? "default" : "secondary"}>
           {appointment.status}
         </Badge>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3">
-          <InfoItem
-            icon={<Calendar className="h-4 w-4" />}
-            label="Date"
-            value={format(appointmentDate, "PPP")}
-          />
-          <InfoItem
-            icon={<Clock className="h-4 w-4" />}
-            label="Time"
-            value={`${appointment.slotInfo.startTime} - ${appointment.slotInfo.endTime}`}
-          />
-          <InfoItem
-            icon={<Timer className="h-4 w-4" />}
-            label="Duration"
-            value={`${appointment.slotInfo.duration} minutes`}
-          />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Stethoscope className="h-4 w-4 text-primary" />
+          <span>{appointment.doctorName}</span>
+          <span className="text-xs">({appointment.doctorSpecialization})</span>
         </div>
-
-        <div className="space-y-3">
-          <InfoItem
-            icon={<MapPin className="h-4 w-4" />}
-            label="Clinic Address"
-            value={appointment.clinicAddress}
-          />
-          <InfoItem
-            icon={<Building className="h-4 w-4" />}
-            label="Clinic Index"
-            value={appointment.clinicIndex + 1}
-          />
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-muted-foreground">Fee</p>
-            <span className="text-base font-medium text-foreground">
-              ₹{appointment.slotInfo.price}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 text-primary" />
+          <span>{date}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 text-primary" />
+          <span>
+            {appointment.slotInfo.startTime} - {appointment.slotInfo.endTime}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 text-primary" />
+          <span>
+            {appointment.clinicAddress.address},{" "}
+            {appointment.clinicAddress.city}, {appointment.clinicAddress.state}{" "}
+            - {appointment.clinicAddress.pincode}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Timer className="h-4 w-4 text-primary" />
+          <span>Duration: {appointment.slotInfo.duration} minutes</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Fee: ₹{appointment.slotInfo.price}</span>
         </div>
       </div>
-    </Card>
+      {isUpcoming ? (
+        <div className="mt-4 flex gap-2">
+          <Link
+            href={`/${role}/appointments/${appointmentId}`}
+            className="flex-1"
+          >
+            <Button className="w-full">View Details</Button>
+          </Link>
+          <Button variant="outline">Reschedule</Button>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <Link
+            href={`/${role}/appointments/${appointmentId}`}
+            className="w-full"
+          >
+            <Button className="w-full">View Details</Button>
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
 export default function DoctorDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const [doctorData, setDoctorData] = useState<DoctorData | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  // In a real application, you would fetch this data from Firebase
-  useEffect(() => {
-    // Mock data for demonstration
-    setDoctorData({
-      uid: "oeggRX87PLbUTlB1TabOqfmuNKy2",
-      name: "Dr. John Doe",
-      email: "doctor@gmail.com",
-      qualification: "MBBS, MD",
-      specialization: "Dermatology",
-      experience: 9,
-      clinicAddresses: [
-        {
-          address: "HIG 46, Lane Number 2, Satya Sai Enclave, Kolathia",
-          city: "Bhubaneswar",
-          state: "Odisha",
-          pincode: "751030",
-          timings: {
-            startTime: "09:00",
-            endTime: "17:00",
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          },
-        },
-      ],
-      role: "doctor",
-      createdAt: "2025-01-23T06:20:56.422Z",
-      lastLogin: "2025-01-27T15:47:18.843Z",
-    });
+  // Fetch doctor data
+  const [doctorData, isLoadingDoctor] = useFetch<DoctorData>(
+    `users/${params.id}`,
+    {
+      needRaw: true,
+    }
+  );
 
-    // Mock appointments data
-    setAppointments([
-      {
-        clinicAddress: "HIG 46, Lane Number 2, Satya Sai Enclave, Kolathia",
-        clinicIndex: 0,
-        createdAt: 1737992465794,
-        creatorInfo: {
-          doctorId: "oeggRX87PLbUTlB1TabOqfmuNKy2",
-          doctorName: "Dr. John Doe",
-          doctorSpecialization: "Dermatology",
-          patientId: "HvdAwsnpp2TxmFkFcTd9dzrzqz62",
-          patientName: "AP",
-          patientPhone: "+919876543210",
-        },
-        slotId: "3",
-        slotInfo: {
-          duration: 15,
-          endTime: "12:00",
-          id: "3",
-          isBooked: true,
-          price: 500,
-          slotNumber: 4,
-          startTime: "11:45",
-        },
-        status: "scheduled",
-      },
-    ]);
-  }, []);
+  // Fetch appointments data - need to fetch from the correct path
+  const [appointmentsData, isLoadingAppointments] = useFetch<
+    Record<string, Record<string, Appointment>>
+  >("appointments", {
+    needRaw: true,
+  });
+
+  const isLoading = isLoadingDoctor || isLoadingAppointments;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   if (!doctorData) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-muted-foreground">Doctor not found</p>
+      </div>
+    );
   }
+
+  // Process appointments to get all appointments for this doctor
+  const appointments = appointmentsData
+    ? Object.values(appointmentsData)
+        .flatMap((userAppointments) =>
+          Object.entries(userAppointments).filter(
+            ([, appointment]) => appointment.doctorId === params.id
+          )
+        )
+        .sort(([, a], [, b]) => b.createdAt - a.createdAt)
+        .slice(0, 3)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -367,16 +453,37 @@ export default function DoctorDetailsPage() {
 
       {/* Appointments Section */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground">
-          Recent Appointments
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">
+            Recent Appointments
+          </h3>
+          <Button
+            variant="outline"
+            onClick={() =>
+              router.push(`/${params.role}/appointments?doctorId=${params.id}`)
+            }
+            className="gap-2"
+          >
+            View All Appointments
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
         <div className="grid gap-4">
-          {appointments.map((appointment) => (
-            <AppointmentCard
-              key={appointment.slotId}
-              appointment={appointment}
-            />
-          ))}
+          {appointments.length > 0 ? (
+            appointments.map(([id, appointment]) => (
+              <AppointmentCard
+                key={id}
+                appointmentId={id}
+                appointment={appointment}
+              />
+            ))
+          ) : (
+            <Card className="p-6">
+              <p className="text-center text-muted-foreground">
+                No recent appointments found
+              </p>
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -1,45 +1,72 @@
 "use client";
 
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Calendar, Clock, User, MapPin, Stethoscope } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  User,
+  MapPin,
+  Stethoscope,
+  ArrowLeft,
+} from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface Appointment {
-  id: string;
-  doctorId: string;
-  doctorName: string;
-  doctorSpecialization: string;
-  patientId: string;
-  patientName: string;
-  patientPhone: string;
-  clinicIndex: number;
   clinicAddress: {
     address: string;
     city: string;
     state: string;
     pincode: string;
   };
+  clinicIndex: number;
+  createdAt: number;
+  doctorId: string;
+  doctorName: string;
+  doctorSpecialization: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
   slotId: string;
   slotInfo: {
-    startTime: string;
-    endTime: string;
     duration: number;
+    endTime: string;
+    id: string;
     price: number;
+    slotNumber: number;
+    startTime: string;
   };
   status: "scheduled" | "completed" | "cancelled";
-  createdAt: number;
+}
+
+interface Patient {
+  age: number;
+  bloodGroup: string;
+  createdAt: string;
+  gender: string;
+  name: string;
+  phoneNumber: string;
+  role: string;
+  uid: string;
+  weight: number;
 }
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  appointmentId: string;
 }
 
-function AppointmentCard({ appointment }: AppointmentCardProps) {
+function AppointmentCard({ appointment, appointmentId }: AppointmentCardProps) {
   const { role } = useAuth();
   const isUpcoming = appointment.status === "scheduled";
   const date = new Date(appointment.createdAt).toLocaleDateString();
+
+  // Fetch patient details
+  const [patientData] = useFetch<Patient>(`users/${appointment.patientId}`, {
+    needRaw: true,
+  });
 
   return (
     <div className="bg-card rounded-xl border p-6 shadow-sm">
@@ -53,6 +80,12 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
             <p className="text-sm text-muted-foreground">
               {appointment.patientPhone}
             </p>
+            {patientData && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {patientData.age} years • {patientData.gender} •{" "}
+                {patientData.bloodGroup}
+              </div>
+            )}
           </div>
         </div>
         <span
@@ -85,14 +118,15 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
           <MapPin className="h-4 w-4 text-primary" />
           <span>
             {appointment.clinicAddress.address},{" "}
-            {appointment.clinicAddress.city}
+            {appointment.clinicAddress.city}, {appointment.clinicAddress.state}{" "}
+            - {appointment.clinicAddress.pincode}
           </span>
         </div>
       </div>
       {isUpcoming ? (
         <div className="mt-4 flex gap-2">
           <Link
-            href={`/${role}/appointments/${appointment.id}`}
+            href={`/${role}/appointments/${appointmentId}`}
             className="flex-1"
           >
             <Button className="w-full">View Details</Button>
@@ -102,7 +136,7 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
       ) : (
         <div className="mt-4">
           <Link
-            href={`/${role}/appointments/${appointment.id}`}
+            href={`/${role}/appointments/${appointmentId}`}
             className="w-full"
           >
             <Button className="w-full">View Details</Button>
@@ -115,29 +149,80 @@ function AppointmentCard({ appointment }: AppointmentCardProps) {
 
 export default function AppointmentsPage() {
   const { role, user } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const doctorId = searchParams.get("doctorId");
 
-  const [appointments, isLoading] = useFetch<Record<string, Appointment>>(
-    `appointments/${user?.uid}`
-  );
+  const [appointmentsData, isLoading] = useFetch<
+    Record<string, Record<string, Appointment>>
+  >("appointments", {
+    needRaw: true,
+    filter: (item: unknown) => {
+      const appointment = item as Appointment;
+      if (!appointment) return false;
 
-  if (!role || !["doctor", "customer"].includes(role)) {
+      if (doctorId) {
+        return appointment.doctorId === doctorId;
+      }
+      if (role === "doctor" && user?.uid) {
+        return appointment.doctorId === user.uid;
+      }
+      if (role === "customer" && user?.uid) {
+        return appointment.patientId === user.uid;
+      }
+      // For admin, show all appointments
+      return true;
+    },
+    sort: (a: unknown, b: unknown) => {
+      const appointmentA = a as Appointment;
+      const appointmentB = b as Appointment;
+      return appointmentB.createdAt - appointmentA.createdAt;
+    },
+  });
+
+  // Process appointments to flatten the nested structure
+  const appointments = appointmentsData
+    ? Object.values(appointmentsData).flatMap((userAppointments) =>
+        Object.entries(userAppointments)
+      )
+    : [];
+
+  if (!role || !["doctor", "customer", "admin"].includes(role)) {
     return null;
   }
 
   const isDoctor = role === "doctor";
+  const isAdmin = role === "admin";
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-          <p className="text-muted-foreground">
-            {isDoctor
-              ? "Manage your patient appointments"
-              : "View and manage your appointments"}
-          </p>
+        <div className="flex items-center gap-4">
+          {doctorId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+          )}
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {doctorId ? "Doctor Appointments" : "Appointments"}
+            </h2>
+            <p className="text-muted-foreground">
+              {isDoctor
+                ? "Manage your patient appointments"
+                : isAdmin && doctorId
+                ? "View and manage doctor's appointments"
+                : "View and manage your appointments"}
+            </p>
+          </div>
         </div>
-        {!isDoctor && (
+        {!isDoctor && !doctorId && role === "customer" && (
           <Link href={`/${role}/appointments/new`}>
             <Button>Book New Appointment</Button>
           </Link>
@@ -147,10 +232,11 @@ export default function AppointmentsPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           <p className="text-muted-foreground">Loading appointments...</p>
-        ) : appointments && Object.keys(appointments).length > 0 ? (
-          Object.values(appointments).map((appointment) => (
+        ) : appointments.length > 0 ? (
+          appointments.map(([id, appointment]) => (
             <AppointmentCard
-              key={appointment.slotId}
+              key={id}
+              appointmentId={id}
               appointment={appointment}
             />
           ))

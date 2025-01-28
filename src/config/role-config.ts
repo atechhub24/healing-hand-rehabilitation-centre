@@ -77,7 +77,7 @@ export const roleConfig = {
       {
         label: "My Bookings",
         icon: BookOpen,
-        href: "/paramedic/appointments",
+        href: "/paramedic/paramedic-booking/bookings",
       },
       { label: "Patients", icon: Users, href: "/paramedic/patients" },
       { label: "Reports", icon: FileText, href: "/paramedic/reports" },

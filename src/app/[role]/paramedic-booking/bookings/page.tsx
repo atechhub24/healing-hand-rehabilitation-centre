@@ -31,13 +31,14 @@ interface BookingWithParamedic extends ParamedicBooking {
 }
 
 export default function ParamedicBookingsPage() {
-  const { user } = useAuth();
+  const { user, role: userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const params = useParams();
   const role = params.role as string;
   const [bookingsWithParamedics, setBookingsWithParamedics] = useState<
     BookingWithParamedic[]
   >([]);
+  const isParamedic = userRole === "paramedic";
 
   // Fetch user's paramedic bookings
   const [bookingsData] = useFetch<Record<string, BookingWithParamedic>>(
@@ -65,16 +66,32 @@ export default function ParamedicBookingsPage() {
     }
   }, [bookingsData, paramedicsData]);
 
-  // Filter bookings for the current user and by paramedic name if search query exists
-  const userBookings = bookingsWithParamedics
-    .filter(
-      (booking) =>
-        booking.patientId === user?.uid &&
-        (!searchQuery ||
-          (booking.paramedic?.name || "")
+  // Filter bookings based on role and search query
+  const filteredBookings = bookingsWithParamedics
+    .filter((booking) => {
+      // For paramedics, show bookings assigned to them
+      if (isParamedic) {
+        return booking.paramedicId === user?.uid;
+      }
+      // For patients, show their bookings
+      return booking.patientId === user?.uid;
+    })
+    .filter((booking) => {
+      if (!searchQuery) return true;
+      if (isParamedic) {
+        // Paramedics search by patient condition or service type
+        return (
+          booking.patientDetails.condition
             .toLowerCase()
-            .includes(searchQuery.toLowerCase()))
-    )
+            .includes(searchQuery.toLowerCase()) ||
+          booking.serviceType.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+      // Patients search by paramedic name
+      return (booking.paramedic?.name || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+    })
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -99,10 +116,12 @@ export default function ParamedicBookingsPage() {
     <div className="container py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Paramedic Bookings
+          {isParamedic ? "My Assigned Bookings" : "My Paramedic Bookings"}
         </h1>
         <p className="text-muted-foreground">
-          View and manage your paramedic appointments
+          {isParamedic
+            ? "View and manage your assigned paramedic requests"
+            : "View and manage your paramedic appointments"}
         </p>
       </div>
 
@@ -110,22 +129,30 @@ export default function ParamedicBookingsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by paramedic name..."
+            placeholder={
+              isParamedic
+                ? "Search by condition or service type..."
+                : "Search by paramedic name..."
+            }
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button
-          onClick={() => (window.location.href = `/${role}/paramedic-booking`)}
-        >
-          Book Paramedic
-        </Button>
+        {!isParamedic && (
+          <Button
+            onClick={() =>
+              (window.location.href = `/${role}/paramedic-booking`)
+            }
+          >
+            Book Paramedic
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4">
-        {userBookings.length > 0 ? (
-          userBookings.map((booking) => (
+        {filteredBookings.length > 0 ? (
+          filteredBookings.map((booking) => (
             <Card key={booking.id} className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -133,13 +160,26 @@ export default function ParamedicBookingsPage() {
                     <User className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium">
-                      {booking.paramedic?.name || "Loading..."}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {booking.paramedic?.specialization || "Paramedic"} •{" "}
-                      {booking.paramedic?.experience || 0} years exp.
-                    </p>
+                    {isParamedic ? (
+                      <>
+                        <h3 className="font-medium">
+                          Patient Condition: {booking.patientDetails.condition}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Service Type: {booking.serviceType}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-medium">
+                          {booking.paramedic?.name || "Loading..."}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.paramedic?.specialization || "Paramedic"} •{" "}
+                          {booking.paramedic?.experience || 0} years exp.
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 <Badge variant={getStatusColor(booking.status)}>

@@ -36,7 +36,7 @@ const contactInfo = [
 
 export default function ContactPage() {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,15 +46,15 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsLoading(true);
 
     try {
-      // Here you would typically send the form data to your backend
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulating API call
+      // Add your form submission logic here
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       toast({
         title: "Message Sent",
-        description: "We'll get back to you as soon as possible.",
+        description: "Thank you for contacting us. We'll get back to you soon.",
       });
 
       setFormData({
@@ -63,15 +63,15 @@ export default function ContactPage() {
         subject: "",
         message: "",
       });
-    } catch (error) {
+    } catch {
       toast({
-        variant: "destructive",
         title: "Error",
         description: "Failed to send message. Please try again.",
+        variant: "destructive",
       });
     }
 
-    setIsSubmitting(false);
+    setIsLoading(false);
   };
 
   return (
@@ -84,8 +84,8 @@ export default function ContactPage() {
               Contact Us
             </h1>
             <p className="text-xl text-gray-600">
-              Have questions? We'd love to hear from you. Send us a message and
-              we'll respond as soon as possible.
+              We&apos;d love to hear from you. Please fill out this form and
+              we&apos;ll get back to you as soon as possible.
             </p>
           </div>
         </div>
@@ -171,8 +171,8 @@ export default function ContactPage() {
                 className="h-32"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Send Message"}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send Message"}
             </Button>
           </form>
         </div>

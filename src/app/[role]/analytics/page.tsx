@@ -1,9 +1,8 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Activity, TrendingUp, Users, DollarSign } from "lucide-react";
-import { LucideIcon } from "lucide-react";
+import { Activity, Users, DollarSign } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface AnalyticsData {
   revenue: {
@@ -73,7 +72,6 @@ function AnalyticsCard({
 }
 
 export default function AnalyticsPage() {
-  const params = useParams();
   const { role } = useAuth();
 
   if (role !== "admin") {

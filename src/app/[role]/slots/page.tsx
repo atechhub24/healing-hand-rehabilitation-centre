@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import mutateData from "@/lib/firebase/mutate-data";

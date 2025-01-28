@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -21,7 +21,7 @@ export function HeroSection() {
               <Link href="/auth/register/customer">
                 <Button size="lg" className="w-full sm:w-auto">
                   Register as Patient
-                  <UserPlus className="h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/auth/register">
@@ -31,7 +31,7 @@ export function HeroSection() {
                   className="w-full sm:w-auto"
                 >
                   Register as Provider
-                  <UserPlus className="h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
             </div>

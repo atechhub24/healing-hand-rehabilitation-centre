@@ -51,7 +51,10 @@ export default function DoctorsPage() {
   const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null);
 
   const [doctors, isLoading] = useFetch<Doctor[]>("users", {
-    filter: (doctor: Doctor) => doctor.role === "doctor",
+    filter: (item: unknown) => {
+      const doctor = item as Doctor;
+      return doctor.role === "doctor";
+    },
   });
 
   const handleDelete = async (doctor: Doctor) => {
@@ -115,7 +118,7 @@ export default function DoctorsPage() {
               <span className="font-medium text-foreground">
                 {doctorToDelete?.name}
               </span>
-              's account and remove their data from our servers.
+              &apos;s account and remove their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -235,6 +238,10 @@ export default function DoctorsPage() {
             </table>
           </div>
         </div>
+
+        <p className="text-sm text-muted-foreground">
+          You haven&apos;t added any doctors yet.
+        </p>
       </div>
     </>
   );

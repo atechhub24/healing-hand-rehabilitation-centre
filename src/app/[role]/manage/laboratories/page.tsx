@@ -55,7 +55,10 @@ export default function LaboratoriesPage() {
     useState<Laboratory | null>(null);
 
   const [laboratories, isLoading] = useFetch<Laboratory[]>("users", {
-    filter: (laboratory: Laboratory) => laboratory.role === "laboratory",
+    filter: (item: unknown) => {
+      const laboratory = item as Laboratory;
+      return laboratory.role === "laboratory";
+    },
   });
 
   const handleDelete = async (laboratory: Laboratory) => {
@@ -119,7 +122,7 @@ export default function LaboratoriesPage() {
               <span className="font-medium text-foreground">
                 {laboratoryToDelete?.name}
               </span>
-              's account and remove their data from our servers.
+              &apos;s account and remove their data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -241,6 +244,10 @@ export default function LaboratoriesPage() {
             </table>
           </div>
         </div>
+
+        <p className="text-sm text-muted-foreground">
+          You haven&apos;t added any laboratories yet.
+        </p>
       </div>
     </>
   );

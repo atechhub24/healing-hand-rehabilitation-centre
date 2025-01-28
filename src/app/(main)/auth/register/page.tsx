@@ -26,6 +26,7 @@ import {
   FileText,
   Clock,
 } from "lucide-react";
+import Link from "next/link";
 
 type UserRole = "doctor" | "paramedic" | "lab";
 
@@ -107,25 +108,23 @@ export default function RegisterPage() {
     }
 
     const userData = {
-      name: formData.name,
-      qualification: formData.qualification,
-      specialization: formData.specialization,
-      experience: parseInt(formData.experience),
+      ...formData,
+      role: formData.role as UserRole,
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
       address: formData.role === "lab" ? formData.address : undefined,
-      ...(formData.role === "doctor" && {
-        clinicAddresses,
-        location: clinicAddresses[0]?.address || "",
-      }),
-      ...(formData.role === "paramedic" && {
-        certifications: formData.certifications,
-        location: `${formData.city}, ${formData.state}`,
-      }),
-      ...(formData.role === "lab" && {
-        license: formData.license,
-        location: formData.address,
-      }),
-      createdAt: new Date(),
-      lastLogin: new Date(),
+      license: formData.role === "lab" ? formData.license : undefined,
+      location:
+        formData.role === "doctor"
+          ? clinicAddresses[0]?.address || ""
+          : formData.city + "," + formData.state,
+      certifications:
+        formData.role === "paramedic" ? formData.certifications : undefined,
+      clinicAddresses: formData.role === "doctor" ? clinicAddresses : undefined,
+      specialization: formData.specialization || undefined,
+      experience: formData.experience
+        ? parseInt(formData.experience)
+        : undefined,
     };
 
     const result = await signUpWithEmail(
@@ -722,9 +721,9 @@ export default function RegisterPage() {
 
         <p className="text-sm text-center mt-4">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-500 hover:underline">
-            Sign in
-          </a>
+          <Link href="/auth/login" className="text-primary hover:underline">
+            Login
+          </Link>
         </p>
       </div>
     </div>

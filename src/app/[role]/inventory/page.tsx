@@ -1,10 +1,9 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Package, AlertTriangle, ArrowDown, ArrowUp } from "lucide-react";
 
-const inventory = [
+const inventory: InventoryItem[] = [
   {
     id: 1,
     name: "Blood Collection Tubes",
@@ -38,7 +37,18 @@ const inventory = [
   // Add more inventory items as needed
 ];
 
-function InventoryCard({ item }) {
+interface InventoryItem {
+  id: number;
+  name: string;
+  category: string;
+  currentStock: number;
+  minRequired: number;
+  status: "in-stock" | "low-stock";
+  lastUpdated: string;
+  unit: string;
+}
+
+function InventoryCard({ item }: { item: InventoryItem }) {
   const isLowStock = item.currentStock <= item.minRequired;
 
   return (
@@ -97,7 +107,6 @@ function InventoryCard({ item }) {
 }
 
 export default function InventoryPage() {
-  const params = useParams();
   const { role } = useAuth();
 
   if (role !== "lab") {

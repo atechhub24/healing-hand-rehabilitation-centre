@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
-import { Eye, EyeOff, Mail, Lock, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -227,10 +227,10 @@ export default function LoginPage() {
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/register"
-              className="text-blue-500 hover:underline"
+              className="text-primary hover:underline"
             >
               Register
             </Link>

@@ -34,7 +34,7 @@ export const roleConfig = {
       {
         label: "Paramedic Bookings",
         icon: Ambulance,
-        href: "/admin/paramedic-booking",
+        href: "/admin/paramedic-booking/bookings",
       },
       { label: "Analytics", icon: Activity, href: "/admin/analytics" },
       { label: "Settings", icon: Settings, href: "/admin/settings" },
@@ -51,6 +51,11 @@ export const roleConfig = {
         label: "Request Paramedic",
         icon: Ambulance,
         href: "/doctor/paramedic-booking",
+      },
+      {
+        label: "My Paramedic Bookings",
+        icon: BookOpen,
+        href: "/doctor/paramedic-booking/bookings",
       },
       { label: "Settings", icon: Settings, href: "/doctor/settings" },
       {
@@ -91,6 +96,11 @@ export const roleConfig = {
         icon: Ambulance,
         href: "/lab/paramedic-booking",
       },
+      {
+        label: "My Paramedic Bookings",
+        icon: BookOpen,
+        href: "/lab/paramedic-booking/bookings",
+      },
       { label: "Settings", icon: Settings, href: "/lab/settings" },
     ],
   },
@@ -117,6 +127,11 @@ export const roleConfig = {
         label: "Book Paramedic",
         icon: Ambulance,
         href: "/patient/paramedic-booking",
+      },
+      {
+        label: "My Paramedic Bookings",
+        icon: BookOpen,
+        href: "/patient/paramedic-booking/bookings",
       },
       { label: "Settings", icon: Settings, href: "/patient/settings" },
     ],

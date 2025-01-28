@@ -149,8 +149,8 @@ export default function ConfirmBookingPage() {
         description: "Your paramedic booking has been confirmed.",
       });
 
-      // Redirect to appointments page
-      router.push(`/${role}/appointments`);
+      // Redirect to paramedic bookings page
+      router.push(`/${role}/paramedic-booking/bookings`);
     } catch (error) {
       toast({
         title: "Error",

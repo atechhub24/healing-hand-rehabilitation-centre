@@ -124,26 +124,19 @@ function AppointmentCard({ appointment, appointmentId }: AppointmentCardProps) {
           </span>
         </div>
       </div>
-      {isUpcoming ? (
-        <div className="mt-4 flex gap-2">
-          <Link
-            href={`/${role}/appointments/${appointmentId}`}
-            className="flex-1"
-          >
-            <Button className="w-full">View Details</Button>
-          </Link>
-          <Button variant="outline">Reschedule</Button>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <Link
-            href={`/${role}/appointments/${appointmentId}`}
-            className="w-full"
-          >
-            <Button className="w-full">View Details</Button>
-          </Link>
-        </div>
-      )}
+      <div className="mt-4 flex gap-2">
+        <Link
+          href={
+            role === "admin"
+              ? `/${role}/appointments/${appointmentId}?userId=${appointment.patientId}`
+              : `/${role}/appointments/${appointmentId}`
+          }
+          className="flex-1"
+        >
+          <Button className="w-full">View Details</Button>
+        </Link>
+        <Button variant="outline">Reschedule</Button>
+      </div>
     </div>
   );
 }

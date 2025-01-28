@@ -15,24 +15,39 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 export default function AppointmentDetailsPage() {
   const { role, user } = useAuth();
   const params = useParams();
   const appointmentId = params.id as string;
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
 
-  const [appointment] = useFetch<Appointment>(
-    `appointments/${user?.uid}/${appointmentId}`,
-    { needRaw: true }
-  );
+  // Determine the correct fetch path based on role
+  const fetchPath = useMemo(() => {
+    if (!user) return null;
+
+    if (role === "admin") {
+      // For admin, we need the userId from the URL
+      return userId ? `appointments/${userId}/${appointmentId}` : null;
+    }
+
+    // For doctor and customer, use their own ID
+    return `appointments/${user.uid}/${appointmentId}`;
+  }, [role, user, userId, appointmentId]);
+
+  const [appointment, isLoading] = useFetch<Appointment>(fetchPath || "", {
+    needRaw: true,
+  });
+
+  if (!fetchPath || isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!appointment) {
-    return (
-      <div className="text-center py-10">
-        <p className="text-muted-foreground">Loading appointment details...</p>
-      </div>
-    );
+    return <div>Appointment not found</div>;
   }
 
   const date = new Date(appointment.createdAt).toLocaleDateString();

@@ -130,7 +130,7 @@ function ChangePasswordDialog() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (err) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",
@@ -219,26 +219,28 @@ function SettingsSection({ title, icon: Icon, settings }: SectionProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 shadow-sm">
+    <div className="bg-background rounded-xl border border-border p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="rounded-lg bg-gray-100 p-3">
-          <Icon className="h-6 w-6 text-gray-600" />
+        <div className="rounded-lg bg-muted p-3">
+          <Icon className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       </div>
       <div className="space-y-4">
         {settings.map((setting, index) => (
           <div
             key={index}
-            className="flex items-center justify-between py-3 border-t"
+            className="flex items-center justify-between py-3 border-t border-border"
           >
             <div className="flex items-center gap-3">
               {setting.icon && (
-                <setting.icon className="h-4 w-4 text-gray-500" />
+                <setting.icon className="h-4 w-4 text-muted-foreground" />
               )}
               <div>
-                <p className="font-medium text-gray-900">{setting.name}</p>
-                <p className="text-sm text-gray-500">{setting.description}</p>
+                <p className="font-medium text-foreground">{setting.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {setting.description}
+                </p>
               </div>
             </div>
             {setting.onClick === "handleChangePassword" ? (
@@ -271,8 +273,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-gray-900">Settings</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-2xl font-semibold text-foreground">Settings</h2>
+        <p className="text-sm text-muted-foreground">
           Manage your account settings and preferences
         </p>
       </div>

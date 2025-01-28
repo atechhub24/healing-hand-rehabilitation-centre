@@ -39,7 +39,7 @@ const routeConfig: Record<string, { title: string; icon?: React.ElementType }> =
     doctor: { title: "Doctor", icon: Stethoscope },
     paramedic: { title: "Paramedic", icon: Ambulance },
     lab: { title: "Laboratory", icon: TestTubes },
-    customer: { title: "Customer", icon: Users },
+    patient: { title: "Patient", icon: Users },
     doctors: { title: "Doctors", icon: Stethoscope },
     paramedics: { title: "Paramedics", icon: Ambulance },
     laboratories: { title: "Laboratories", icon: TestTubes },

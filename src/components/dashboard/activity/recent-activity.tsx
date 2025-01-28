@@ -76,7 +76,7 @@ export const recentActivities: Record<string, Activity[]> = {
       time: "3 hours ago",
     },
   ],
-  customer: [
+  patient: [
     {
       id: "1",
       title: "Appointment Confirmed",

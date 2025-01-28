@@ -97,7 +97,7 @@ const roleBasedCards: Record<string, DashboardCard[]> = {
       icon: Clock,
     },
   ],
-  customer: [
+  patient: [
     {
       title: "Appointments",
       value: "2",

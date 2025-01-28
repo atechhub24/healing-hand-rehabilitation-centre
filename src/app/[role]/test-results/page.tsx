@@ -1,8 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { TestTube, Calendar, User, Download, AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar, Download, TestTube, User } from "lucide-react";
 
 interface TestResult {
   name: string;
@@ -137,10 +136,9 @@ function TestResultCard({ result }: TestResultCardProps) {
 }
 
 export default function TestResultsPage() {
-  const params = useParams();
   const { role } = useAuth();
 
-  if (role !== "customer") {
+  if (role !== "patient") {
     return null;
   }
 

@@ -1,25 +1,25 @@
 "use client";
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { useEffect, useState } from "react";
+import { UserData, UserRole } from "@/types";
 import {
-  signInWithEmailAndPassword,
+  browserLocalPersistence,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   PhoneAuthProvider,
-  signInWithCredential,
   RecaptchaVerifier,
   setPersistence,
-  browserLocalPersistence,
+  signInWithCredential,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
-import { ref, get } from "firebase/database";
-import { auth, database } from "../firebase";
-import useMounted from "./use-mounted";
-import mutateData from "../firebase/mutate-data";
+import { get, ref } from "firebase/database";
 import { useRouter } from "next/navigation";
-import { UserData, UserRole } from "@/types";
+import { useEffect, useState } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { auth, database } from "../firebase";
+import mutateData from "../firebase/mutate-data";
+import useMounted from "./use-mounted";
 
 interface AuthState {
   user: UserData | null;
@@ -78,22 +78,17 @@ export const useAuth = () => {
     isNewUser: boolean = false
   ) => {
     const action = isNewUser ? "create" : "update";
+    const now = new Date();
     const updatedData = {
       ...data,
       uid,
-      lastLogin: new Date(),
-      ...(isNewUser && { createdAt: new Date() }),
+      lastLogin: now.toISOString(),
+      ...(isNewUser && { createdAt: now.toISOString() }),
     };
 
     await mutateData({
       path: `users/${uid}`,
-      data: {
-        ...updatedData,
-        lastLogin: updatedData.lastLogin.toISOString(),
-        ...(updatedData.createdAt && {
-          createdAt: updatedData.createdAt.toISOString(),
-        }),
-      },
+      data: updatedData,
       action,
     });
 
@@ -283,7 +278,7 @@ export const useAuth = () => {
         {
           ...userData,
           phoneNumber: userCredential.user.phoneNumber,
-          role: "customer" as UserRole,
+          role: "patient" as UserRole,
         },
         true
       );

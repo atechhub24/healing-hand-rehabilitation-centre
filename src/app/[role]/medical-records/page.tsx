@@ -1,8 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { FileText, Calendar, User, Activity, Download } from "lucide-react";
+import { Activity, Calendar, Download, FileText, User } from "lucide-react";
 
 interface MedicalRecord {
   id: number;
@@ -107,10 +106,9 @@ const healthMetrics: HealthMetric[] = [
 ];
 
 export default function MedicalRecordsPage() {
-  const params = useParams();
   const { role } = useAuth();
 
-  if (role !== "customer") {
+  if (role !== "patient") {
     return null;
   }
 

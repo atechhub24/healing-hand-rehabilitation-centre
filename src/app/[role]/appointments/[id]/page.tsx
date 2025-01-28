@@ -1,13 +1,29 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import mutate from "@/lib/firebase/mutate-data";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
-import {
-  Appointment as AppointmentType,
-  Doctor,
-  UserData as UserDataType,
-} from "@/types";
+import { Appointment, Doctor, Patient } from "@/types";
 import {
   ArrowLeft,
   Calendar,
@@ -19,50 +35,8 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from "next/navigation";
-import mutate from "@/lib/firebase/mutate-data";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-interface ExtendedAppointment extends Omit<AppointmentType, "updaterInfo"> {
-  note?: string;
-  updaterInfo?: {
-    actionBy: string;
-    timestamp: string;
-  };
-}
-
-interface UserData extends UserDataType {
-  weight?: number;
-  height?: number;
-  allergies?: string;
-  chronicConditions?: string;
-  currentMedications?: string;
-  medicalHistory?: string;
-  surgicalHistory?: string;
-  familyHistory?: string;
-  lifestyle?: string;
-  emergencyContact?: string;
-}
 
 export default function AppointmentDetailsPage() {
   const { role, user } = useAuth();
@@ -88,20 +62,19 @@ export default function AppointmentDetailsPage() {
       return userId ? `appointments/${userId}/${appointmentId}` : null;
     }
 
-    // For customer, use their own ID
+    // For patient, use their own ID
     return `appointments/${user.uid}/${appointmentId}`;
   }, [role, user, userId, appointmentId]);
 
-  const [appointment, isLoading] = useFetch<ExtendedAppointment>(
-    fetchPath || "",
-    { needRaw: true }
-  );
+  const [appointment, isLoading] = useFetch<Appointment>(fetchPath || "", {
+    needRaw: true,
+  });
   const [doctor, isLoadingDoctor] = useFetch<Doctor>(
     `users/${appointment?.doctorId}`,
     { needRaw: true }
   );
 
-  const [patient, isLoadingPatient] = useFetch<UserData>(
+  const [patient, isLoadingPatient] = useFetch<Patient>(
     `users/${appointment?.patientId}`,
     { needRaw: true }
   );

@@ -1,59 +1,20 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Appointment, Patient } from "@/types";
 import {
+  ArrowLeft,
   Calendar,
   Clock,
-  User,
   MapPin,
   Stethoscope,
-  ArrowLeft,
+  User,
 } from "lucide-react";
-import useFetch from "@/lib/hooks/use-fetch";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-
-interface Appointment {
-  id: string;
-  clinicAddress: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  clinicIndex: number;
-  createdAt: number;
-  doctorId: string;
-  doctorName: string;
-  doctorSpecialization: string;
-  patientId: string;
-  patientName: string;
-  patientPhone: string;
-  slotId: string;
-  slotInfo: {
-    duration: number;
-    endTime: string;
-    id: string;
-    price: number;
-    slotNumber: number;
-    startTime: string;
-  };
-  status: "scheduled" | "completed" | "cancelled";
-}
-
-interface Patient {
-  age: number;
-  bloodGroup: string;
-  createdAt: string;
-  gender: string;
-  name: string;
-  phoneNumber: string;
-  role: string;
-  uid: string;
-  weight: number;
-}
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -150,7 +111,7 @@ export default function AppointmentsPage() {
 
   const isDoctor = role === "doctor";
   const isAdmin = role === "admin";
-  const isCustomer = role === "customer";
+  const isPatient = role === "patient";
 
   // Determine the fetch path based on role
   const fetchPath = useMemo(() => {
@@ -161,7 +122,7 @@ export default function AppointmentsPage() {
       return "appointments";
     }
 
-    // For customer, fetch only their appointments
+    // For patient, fetch only their appointments
     return `appointments/${user.uid}`;
   }, [role, user?.uid]);
 
@@ -179,7 +140,7 @@ export default function AppointmentsPage() {
         if (isDoctor && user?.uid) {
           return appointment.doctorId === user.uid;
         }
-        if (isCustomer && user?.uid) {
+        if (isPatient && user?.uid) {
           return appointment.patientId === user.uid;
         }
         // For admin, show all appointments
@@ -198,7 +159,7 @@ export default function AppointmentsPage() {
     return appointmentsData || [];
   }, [appointmentsData]);
 
-  if (!role || !["doctor", "customer", "admin"].includes(role)) {
+  if (!role || !["doctor", "patient", "admin"].includes(role)) {
     return null;
   }
 
@@ -230,7 +191,7 @@ export default function AppointmentsPage() {
             </p>
           </div>
         </div>
-        {!isDoctor && !doctorId && role === "customer" && (
+        {!isDoctor && !doctorId && role === "patient" && (
           <Link href={`/${role}/appointments/new`}>
             <Button>Book New Appointment</Button>
           </Link>

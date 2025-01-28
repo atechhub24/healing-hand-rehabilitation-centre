@@ -1,18 +1,17 @@
 import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  ClipboardList,
-  Settings,
-  FileText,
   Activity,
-  TestTube,
   Bell,
-  Stethoscope,
-  UserCog,
-  Microscope,
-  Boxes,
+  Calendar,
   CalendarDays,
+  ClipboardList,
+  FileText,
+  LayoutDashboard,
+  Microscope,
+  Settings,
+  Stethoscope,
+  TestTube,
+  UserCog,
+  Users,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -73,26 +72,26 @@ export const roleConfig = {
       { label: "Settings", icon: Settings, href: "/lab/settings" },
     ],
   },
-  customer: {
+  patient: {
     title: "Patient Dashboard",
     menuItems: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/customer" },
+      { label: "Dashboard", icon: LayoutDashboard, href: "/patient" },
       {
         label: "Appointments",
         icon: Calendar,
-        href: "/customer/appointments",
+        href: "/patient/appointments",
       },
       {
         label: "Medical Records",
         icon: FileText,
-        href: "/customer/medical-records",
+        href: "/patient/medical-records",
       },
       {
         label: "Test Results",
         icon: TestTube,
-        href: "/customer/test-results",
+        href: "/patient/test-results",
       },
-      { label: "Settings", icon: Settings, href: "/customer/settings" },
+      { label: "Settings", icon: Settings, href: "/patient/settings" },
     ],
   },
 } as const;

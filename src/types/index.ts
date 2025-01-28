@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "doctor" | "paramedic" | "lab" | "customer";
+export type UserRole = "admin" | "doctor" | "paramedic" | "lab" | "patient";
 
 export interface UserData {
   uid: string;
@@ -6,17 +6,8 @@ export interface UserData {
   phoneNumber?: string | null;
   role: UserRole;
   name?: string;
-  age?: number;
-  gender?: string;
-  bloodGroup?: string;
-  dateOfBirth?: string;
-  address?: string;
-  qualification?: string;
-  specialization?: string;
-  experience?: number;
-  location?: string;
-  createdAt: Date;
-  lastLogin: Date;
+  createdAt: string;
+  lastLogin: string;
   creatorInfo: CreatorInfo;
   updaterInfo: UpdaterInfo;
 }
@@ -29,6 +20,7 @@ export interface Slot {
   duration: number;
   price: number;
   isBooked?: boolean;
+  updaterInfo?: UpdaterInfo;
 }
 
 export interface ClinicAddress {
@@ -44,8 +36,50 @@ export interface ClinicAddress {
   slots?: Record<string, Slot>;
 }
 
+export interface Patient extends UserData {
+  age?: number;
+  gender?: string;
+  bloodGroup?: string;
+  allergies?: string;
+  chronicConditions?: string;
+  currentMedications?: string;
+  emergencyContact?: string;
+  familyHistory?: string;
+  lifestyle?: string;
+  medicalHistory?: string;
+  surgicalHistory?: string;
+  height?: number;
+  weight?: number;
+}
+
+export interface Admin extends UserData {
+  certifications?: string;
+  qualification?: string;
+  specialization?: string;
+  experience?: number;
+}
+
+export interface Paramedic extends UserData {
+  availability?: {
+    days: string[];
+    startTime: string;
+    endTime: string;
+  };
+  serviceArea?: {
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  qualification?: string;
+  specialization?: string;
+  experience?: number;
+}
+
 export interface Doctor extends UserData {
   clinicAddresses: ClinicAddress[];
+  qualification?: string;
+  specialization?: string;
+  experience?: number;
 }
 
 export interface CreatorInfo {
@@ -81,9 +115,11 @@ export interface Appointment {
     endTime: string;
     duration: number;
     price: number;
+    updaterInfo?: UpdaterInfo;
   };
   status: "scheduled" | "completed" | "cancelled";
   createdAt: number;
   creatorInfo: CreatorInfo;
   updaterInfo: UpdaterInfo;
+  note?: string;
 }

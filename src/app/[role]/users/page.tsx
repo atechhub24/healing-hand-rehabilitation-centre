@@ -2,29 +2,13 @@
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
+import { UserData } from "@/types";
 import { Users } from "lucide-react";
-
-interface User {
-  id?: string;
-  uid: string;
-  name?: string;
-  email: string;
-  role: "admin" | "paramedic" | "customer";
-  certifications?: string;
-  specialization?: string;
-  experience?: number;
-  createdAt: string;
-  lastLogin: string;
-  phoneNumber?: string;
-  qualification?: string;
-  location?: string;
-  status?: "active" | "inactive";
-}
 
 export default function UsersPage() {
   const { role } = useAuth();
 
-  const [users, loading] = useFetch<User[]>("/users", {});
+  const [users, loading] = useFetch<UserData[]>("/users", {});
 
   if (role !== "admin") {
     return null;
@@ -61,7 +45,7 @@ export default function UsersPage() {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Specialty
+                  Phone Number
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Join Date
@@ -70,13 +54,13 @@ export default function UsersPage() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Last Login
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {users?.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.uid} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -98,14 +82,14 @@ export default function UsersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.specialization || user.qualification || "N/A"}
+                    {user.phoneNumber || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      {user.status}
+                      {user.lastLogin}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

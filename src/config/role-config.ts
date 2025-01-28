@@ -12,6 +12,8 @@ import {
   TestTube,
   UserCog,
   Users,
+  Ambulance,
+  BookOpen,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -29,6 +31,11 @@ export const roleConfig = {
         icon: Microscope,
         href: "/admin/manage/laboratories",
       },
+      {
+        label: "Paramedic Bookings",
+        icon: Ambulance,
+        href: "/admin/paramedic-booking",
+      },
       { label: "Analytics", icon: Activity, href: "/admin/analytics" },
       { label: "Settings", icon: Settings, href: "/admin/settings" },
     ],
@@ -40,6 +47,11 @@ export const roleConfig = {
       { label: "Appointments", icon: Calendar, href: "/doctor/appointments" },
       { label: "Patients", icon: Users, href: "/doctor/patients" },
       { label: "Prescriptions", icon: FileText, href: "/doctor/prescriptions" },
+      {
+        label: "Request Paramedic",
+        icon: Ambulance,
+        href: "/doctor/paramedic-booking",
+      },
       { label: "Settings", icon: Settings, href: "/doctor/settings" },
       {
         label: "Slot Management",
@@ -57,6 +69,11 @@ export const roleConfig = {
         icon: Bell,
         href: "/paramedic/emergency-calls",
       },
+      {
+        label: "My Bookings",
+        icon: BookOpen,
+        href: "/paramedic/appointments",
+      },
       { label: "Patients", icon: Users, href: "/paramedic/patients" },
       { label: "Reports", icon: FileText, href: "/paramedic/reports" },
       { label: "Settings", icon: Settings, href: "/paramedic/settings" },
@@ -69,6 +86,11 @@ export const roleConfig = {
       { label: "Test Orders", icon: TestTube, href: "/lab/test-orders" },
       { label: "Reports", icon: FileText, href: "/lab/reports" },
       { label: "Inventory", icon: ClipboardList, href: "/lab/inventory" },
+      {
+        label: "Request Paramedic",
+        icon: Ambulance,
+        href: "/lab/paramedic-booking",
+      },
       { label: "Settings", icon: Settings, href: "/lab/settings" },
     ],
   },
@@ -90,6 +112,11 @@ export const roleConfig = {
         label: "Test Results",
         icon: TestTube,
         href: "/patient/test-results",
+      },
+      {
+        label: "Book Paramedic",
+        icon: Ambulance,
+        href: "/patient/paramedic-booking",
       },
       { label: "Settings", icon: Settings, href: "/patient/settings" },
     ],

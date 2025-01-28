@@ -140,7 +140,7 @@ export default function ParamedicAppointmentsPage() {
       });
     } catch (error) {
       toast({
-        title: "Error",
+        title: error instanceof Error ? error.message : "Error",
         description: "Failed to update booking status",
         variant: "destructive",
       });

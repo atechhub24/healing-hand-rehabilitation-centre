@@ -2,7 +2,8 @@ export type ServiceType =
   | "EMERGENCY"
   | "HOME_CARE"
   | "REGULAR_CHECKUP"
-  | "POST_SURGERY";
+  | "POST_SURGERY"
+  | "TRANSPORT";
 
 export interface ParamedicBooking {
   id: string;
@@ -28,6 +29,13 @@ export interface ParamedicBooking {
     symptoms: string[];
     specialRequirements?: string;
     medicalHistory?: string;
+  };
+  notes?: string;
+  completionOtp?: string;
+  otpInfo?: {
+    generatedAt?: string;
+    expiresAt?: string;
+    completedAt?: string;
   };
   createdAt: string;
   updatedAt: string;

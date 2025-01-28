@@ -1,8 +1,15 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import mutateData from "@/lib/firebase/mutate-data";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +20,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
-import mutateData from "@/lib/firebase/mutate-data";
-import { useAuth } from "@/lib/hooks/use-auth";
-import useFetch from "@/lib/hooks/use-fetch";
-import { Paramedic, Patient } from "@/types";
-import type { ParamedicBooking } from "@/types/paramedic";
 import {
   AlertCircle,
   ArrowLeft,
@@ -27,12 +28,12 @@ import {
   MapPin,
   Phone,
   User,
+  Copy,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import type { ParamedicBooking } from "@/types/paramedic";
+import type { Paramedic, Patient } from "@/types";
 
 interface BookingWithDetails extends ParamedicBooking {
-  id: string;
   paramedic?: Paramedic;
   patient?: Patient;
 }
@@ -43,8 +44,26 @@ export default function BookingDetailsPage() {
   const { role: userRole } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [notes, setNotes] = useState("");
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [otpError, setOtpError] = useState("");
   const bookingId = params.bookingId as string;
   const isParamedic = userRole === "paramedic";
+  const isPatient = userRole === "patient";
+
+  // Generate 6-digit OTP with timestamp to ensure uniqueness
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // Copy OTP to clipboard
+  const copyOTP = (otp: string) => {
+    navigator.clipboard.writeText(otp);
+    toast({
+      title: "OTP Copied",
+      description: "The OTP has been copied to your clipboard",
+    });
+  };
 
   // Fetch booking details
   const [bookingData] = useFetch<BookingWithDetails>(`bookings/${bookingId}`, {
@@ -66,13 +85,28 @@ export default function BookingDetailsPage() {
   const handleStatusUpdate = async (newStatus: ParamedicBooking["status"]) => {
     try {
       setIsLoading(true);
+
+      const updates: Partial<ParamedicBooking> = {
+        status: newStatus,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Add notes if provided
+      if (notes) {
+        updates.notes = notes;
+      }
+
+      // Clear OTP when booking is completed
+      if (newStatus === "COMPLETED") {
+        updates.completionOtp = "";
+        updates.otpInfo = {
+          completedAt: new Date().toISOString(),
+        };
+      }
+
       await mutateData({
         path: `bookings/${bookingId}`,
-        data: {
-          status: newStatus,
-          updatedAt: new Date().toISOString(),
-          ...(notes && { notes }),
-        },
+        data: updates,
         action: "update",
       });
 
@@ -80,6 +114,11 @@ export default function BookingDetailsPage() {
         title: "Status Updated",
         description: `Booking has been ${newStatus.toLowerCase()}`,
       });
+
+      if (newStatus === "COMPLETED") {
+        setShowOtpDialog(false);
+        router.refresh();
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -89,6 +128,43 @@ export default function BookingDetailsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const generateAndStoreOTP = async () => {
+    try {
+      setIsLoading(true);
+      const otp = generateOTP();
+
+      await mutateData({
+        path: `bookings/${bookingId}`,
+        data: {
+          completionOtp: otp,
+          otpInfo: {
+            generatedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours expiry
+          },
+        },
+        action: "update",
+      });
+
+      setShowOtpDialog(true);
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : "Error",
+        description: "Failed to generate OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpVerification = async () => {
+    if (enteredOtp === bookingData.completionOtp) {
+      await handleStatusUpdate("COMPLETED");
+    } else {
+      setOtpError("Invalid OTP. Please try again.");
     }
   };
 
@@ -136,45 +212,124 @@ export default function BookingDetailsPage() {
               {bookingData.status}
             </Badge>
           </div>
-          {isParamedic && bookingData.status === "PENDING" && (
+
+          {/* Show OTP for patient when booking is confirmed */}
+          {isPatient &&
+            bookingData.status === "CONFIRMED" &&
+            bookingData.completionOtp && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <h3 className="font-medium mb-2">Completion OTP</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Share this OTP with the paramedic after service completion
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="bg-background px-4 py-2 rounded text-lg font-mono">
+                    {bookingData.completionOtp}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyOTP(bookingData.completionOtp!)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+          {/* Paramedic Actions */}
+          {isParamedic && (
             <div className="space-y-4">
-              <Textarea
-                placeholder="Add notes about this booking..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-              <div className="flex gap-4">
-                <Dialog>
+              {bookingData.status === "PENDING" && (
+                <>
+                  <Textarea
+                    placeholder="Add notes about this booking..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                  <div className="flex gap-4">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="destructive">Decline</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Decline Booking</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to decline this booking? This
+                            action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleStatusUpdate("CANCELLED")}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? "Declining..." : "Decline Booking"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      onClick={() => handleStatusUpdate("CONFIRMED")}
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      {isLoading ? "Accepting..." : "Accept Booking"}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {bookingData.status === "CONFIRMED" && (
+                <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive">Decline</Button>
+                    <Button
+                      className="w-full"
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent dialog from opening immediately
+                        generateAndStoreOTP();
+                      }}
+                    >
+                      Complete Booking
+                    </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Decline Booking</DialogTitle>
+                      <DialogTitle>Enter Completion OTP</DialogTitle>
                       <DialogDescription>
-                        Are you sure you want to decline this booking? This
-                        action cannot be undone.
+                        Please ask the patient for the 6-digit OTP to complete
+                        the booking
                       </DialogDescription>
                     </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        type="text"
+                        maxLength={6}
+                        placeholder="Enter 6-digit OTP"
+                        value={enteredOtp}
+                        onChange={(e) => {
+                          setOtpError("");
+                          setEnteredOtp(e.target.value);
+                        }}
+                        className="text-center text-lg font-mono"
+                      />
+                      {otpError && (
+                        <p className="text-sm text-destructive">{otpError}</p>
+                      )}
+                    </div>
                     <DialogFooter>
                       <Button
-                        variant="destructive"
-                        onClick={() => handleStatusUpdate("CANCELLED")}
-                        disabled={isLoading}
+                        onClick={handleOtpVerification}
+                        disabled={isLoading || enteredOtp.length !== 6}
                       >
-                        {isLoading ? "Declining..." : "Decline Booking"}
+                        {isLoading ? "Verifying..." : "Verify & Complete"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-                <Button
-                  onClick={() => handleStatusUpdate("CONFIRMED")}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  {isLoading ? "Accepting..." : "Accept Booking"}
-                </Button>
-              </div>
+              )}
             </div>
           )}
         </Card>

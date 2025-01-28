@@ -150,6 +150,7 @@ export default function AppointmentsPage() {
 
   const isDoctor = role === "doctor";
   const isAdmin = role === "admin";
+  const isCustomer = role === "customer";
 
   // Determine the fetch path based on role
   const fetchPath = useMemo(() => {
@@ -167,7 +168,7 @@ export default function AppointmentsPage() {
   const [appointmentsData, isLoading] = useFetch<Appointment[]>(
     fetchPath || "",
     {
-      needNested: true,
+      needNested: isAdmin || isDoctor,
       filter: (item: unknown) => {
         const appointment = item as Appointment;
         if (!appointment?.doctorId) return false;
@@ -175,10 +176,10 @@ export default function AppointmentsPage() {
         if (doctorId) {
           return appointment.doctorId === doctorId;
         }
-        if (role === "doctor" && user?.uid) {
+        if (isDoctor && user?.uid) {
           return appointment.doctorId === user.uid;
         }
-        if (role === "customer" && user?.uid) {
+        if (isCustomer && user?.uid) {
           return appointment.patientId === user.uid;
         }
         // For admin, show all appointments

@@ -13,6 +13,7 @@ import useFetch from "@/lib/hooks/use-fetch";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 interface Appointment {
   clinicAddress: {
@@ -147,15 +148,32 @@ function AppointmentCard({ appointment, appointmentId }: AppointmentCardProps) {
   );
 }
 
+function isAppointment(value: unknown): value is Appointment {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "clinicAddress" in value &&
+    "doctorId" in value
+  );
+}
+
 export default function AppointmentsPage() {
   const { role, user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const doctorId = searchParams.get("doctorId");
 
+  // Determine the fetch path based on role
+  const fetchPath =
+    role === "admin"
+      ? "appointments"
+      : user?.uid
+      ? `appointments/${user.uid}`
+      : null;
+
   const [appointmentsData, isLoading] = useFetch<
     Record<string, Record<string, Appointment>>
-  >("appointments", {
+  >(fetchPath || "", {
     needRaw: true,
     filter: (item: unknown) => {
       const appointment = item as Appointment;
@@ -180,12 +198,24 @@ export default function AppointmentsPage() {
     },
   });
 
-  // Process appointments to flatten the nested structure
-  const appointments = appointmentsData
-    ? Object.values(appointmentsData).flatMap((userAppointments) =>
-        Object.entries(userAppointments)
-      )
-    : [];
+  // Process appointments differently based on role
+  const appointments = useMemo(() => {
+    if (!appointmentsData) return [];
+
+    if (role === "admin") {
+      // For admin, we need to flatten the nested structure
+      return Object.entries(appointmentsData).flatMap(([, userAppointments]) =>
+        Object.entries(userAppointments).filter(([, appointment]) =>
+          isAppointment(appointment)
+        )
+      );
+    } else {
+      // For doctor and customer, we already have their specific appointments
+      return Object.entries(appointmentsData).filter(([, appointment]) =>
+        isAppointment(appointment)
+      );
+    }
+  }, [appointmentsData, role]);
 
   if (!role || !["doctor", "customer", "admin"].includes(role)) {
     return null;
@@ -233,13 +263,11 @@ export default function AppointmentsPage() {
         {isLoading ? (
           <p className="text-muted-foreground">Loading appointments...</p>
         ) : appointments.length > 0 ? (
-          appointments.map(([id, appointment]) => (
-            <AppointmentCard
-              key={id}
-              appointmentId={id}
-              appointment={appointment}
-            />
-          ))
+          appointments.map(([id, data]) =>
+            isAppointment(data) ? (
+              <AppointmentCard key={id} appointmentId={id} appointment={data} />
+            ) : null
+          )
         ) : (
           <p className="text-muted-foreground">No appointments found</p>
         )}

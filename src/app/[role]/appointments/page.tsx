@@ -16,6 +16,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 interface Appointment {
+  id: string;
   clinicAddress: {
     address: string;
     city: string;
@@ -127,7 +128,7 @@ function AppointmentCard({ appointment, appointmentId }: AppointmentCardProps) {
       <div className="mt-4 flex gap-2">
         <Link
           href={
-            role === "admin"
+            role === "admin" || role === "doctor"
               ? `/${role}/appointments/${appointmentId}?userId=${appointment.patientId}`
               : `/${role}/appointments/${appointmentId}`
           }
@@ -141,81 +142,64 @@ function AppointmentCard({ appointment, appointmentId }: AppointmentCardProps) {
   );
 }
 
-function isAppointment(value: unknown): value is Appointment {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    "clinicAddress" in value &&
-    "doctorId" in value
-  );
-}
-
 export default function AppointmentsPage() {
   const { role, user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const doctorId = searchParams.get("doctorId");
 
+  const isDoctor = role === "doctor";
+  const isAdmin = role === "admin";
+
   // Determine the fetch path based on role
-  const fetchPath =
-    role === "admin"
-      ? "appointments"
-      : user?.uid
-      ? `appointments/${user.uid}`
-      : null;
+  const fetchPath = useMemo(() => {
+    if (!user?.uid) return null;
 
-  const [appointmentsData, isLoading] = useFetch<
-    Record<string, Record<string, Appointment>>
-  >(fetchPath || "", {
-    needRaw: true,
-    filter: (item: unknown) => {
-      const appointment = item as Appointment;
-      if (!appointment) return false;
-
-      if (doctorId) {
-        return appointment.doctorId === doctorId;
-      }
-      if (role === "doctor" && user?.uid) {
-        return appointment.doctorId === user.uid;
-      }
-      if (role === "customer" && user?.uid) {
-        return appointment.patientId === user.uid;
-      }
-      // For admin, show all appointments
-      return true;
-    },
-    sort: (a: unknown, b: unknown) => {
-      const appointmentA = a as Appointment;
-      const appointmentB = b as Appointment;
-      return appointmentB.createdAt - appointmentA.createdAt;
-    },
-  });
-
-  // Process appointments differently based on role
-  const appointments = useMemo(() => {
-    if (!appointmentsData) return [];
-
-    if (role === "admin") {
-      // For admin, we need to flatten the nested structure
-      return Object.entries(appointmentsData).flatMap(([, userAppointments]) =>
-        Object.entries(userAppointments).filter(([, appointment]) =>
-          isAppointment(appointment)
-        )
-      );
-    } else {
-      // For doctor and customer, we already have their specific appointments
-      return Object.entries(appointmentsData).filter(([, appointment]) =>
-        isAppointment(appointment)
-      );
+    // For admin and doctor, fetch all appointments
+    if (role === "admin" || role === "doctor") {
+      return "appointments";
     }
-  }, [appointmentsData, role]);
+
+    // For customer, fetch only their appointments
+    return `appointments/${user.uid}`;
+  }, [role, user?.uid]);
+
+  const [appointmentsData, isLoading] = useFetch<Appointment[]>(
+    fetchPath || "",
+    {
+      needNested: true,
+      filter: (item: unknown) => {
+        const appointment = item as Appointment;
+        if (!appointment?.doctorId) return false;
+
+        if (doctorId) {
+          return appointment.doctorId === doctorId;
+        }
+        if (role === "doctor" && user?.uid) {
+          return appointment.doctorId === user.uid;
+        }
+        if (role === "customer" && user?.uid) {
+          return appointment.patientId === user.uid;
+        }
+        // For admin, show all appointments
+        return true;
+      },
+      sort: (a: unknown, b: unknown) => {
+        const appointmentA = a as Appointment;
+        const appointmentB = b as Appointment;
+        return appointmentB.createdAt - appointmentA.createdAt;
+      },
+    }
+  );
+
+  // No need for complex processing anymore
+  const appointments = useMemo(() => {
+    return appointmentsData || [];
+  }, [appointmentsData]);
 
   if (!role || !["doctor", "customer", "admin"].includes(role)) {
     return null;
   }
-
-  const isDoctor = role === "doctor";
-  const isAdmin = role === "admin";
 
   return (
     <div className="space-y-6">
@@ -256,11 +240,13 @@ export default function AppointmentsPage() {
         {isLoading ? (
           <p className="text-muted-foreground">Loading appointments...</p>
         ) : appointments.length > 0 ? (
-          appointments.map(([id, data]) =>
-            isAppointment(data) ? (
-              <AppointmentCard key={id} appointmentId={id} appointment={data} />
-            ) : null
-          )
+          appointments.map((appointment) => (
+            <AppointmentCard
+              key={appointment.id}
+              appointmentId={appointment.id}
+              appointment={appointment}
+            />
+          ))
         ) : (
           <p className="text-muted-foreground">No appointments found</p>
         )}

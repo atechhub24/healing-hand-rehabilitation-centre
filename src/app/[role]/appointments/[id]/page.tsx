@@ -29,12 +29,12 @@ export default function AppointmentDetailsPage() {
   const fetchPath = useMemo(() => {
     if (!user) return null;
 
-    if (role === "admin") {
-      // For admin, we need the userId from the URL
+    // For admin and doctor, we need the userId from the URL
+    if (role === "admin" || role === "doctor") {
       return userId ? `appointments/${userId}/${appointmentId}` : null;
     }
 
-    // For doctor and customer, use their own ID
+    // For customer, use their own ID
     return `appointments/${user.uid}/${appointmentId}`;
   }, [role, user, userId, appointmentId]);
 

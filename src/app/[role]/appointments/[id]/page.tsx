@@ -3,7 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
-import { Appointment as AppointmentType } from "@/types";
+import {
+  Appointment as AppointmentType,
+  Doctor,
+  UserData as UserDataType,
+} from "@/types";
 import {
   ArrowLeft,
   Calendar,
@@ -47,6 +51,19 @@ interface ExtendedAppointment extends Omit<AppointmentType, "updaterInfo"> {
   };
 }
 
+interface UserData extends UserDataType {
+  weight?: number;
+  height?: number;
+  allergies?: string;
+  chronicConditions?: string;
+  currentMedications?: string;
+  medicalHistory?: string;
+  surgicalHistory?: string;
+  familyHistory?: string;
+  lifestyle?: string;
+  emergencyContact?: string;
+}
+
 export default function AppointmentDetailsPage() {
   const { role, user } = useAuth();
   const params = useParams();
@@ -77,12 +94,19 @@ export default function AppointmentDetailsPage() {
 
   const [appointment, isLoading] = useFetch<ExtendedAppointment>(
     fetchPath || "",
-    {
-      needRaw: true,
-    }
+    { needRaw: true }
+  );
+  const [doctor, isLoadingDoctor] = useFetch<Doctor>(
+    `users/${appointment?.doctorId}`,
+    { needRaw: true }
   );
 
-  if (!fetchPath || isLoading) {
+  const [patient, isLoadingPatient] = useFetch<UserData>(
+    `users/${appointment?.patientId}`,
+    { needRaw: true }
+  );
+
+  if (!fetchPath || isLoading || isLoadingDoctor || isLoadingPatient) {
     return <div>Loading...</div>;
   }
 
@@ -143,30 +167,147 @@ export default function AppointmentDetailsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="bg-card rounded-xl border p-6 space-y-4">
-          <h3 className="font-semibold text-lg">Patient Information</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              <span>{appointment.patientName}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <span>{appointment.patientPhone}</span>
+        {/* Patient Information Card */}
+        <div className="bg-card rounded-xl border p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-lg">Patient Information</h3>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                appointment.status === "scheduled"
+                  ? "bg-primary/10 text-primary"
+                  : appointment.status === "completed"
+                  ? "bg-green-100 text-green-600"
+                  : "bg-red-100 text-red-600"
+              }`}
+            >
+              {appointment.status}
+            </span>
+          </div>
+
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Personal Details
+            </h4>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">{patient?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {patient?.gender}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">
+                    {appointment.patientPhone}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {patient?.age} years old
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Medical Information */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Medical Details
+            </h4>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                  {patient?.bloodGroup}
+                </div>
+                <p className="text-sm text-muted-foreground">Blood Group</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm">
+                  <p className="font-medium">{patient?.weight} kg</p>
+                  <p className="text-xs text-muted-foreground">Weight</p>
+                </div>
+              </div>
+              {patient?.height && (
+                <div className="flex items-center gap-2">
+                  <div className="text-sm">
+                    <p className="font-medium">{patient.height} cm</p>
+                    <p className="text-xs text-muted-foreground">Height</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Medical History */}
+          {(patient?.allergies ||
+            patient?.chronicConditions ||
+            patient?.currentMedications) && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Medical History
+              </h4>
+              <div className="space-y-3">
+                {patient.allergies && (
+                  <div>
+                    <p className="text-sm font-medium">Allergies</p>
+                    <p className="text-sm text-muted-foreground">
+                      {patient.allergies}
+                    </p>
+                  </div>
+                )}
+                {patient.chronicConditions && (
+                  <div>
+                    <p className="text-sm font-medium">Chronic Conditions</p>
+                    <p className="text-sm text-muted-foreground">
+                      {patient.chronicConditions}
+                    </p>
+                  </div>
+                )}
+                {patient.currentMedications && (
+                  <div>
+                    <p className="text-sm font-medium">Current Medications</p>
+                    <p className="text-sm text-muted-foreground">
+                      {patient.currentMedications}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="bg-card rounded-xl border p-6 space-y-4">
+        {/* Doctor Information Card */}
+        <div className="bg-card rounded-xl border p-6 space-y-6">
           <h3 className="font-semibold text-lg">Doctor Information</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4 text-primary" />
-              <span>{appointment.doctorName}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              <span>{appointment.doctorSpecialization}</span>
+
+          {/* Professional Information */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Professional Details
+            </h4>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Stethoscope className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">{doctor?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {doctor?.specialization}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">{doctor?.qualification}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {doctor?.experience} years of experience
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

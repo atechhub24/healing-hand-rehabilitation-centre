@@ -34,6 +34,7 @@ import {
   heightUnitLabels,
   weightUnitLabels,
 } from "@/components/bmi/unit-conversion";
+import { cn } from "@/lib/utils";
 
 // Define validation schema based on unit
 const getHeightValidation = (unit: HeightUnit) => {
@@ -184,25 +185,32 @@ export default function BMICalculator() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto"
       >
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Scale className="w-6 h-6 text-primary" />
-              <CardTitle>BMI Calculator</CardTitle>
-            </div>
-            <CardDescription>
-              Calculate your Body Mass Index (BMI) to check if your weight is
-              healthy. Choose your preferred units and enter your measurements.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex items-center space-x-2 mb-6">
+          <Scale className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-semibold">BMI Calculator</h1>
+        </div>
+        <p className="text-muted-foreground mb-8">
+          Calculate your Body Mass Index (BMI) to check if your weight is
+          healthy. Choose your preferred units and enter your measurements.
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Enter Measurements</CardTitle>
+              <CardDescription>
+                Select your preferred units and enter your height and weight
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <div className="space-y-4">
                     <UnitSelector<HeightUnit>
                       label="Height Unit"
@@ -210,7 +218,7 @@ export default function BMICalculator() {
                       onValueChange={(value) => {
                         setHeightUnit(value);
                         form.setValue("heightUnit", value);
-                        form.setValue("height", ""); // Reset height when unit changes
+                        form.setValue("height", "");
                       }}
                       units={heightUnitLabels}
                     />
@@ -246,7 +254,7 @@ export default function BMICalculator() {
                       onValueChange={(value) => {
                         setWeightUnit(value);
                         form.setValue("weightUnit", value);
-                        form.setValue("weight", ""); // Reset weight when unit changes
+                        form.setValue("weight", "");
                       }}
                       units={weightUnitLabels}
                     />
@@ -274,73 +282,97 @@ export default function BMICalculator() {
                       )}
                     />
                   </div>
-                </div>
 
-                <Button type="submit" className="w-full">
-                  Calculate BMI
-                </Button>
-              </form>
-            </Form>
+                  <Button type="submit" className="w-full">
+                    Calculate BMI
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-            {bmiResult && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="mt-8"
-              >
-                <div className="p-6 bg-secondary rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">
-                    Your BMI Result
-                  </h3>
-                  <div className="flex flex-col items-center space-y-2">
-                    <p className="text-4xl font-bold">{bmiResult.bmi}</p>
-                    <p className={`text-lg font-medium ${bmiResult.color}`}>
-                      {bmiResult.category}
+          {/* Right Column - Results */}
+          <div className="space-y-6">
+            <Card
+              className={cn(
+                "transition-opacity duration-300",
+                !bmiResult && "opacity-50"
+              )}
+            >
+              <CardHeader>
+                <CardTitle>Your BMI Results</CardTitle>
+                <CardDescription>
+                  View your BMI calculation and health recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {bmiResult ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="p-6 bg-secondary rounded-lg">
+                      <div className="flex flex-col items-center space-y-2">
+                        <p className="text-4xl font-bold">{bmiResult.bmi}</p>
+                        <p className={`text-lg font-medium ${bmiResult.color}`}>
+                          {bmiResult.category}
+                        </p>
+                      </div>
+                      <div className="mt-4">
+                        <h4 className="font-medium mb-2">
+                          What does this mean?
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {bmiResult.category === "Normal weight"
+                            ? "Your BMI is within a healthy range. Maintain a balanced diet and regular exercise routine."
+                            : bmiResult.category === "Underweight"
+                            ? "You may need to gain some weight. Consult with a healthcare provider about a healthy diet plan."
+                            : bmiResult.category === "Overweight"
+                            ? "Consider making lifestyle changes to reach a healthier weight through diet and exercise."
+                            : "It's important to talk to your healthcare provider about strategies to achieve a healthier weight."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <BMIScale currentBMI={parseFloat(bmiResult.bmi)} />
+
+                    <div className="mt-6 p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Health Tips</h4>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li>
+                          • Maintain a balanced diet rich in fruits, vegetables,
+                          and whole grains
+                        </li>
+                        <li>
+                          • Stay hydrated by drinking plenty of water throughout
+                          the day
+                        </li>
+                        <li>
+                          • Engage in regular physical activity for at least 30
+                          minutes daily
+                        </li>
+                        <li>• Get adequate sleep (7-9 hours per night)</li>
+                        <li>
+                          • Manage stress through relaxation techniques or
+                          meditation
+                        </li>
+                      </ul>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Scale className="w-12 h-12 mb-4 opacity-50" />
+                    <p className="text-lg font-medium">
+                      Enter your measurements
                     </p>
+                    <p className="text-sm">Your BMI results will appear here</p>
                   </div>
-                  <div className="mt-4">
-                    <h4 className="font-medium mb-2">What does this mean?</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {bmiResult.category === "Normal weight"
-                        ? "Your BMI is within a healthy range. Maintain a balanced diet and regular exercise routine."
-                        : bmiResult.category === "Underweight"
-                        ? "You may need to gain some weight. Consult with a healthcare provider about a healthy diet plan."
-                        : bmiResult.category === "Overweight"
-                        ? "Consider making lifestyle changes to reach a healthier weight through diet and exercise."
-                        : "It's important to talk to your healthcare provider about strategies to achieve a healthier weight."}
-                    </p>
-                  </div>
-                </div>
-
-                <BMIScale currentBMI={parseFloat(bmiResult.bmi)} />
-
-                <div className="mt-8 p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-2">Health Tips</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>
-                      • Maintain a balanced diet rich in fruits, vegetables, and
-                      whole grains
-                    </li>
-                    <li>
-                      • Stay hydrated by drinking plenty of water throughout the
-                      day
-                    </li>
-                    <li>
-                      • Engage in regular physical activity for at least 30
-                      minutes daily
-                    </li>
-                    <li>• Get adequate sleep (7-9 hours per night)</li>
-                    <li>
-                      • Manage stress through relaxation techniques or
-                      meditation
-                    </li>
-                  </ul>
-                </div>
-              </motion.div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

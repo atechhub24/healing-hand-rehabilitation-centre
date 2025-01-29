@@ -15,6 +15,13 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement;
 };
 
+export const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const;
+
 let count = 0;
 
 function genId() {
@@ -22,21 +29,23 @@ function genId() {
   return count.toString();
 }
 
+type ActionType = typeof actionTypes;
+
 type Action =
   | {
-      type: "ADD_TOAST";
+      type: ActionType["ADD_TOAST"];
       toast: ToasterToast;
     }
   | {
-      type: "UPDATE_TOAST";
+      type: ActionType["UPDATE_TOAST"];
       toast: Partial<ToasterToast>;
     }
   | {
-      type: "DISMISS_TOAST";
+      type: ActionType["DISMISS_TOAST"];
       toastId?: ToasterToast["id"];
     }
   | {
-      type: "REMOVE_TOAST";
+      type: ActionType["REMOVE_TOAST"];
       toastId?: ToasterToast["id"];
     };
 
@@ -159,8 +168,24 @@ function toast({ ...props }: Toast) {
   };
 }
 
-export function useToast() {
+function useToast() {
+  const [state, setState] = React.useState<State>(memoryState);
+
+  React.useEffect(() => {
+    listeners.push(setState);
+    return () => {
+      const index = listeners.indexOf(setState);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
+  }, [state]);
+
   return {
+    ...state,
     toast,
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   };
 }
+
+export { useToast, toast };

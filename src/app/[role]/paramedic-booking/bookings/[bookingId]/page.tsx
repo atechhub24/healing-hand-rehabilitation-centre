@@ -18,7 +18,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
@@ -33,9 +32,25 @@ import {
   MapPin,
   Phone,
   User,
+  CheckCircle2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface AlertState {
+  type: "success" | "error";
+  message: string;
+  description?: string;
+}
 
 interface BookingWithDetails extends ParamedicBooking {
   paramedic?: Paramedic;
@@ -55,6 +70,7 @@ export default function BookingDetailsPage() {
   const isParamedic = userRole === "paramedic";
   const isPatient = userRole === "patient";
   const isAdmin = userRole === "admin";
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
   // Generate 6-digit OTP with timestamp to ensure uniqueness
   const generateOTP = () => {
@@ -64,8 +80,9 @@ export default function BookingDetailsPage() {
   // Copy OTP to clipboard
   const copyOTP = (otp: string) => {
     navigator.clipboard.writeText(otp);
-    toast({
-      title: "OTP Copied",
+    setAlert({
+      type: "success",
+      message: "OTP Copied",
       description: "The OTP has been copied to your clipboard",
     });
   };
@@ -115,8 +132,9 @@ export default function BookingDetailsPage() {
         action: "update",
       });
 
-      toast({
-        title: "Status Updated",
+      setAlert({
+        type: "success",
+        message: "Status Updated",
         description: `Booking has been ${newStatus.toLowerCase()}`,
       });
 
@@ -125,11 +143,11 @@ export default function BookingDetailsPage() {
         router.refresh();
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      setAlert({
+        type: "error",
+        message: "Error",
         description:
           error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -155,10 +173,10 @@ export default function BookingDetailsPage() {
 
       setShowOtpDialog(true);
     } catch (error) {
-      toast({
-        title: error instanceof Error ? error.message : "Error",
+      setAlert({
+        type: "error",
+        message: error instanceof Error ? error.message : "Error",
         description: "Failed to generate OTP. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -481,6 +499,29 @@ export default function BookingDetailsPage() {
           </Card>
         </div>
       </div>
+
+      <AlertDialog open={!!alert} onOpenChange={() => setAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              {alert?.type === "success" ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
+              <AlertDialogTitle>{alert?.message}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              {alert?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setAlert(null)}>
+              {alert?.type === "success" ? "Done" : "Close"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

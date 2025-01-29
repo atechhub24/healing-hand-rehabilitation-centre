@@ -5,9 +5,17 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import mutateData from "@/lib/firebase/mutate-data";
-import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   User,
   MapPin,
@@ -16,25 +24,16 @@ import {
   ArrowLeft,
   AlertCircle,
   Briefcase,
+  CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { ParamedicBooking } from "@/types/paramedic";
+import { Paramedic } from "@/types";
 
-interface Paramedic {
-  uid: string;
-  name: string;
-  experience: number;
-  specialization: string;
-  availability: {
-    days: string[];
-    startTime: string;
-    endTime: string;
-  };
-  serviceArea: {
-    city: string;
-    state: string;
-    pincode: string;
-  };
+interface AlertState {
+  type: "success" | "error";
+  message: string;
+  description?: string;
 }
 
 interface BookingFormData {
@@ -87,15 +86,17 @@ export default function ConfirmBookingPage() {
     needRaw: true,
   });
 
+  const [alert, setAlert] = useState<AlertState | null>(null);
+
   const handleConfirm = async () => {
     try {
       setIsLoading(true);
 
       if (!user) {
-        toast({
-          title: "Error",
+        setAlert({
+          type: "error",
+          message: "Error",
           description: "Please login to book a paramedic",
-          variant: "destructive",
         });
         return;
       }
@@ -144,19 +145,22 @@ export default function ConfirmBookingPage() {
         action: "create",
       });
 
-      toast({
-        title: "Booking Successful",
+      setAlert({
+        type: "success",
+        message: "Booking Successful",
         description: "Your paramedic booking has been confirmed.",
       });
 
-      // Redirect to paramedic bookings page
-      router.push(`/${role}/paramedic-booking/bookings`);
+      // Redirect to paramedic bookings page after a short delay
+      setTimeout(() => {
+        router.push(`/${role}/paramedic-booking/bookings`);
+      }, 1500);
     } catch (error) {
-      toast({
-        title: "Error",
+      setAlert({
+        type: "error",
+        message: "Error",
         description:
           error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -168,116 +172,141 @@ export default function ConfirmBookingPage() {
   }
 
   return (
-    <div className="container max-w-4xl py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">
-              Confirm Booking
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Review your paramedic booking details
-            </p>
+    <div>
+      <div className="container max-w-4xl py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Confirm Booking
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Review your paramedic booking details
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6">
+          {/* Paramedic Details */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Paramedic Details</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium">{paramedicData.name}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {paramedicData.specialization}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Briefcase className="h-4 w-4 text-primary" />
+                <span>{paramedicData.experience} years experience</span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Booking Details */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Booking Details</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span>{format(new Date(formData.date), "PPP")}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 text-primary" />
+                <span>
+                  {formData.startTime} ({formData.duration} hours)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span>
+                  {formData.address}, {formData.city}, {formData.state} -{" "}
+                  {formData.pincode}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <span>Service: {formData.serviceType}</span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Medical Details */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Medical Details</h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-1">Condition</h4>
+                <p className="text-sm text-muted-foreground">
+                  {formData.condition}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-1">Symptoms</h4>
+                <p className="text-sm text-muted-foreground">
+                  {formData.symptoms}
+                </p>
+              </div>
+              {formData.specialRequirements && (
+                <div>
+                  <h4 className="font-medium mb-1">Special Requirements</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.specialRequirements}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <div className="flex justify-end gap-4">
+            <Button variant="outline" onClick={() => router.back()}>
+              Back
+            </Button>
+            <Button onClick={handleConfirm} disabled={isLoading}>
+              {isLoading ? "Confirming..." : "Confirm Booking"}
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6">
-        {/* Paramedic Details */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Paramedic Details</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h4 className="font-medium">{paramedicData.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {paramedicData.specialization}
-                </p>
-              </div>
+      <AlertDialog open={!!alert} onOpenChange={() => setAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              {alert?.type === "success" ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
+              <AlertDialogTitle>{alert?.message}</AlertDialogTitle>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <span>{paramedicData.experience} years experience</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Booking Details */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Booking Details</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>{format(new Date(formData.date), "PPP")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 text-primary" />
-              <span>
-                {formData.startTime} ({formData.duration} hours)
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>
-                {formData.address}, {formData.city}, {formData.state} -{" "}
-                {formData.pincode}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <AlertCircle className="h-4 w-4 text-primary" />
-              <span>Service: {formData.serviceType}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Medical Details */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Medical Details</h3>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-1">Condition</h4>
-              <p className="text-sm text-muted-foreground">
-                {formData.condition}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">Symptoms</h4>
-              <p className="text-sm text-muted-foreground">
-                {formData.symptoms}
-              </p>
-            </div>
-            {formData.specialRequirements && (
-              <div>
-                <h4 className="font-medium mb-1">Special Requirements</h4>
-                <p className="text-sm text-muted-foreground">
-                  {formData.specialRequirements}
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => router.back()}>
-            Back
-          </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? "Confirming..." : "Confirm Booking"}
-          </Button>
-        </div>
-      </div>
+            <AlertDialogDescription>
+              {alert?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setAlert(null)}>
+              {alert?.type === "success" ? "Done" : "Close"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

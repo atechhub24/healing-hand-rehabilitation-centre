@@ -15,6 +15,7 @@ import {
   Ambulance,
   BookOpen,
   Scale,
+  Dumbbell,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -138,6 +139,11 @@ export const roleConfig = {
         label: "BMI Calculator",
         icon: Scale,
         href: "/patient/bmi-calculator",
+      },
+      {
+        label: "TDEE Calculator",
+        icon: Dumbbell,
+        href: "/patient/tdee-calculator",
       },
       { label: "Settings", icon: Settings, href: "/patient/settings" },
     ],

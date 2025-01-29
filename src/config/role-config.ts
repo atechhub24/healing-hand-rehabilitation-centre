@@ -14,6 +14,7 @@ import {
   Users,
   Ambulance,
   BookOpen,
+  Scale,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -132,6 +133,11 @@ export const roleConfig = {
         label: "My Paramedic Bookings",
         icon: BookOpen,
         href: "/patient/paramedic-booking/bookings",
+      },
+      {
+        label: "BMI Calculator",
+        icon: Scale,
+        href: "/patient/bmi-calculator",
       },
       { label: "Settings", icon: Settings, href: "/patient/settings" },
     ],

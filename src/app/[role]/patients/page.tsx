@@ -1,8 +1,19 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { User, Phone, Mail, Calendar, FileText } from "lucide-react";
+
+interface Patient {
+  id: number;
+  name: string;
+  age: number;
+  gender: string;
+  phone: string;
+  email: string;
+  lastVisit: string;
+  condition: string;
+  status: string;
+}
 
 const patients = [
   {
@@ -30,7 +41,7 @@ const patients = [
   // Add more patients as needed
 ];
 
-function PatientCard({ patient }) {
+function PatientCard({ patient }: { patient: Patient }) {
   return (
     <div className="bg-white rounded-xl border p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -88,10 +99,9 @@ function PatientCard({ patient }) {
 }
 
 export default function PatientsPage() {
-  const params = useParams();
-  const { role } = useAuth();
+  const { role } = useParams();
 
-  if (!["doctor", "paramedic"].includes(role)) {
+  if (!["doctor", "paramedic"].includes(role as string)) {
     return null;
   }
 

@@ -5,13 +5,6 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Building,
   MapPin,
   Mail,
@@ -20,9 +13,6 @@ import {
   ArrowLeft,
   Clock,
   FileText,
-  Lock,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/lib/hooks/use-fetch";

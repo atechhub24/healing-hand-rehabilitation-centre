@@ -19,9 +19,6 @@ import {
   Plus,
   X,
   ArrowLeft,
-  Lock,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/lib/hooks/use-fetch";
@@ -72,8 +69,6 @@ export default function EditDoctorPage() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
   const [doctor, isLoading] = useFetch<Doctor>(`/users/${doctorId}`, {
     needRaw: true,
   });

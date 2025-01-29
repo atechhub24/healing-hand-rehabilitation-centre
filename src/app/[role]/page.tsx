@@ -1,13 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import RoleStats from "@/components/dashboard/stats/role-stats";
 import QuickLinks from "@/components/dashboard/quick-links/quick-links";
 import RecentActivity from "@/components/dashboard/activity/recent-activity";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DashboardPage() {
   const params = useParams();
   const role = params.role as string;
+  const [error, setError] = useState<string | null>(null);
+
+  const handleError = (message: string) => {
+    setError(message);
+  };
 
   return (
     <div className="space-y-8">
@@ -20,18 +35,32 @@ export default function DashboardPage() {
 
       {/* Stats Section */}
       <section aria-label="Statistics">
-        <RoleStats role={role} />
+        <RoleStats role={role} onError={handleError} />
       </section>
 
       {/* Quick Links Section */}
       <section aria-label="Quick Links">
-        <QuickLinks role={role} />
+        <QuickLinks role={role} onError={handleError} />
       </section>
 
       {/* Recent Activity Section */}
       <section aria-label="Recent Activity">
-        <RecentActivity role={role} />
+        <RecentActivity role={role} onError={handleError} />
       </section>
+
+      <AlertDialog open={!!error} onOpenChange={() => setError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setError(null)}>
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -92,10 +92,18 @@ export const recentActivities: Record<string, Activity[]> = {
   ],
 };
 
-export default function RecentActivity({ role }: { role: string }) {
+interface RecentActivityProps {
+  role: string;
+  onError?: (message: string) => void;
+}
+
+export default function RecentActivity({ role, onError }: RecentActivityProps) {
   const activities = recentActivities[role] || [];
 
-  if (activities.length === 0) return null;
+  if (activities.length === 0) {
+    onError?.("Invalid role or no recent activities available");
+    return null;
+  }
 
   return (
     <Card className="p-6">

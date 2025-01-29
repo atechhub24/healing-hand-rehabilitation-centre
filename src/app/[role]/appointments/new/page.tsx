@@ -32,7 +32,7 @@ import mutateData from "@/lib/firebase/mutate-data";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { cn } from "@/lib/utils";
-import { ClinicAddress, Doctor, UserData } from "@/types";
+import { ClinicAddress, Doctor, Patient } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertCircle,
@@ -126,7 +126,7 @@ export default function NewAppointmentPage() {
     setSelectedSlotId(null);
   };
 
-  const validateRequiredFields = (info: UserData | null) => {
+  const validateRequiredFields = (info: Patient | null) => {
     if (!info) return [];
 
     const missing = [];

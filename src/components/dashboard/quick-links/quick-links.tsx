@@ -279,40 +279,39 @@ const quickLinks: Record<string, QuickLink[]> = {
   ],
 };
 
-export default function QuickLinks({ role }: { role: string }) {
+interface QuickLinksProps {
+  role: string;
+  onError?: (message: string) => void;
+}
+
+export default function QuickLinks({ role, onError }: QuickLinksProps) {
   const links = quickLinks[role] || [];
 
-  if (links.length === 0) return null;
+  if (links.length === 0) {
+    onError?.("Invalid role or no quick links available");
+    return null;
+  }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {links.map((link) => {
-          const Icon = link.icon;
-          return (
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      {links.map((link) => (
+        <Link key={link.href} href={link.href}>
+          <Card className="hover:bg-accent transition-colors">
             <Button
-              key={link.href}
-              variant="outline"
-              className={cn(
-                "h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent relative",
-                link.isNew && "border-primary"
-              )}
-              asChild
+              variant="ghost"
+              className="w-full h-full justify-start gap-4"
             >
-              <Link href={link.href}>
-                {link.isNew && (
-                  <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                    New
-                  </span>
-                )}
-                <Icon className={cn("h-6 w-6", link.color)} />
-                <span className="text-sm font-medium">{link.title}</span>
-              </Link>
+              <link.icon className={cn("h-5 w-5", link.color)} />
+              <span>{link.title}</span>
+              {link.isNew && (
+                <span className="ml-auto text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                  New
+                </span>
+              )}
             </Button>
-          );
-        })}
-      </div>
-    </Card>
+          </Card>
+        </Link>
+      ))}
+    </div>
   );
 }

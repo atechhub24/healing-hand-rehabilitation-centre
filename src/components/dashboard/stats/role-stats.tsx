@@ -119,10 +119,18 @@ const roleBasedCards: Record<string, DashboardCard[]> = {
   ],
 };
 
-export default function RoleStats({ role }: { role: string }) {
+interface RoleStatsProps {
+  role: string;
+  onError?: (message: string) => void;
+}
+
+export default function RoleStats({ role, onError }: RoleStatsProps) {
   const cards = roleBasedCards[role] || [];
 
-  if (cards.length === 0) return null;
+  if (cards.length === 0) {
+    onError?.("Invalid role or no stats available");
+    return null;
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

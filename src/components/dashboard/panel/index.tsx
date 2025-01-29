@@ -3,17 +3,18 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { useSidebarStore } from "@/lib/store/sidebar-store";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { Brand } from "./panel-brand";
 import { Navigation } from "./panel-menu";
 import { UserProfile } from "./panel-profile";
 import { MobileTrigger } from "./panel-trigger";
 import { Backdrop } from "./panel-backdrop";
 import { sidebarVariants } from "./panel-variants";
-import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function DashboardPanel() {
   const { isOpen, isMobileOpen, setMobileOpen } = useSidebarStore();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const userIdentifier = user?.email || user?.phoneNumber || "User";
 
   useEffect(() => {
     const handleResize = () => {
@@ -25,8 +26,6 @@ export default function DashboardPanel() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [setMobileOpen]);
-
-  const userIdentifier = user?.email || user?.phoneNumber || "User";
 
   return (
     <>
@@ -59,7 +58,7 @@ export default function DashboardPanel() {
             email={userIdentifier}
             role={user?.role || ""}
             isOpen={isOpen || isMobileOpen}
-            onSignOut={() => {}}
+            onSignOut={signOut}
           />
         </div>
       </motion.aside>

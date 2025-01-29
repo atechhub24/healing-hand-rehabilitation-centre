@@ -12,12 +12,28 @@ import {
   Clock,
   ArrowLeft,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ParamedicBooking } from "@/types/paramedic";
 import mutateData from "@/lib/firebase/mutate-data";
-import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface AlertState {
+  type: "success" | "error";
+  message: string;
+  description?: string;
+}
 
 interface BookingCardProps {
   booking: ParamedicBooking;
@@ -114,6 +130,7 @@ function BookingCard({ booking, bookingId, onStatusUpdate }: BookingCardProps) {
 export default function ParamedicAppointmentsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const [alert, setAlert] = useState<AlertState | null>(null);
 
   // Fetch paramedic's bookings
   const [bookingsData] = useFetch<Record<string, ParamedicBooking>>(
@@ -134,15 +151,16 @@ export default function ParamedicAppointmentsPage() {
         action: "update",
       });
 
-      toast({
-        title: "Status Updated",
+      setAlert({
+        type: "success",
+        message: "Status Updated",
         description: `Booking has been ${newStatus.toLowerCase()}`,
       });
     } catch (error) {
-      toast({
-        title: error instanceof Error ? error.message : "Error",
+      setAlert({
+        type: "error",
+        message: error instanceof Error ? error.message : "Error",
         description: "Failed to update booking status",
-        variant: "destructive",
       });
     }
   };
@@ -198,6 +216,29 @@ export default function ParamedicAppointmentsPage() {
           </Card>
         )}
       </div>
+
+      <AlertDialog open={!!alert} onOpenChange={() => setAlert(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              {alert?.type === "success" ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
+              <AlertDialogTitle>{alert?.message}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              {alert?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setAlert(null)}>
+              {alert?.type === "success" ? "Done" : "Close"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

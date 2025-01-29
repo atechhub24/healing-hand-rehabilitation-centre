@@ -21,7 +21,7 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { user, role, signOut } = useAuth();
+  const { user, role } = useAuth();
   const currentRole = params.role as keyof typeof roleConfig;
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function Layout({ children }: LayoutProps) {
   // 2. Main content area (header + page content)
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Panel user={user} onSignOut={signOut} />
+      <Panel />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} />
         <main className="flex-1 overflow-y-auto p-6">

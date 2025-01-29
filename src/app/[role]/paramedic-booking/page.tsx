@@ -3,19 +3,17 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import useFetch from "@/lib/hooks/use-fetch";
-import mutateData from "@/lib/firebase/mutate-data";
-import { toast } from "@/hooks/use-toast";
 import BookingForm from "@/components/paramedic/booking-form";
 import type { ParamedicBooking } from "@/types/paramedic";
-
-interface Paramedic {
-  uid: string;
-  serviceArea: {
-    city: string;
-    pincode: string;
-  };
-}
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FormData {
   serviceType: ParamedicBooking["serviceType"];
@@ -35,44 +33,44 @@ interface FormData {
 
 export default function ParamedicBookingPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const role = params.role as string;
 
-  // Fetch available paramedics in the area
-  const [paramedics] = useFetch<Paramedic[]>("users", {
-    needRaw: true,
-  });
-
   const handleBooking = async (formData: FormData) => {
     try {
       setIsLoading(true);
+      setError(null);
 
       if (!user) {
-        toast({
-          title: "Error",
-          description: "Please login to book a paramedic",
-          variant: "destructive",
-        });
+        setError("Please login to book a paramedic");
         return;
       }
 
-      // Convert form data to query params
-      const queryString = new URLSearchParams({
+      // Convert form data to query params with proper type handling
+      const queryParams = {
         ...formData,
         date: formData.date.toISOString(),
-      } as any).toString();
+        duration: formData.duration.toString(),
+      };
+
+      // Convert all values to strings for URLSearchParams
+      const stringParams = Object.entries(queryParams).reduce(
+        (acc, [key, value]) => ({
+          ...acc,
+          [key]: String(value),
+        }),
+        {} as Record<string, string>
+      );
+
+      const queryString = new URLSearchParams(stringParams).toString();
 
       // Redirect to paramedic selection page
       router.push(`/${role}/paramedic-booking/select?${queryString}`);
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
-      });
+      setError(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +86,20 @@ export default function ParamedicBookingPage() {
       </div>
 
       <BookingForm onSubmit={handleBooking} isLoading={isLoading} />
+
+      <AlertDialog open={!!error} onOpenChange={() => setError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setError(null)}>
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

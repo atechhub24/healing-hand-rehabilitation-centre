@@ -9,15 +9,11 @@ import { UserProfile } from "./panel-profile";
 import { MobileTrigger } from "./panel-trigger";
 import { Backdrop } from "./panel-backdrop";
 import { sidebarVariants } from "./panel-variants";
-import { UserData } from "@/lib/store/auth-store";
+import { useAuth } from "@/lib/hooks/use-auth";
 
-interface PanelRootProps {
-  user: UserData;
-  onSignOut: () => void;
-}
-
-export default function PanelRoot({ user, onSignOut }: PanelRootProps) {
-  const { isOpen, isMobileOpen, setOpen, setMobileOpen } = useSidebarStore();
+export default function DashboardPanel() {
+  const { isOpen, isMobileOpen, setMobileOpen } = useSidebarStore();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,7 +26,7 @@ export default function PanelRoot({ user, onSignOut }: PanelRootProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, [setMobileOpen]);
 
-  const userIdentifier = user.email || user.phoneNumber || "User";
+  const userIdentifier = user?.email || user?.phoneNumber || "User";
 
   return (
     <>
@@ -61,9 +57,9 @@ export default function PanelRoot({ user, onSignOut }: PanelRootProps) {
           <Navigation isOpen={isOpen || isMobileOpen} />
           <UserProfile
             email={userIdentifier}
-            role={user.role}
+            role={user?.role || ""}
             isOpen={isOpen || isMobileOpen}
-            onSignOut={onSignOut}
+            onSignOut={() => {}}
           />
         </div>
       </motion.aside>

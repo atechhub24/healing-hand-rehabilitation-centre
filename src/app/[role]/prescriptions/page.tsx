@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { FileText, Calendar, User, Clock } from "lucide-react";
+import { User, Calendar, Clock } from "lucide-react";
 
 interface Medication {
   name: string;
@@ -138,8 +137,7 @@ function PrescriptionCard({ prescription }: PrescriptionCardProps) {
 }
 
 export default function PrescriptionsPage() {
-  const params = useParams();
-  const { role } = useAuth();
+  const { role } = useParams();
 
   if (role !== "doctor") {
     return null;

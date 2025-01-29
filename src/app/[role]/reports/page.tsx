@@ -1,10 +1,20 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { FileText, Download, Calendar, User, Clock } from "lucide-react";
 
-const reports = [
+interface Report {
+  id: number;
+  title: string;
+  patientName: string;
+  date: string;
+  time: string;
+  type: string;
+  status: "completed" | "pending";
+  doctor: string;
+}
+
+const reports: Report[] = [
   {
     id: 1,
     title: "Blood Test Results",
@@ -28,7 +38,7 @@ const reports = [
   // Add more reports as needed
 ];
 
-function ReportCard({ report }) {
+function ReportCard({ report }: { report: Report }) {
   return (
     <div className="bg-white rounded-xl border p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -86,7 +96,7 @@ function ReportCard({ report }) {
 
 export default function ReportsPage() {
   const params = useParams();
-  const { role } = useAuth();
+  const role = params.role as string;
 
   if (!["lab", "paramedic"].includes(role)) {
     return null;

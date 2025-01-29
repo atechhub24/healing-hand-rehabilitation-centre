@@ -7,53 +7,6 @@ interface ThemeProviderProps {
   children: React.ReactNode;
 }
 
-const colors = {
-  emerald: {
-    light: {
-      primary: "emerald-500",
-      hover: "emerald-600",
-      text: "emerald-500",
-      hoverText: "emerald-600",
-      border: "emerald-500",
-      ring: "emerald-500",
-      background: "white",
-      foreground: "gray-900",
-    },
-    dark: {
-      primary: "emerald-400",
-      hover: "emerald-500",
-      text: "emerald-400",
-      hoverText: "emerald-500",
-      border: "emerald-400",
-      ring: "emerald-400",
-      background: "gray-900",
-      foreground: "gray-100",
-    },
-  },
-  orange: {
-    light: {
-      primary: "orange-500",
-      hover: "orange-600",
-      text: "orange-500",
-      hoverText: "orange-600",
-      border: "orange-500",
-      ring: "orange-500",
-      background: "white",
-      foreground: "gray-900",
-    },
-    dark: {
-      primary: "orange-400",
-      hover: "orange-500",
-      text: "orange-400",
-      hoverText: "orange-500",
-      border: "orange-400",
-      ring: "orange-400",
-      background: "gray-900",
-      foreground: "gray-100",
-    },
-  },
-};
-
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const { theme, primaryColor } = useThemeStore();
 
@@ -62,9 +15,6 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
-
-    // Update CSS variables for the selected primary color
-    const colorSet = colors[primaryColor][theme];
 
     // Set the HSL values for the theme
     if (theme === "light") {

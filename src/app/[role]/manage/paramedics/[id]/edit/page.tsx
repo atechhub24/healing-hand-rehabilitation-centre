@@ -11,17 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  User,
-  Briefcase,
-  MapPin,
-  Mail,
-  Clock,
-  ArrowLeft,
-  Lock,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { User, Briefcase, Mail, Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/lib/hooks/use-fetch";
 import { useToast } from "@/hooks/use-toast";
@@ -68,8 +58,6 @@ export default function EditParamedicPage() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
   const [paramedic, isLoading] = useFetch<Paramedic>(`/users/${paramedicId}`, {
     needRaw: true,
   });

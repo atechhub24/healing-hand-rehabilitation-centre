@@ -14,7 +14,6 @@ import {
 import {
   User,
   Briefcase,
-  MapPin,
   Mail,
   Clock,
   ArrowLeft,

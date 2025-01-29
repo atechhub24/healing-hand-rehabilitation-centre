@@ -1,10 +1,21 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { TestTube, Calendar, User, Clock, FileText } from "lucide-react";
 
-const testOrders = [
+interface TestOrder {
+  id: number;
+  patientName: string;
+  testType: string;
+  orderedBy: string;
+  date: string;
+  time: string;
+  priority: "urgent" | "normal";
+  status: "pending" | "in-progress";
+  notes?: string;
+}
+
+const testOrders: TestOrder[] = [
   {
     id: 1,
     patientName: "John Doe",
@@ -30,7 +41,11 @@ const testOrders = [
   // Add more test orders as needed
 ];
 
-function TestOrderCard({ order }) {
+interface TestOrderCardProps {
+  order: TestOrder;
+}
+
+function TestOrderCard({ order }: TestOrderCardProps) {
   const isPending = order.status === "pending";
   const isUrgent = order.priority === "urgent";
 
@@ -105,7 +120,7 @@ function TestOrderCard({ order }) {
 
 export default function TestOrdersPage() {
   const params = useParams();
-  const { role } = useAuth();
+  const role = params.role as string;
 
   if (role !== "lab") {
     return null;

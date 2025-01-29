@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Scale } from "lucide-react";
-import { BMIScale } from "@/components/ui/bmi-scale";
+import { BMIScale } from "@/components/bmi/bmi-scale";
 
 // Define the form schema with Zod
 const bmiFormSchema = z.object({

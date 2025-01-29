@@ -21,33 +21,105 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Scale } from "lucide-react";
 import { BMIScale } from "@/components/bmi/bmi-scale";
+import {
+  HeightUnit,
+  WeightUnit,
+  convertToCm,
+  convertToKg,
+  heightUnitLabels,
+  weightUnitLabels,
+} from "@/components/bmi/unit-conversion";
 
-// Define the form schema with Zod
-const bmiFormSchema = z.object({
-  height: z.string().refine(
-    (val) => {
-      const num = parseFloat(val);
-      return !isNaN(num) && num > 0 && num < 300;
-    },
-    { message: "Height must be a valid number between 0 and 300 cm" }
-  ),
-  weight: z.string().refine(
-    (val) => {
-      const num = parseFloat(val);
-      return !isNaN(num) && num > 0 && num < 500;
-    },
-    { message: "Weight must be a valid number between 0 and 500 kg" }
-  ),
-});
+// Define validation schema based on unit
+const getHeightValidation = (unit: HeightUnit) => {
+  switch (unit) {
+    case "ft":
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 10;
+        },
+        { message: "Height must be between 0 and 10 feet" }
+      );
+    case "m":
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 3;
+        },
+        { message: "Height must be between 0 and 3 meters" }
+      );
+    default:
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 300;
+        },
+        { message: "Height must be between 0 and 300 centimeters" }
+      );
+  }
+};
+
+const getWeightValidation = (unit: WeightUnit) => {
+  switch (unit) {
+    case "lbs":
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 1000;
+        },
+        { message: "Weight must be between 0 and 1000 pounds" }
+      );
+    case "st":
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 70;
+        },
+        { message: "Weight must be between 0 and 70 stones" }
+      );
+    default:
+      return z.string().refine(
+        (val) => {
+          const num = parseFloat(val);
+          return !isNaN(num) && num > 0 && num < 500;
+        },
+        { message: "Weight must be between 0 and 500 kilograms" }
+      );
+  }
+};
+
+// Dynamic form schema
+const createBmiFormSchema = (heightUnit: HeightUnit, weightUnit: WeightUnit) =>
+  z.object({
+    height: getHeightValidation(heightUnit),
+    heightUnit: z.enum(["cm", "ft", "m"] as const),
+    weight: getWeightValidation(weightUnit),
+    weightUnit: z.enum(["kg", "lbs", "st"] as const),
+  });
 
 // BMI calculation helper function
-const calculateBMI = (weight: number, height: number) => {
-  const heightInMeters = height / 100;
-  return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+const calculateBMI = (
+  weight: number,
+  weightUnit: WeightUnit,
+  height: number,
+  heightUnit: HeightUnit
+) => {
+  const heightInCm = convertToCm(height, heightUnit);
+  const weightInKg = convertToKg(weight, weightUnit);
+  const heightInMeters = heightInCm / 100;
+  return (weightInKg / (heightInMeters * heightInMeters)).toFixed(1);
 };
 
 // Get BMI category and color
@@ -59,27 +131,57 @@ const getBMICategory = (bmi: number) => {
 };
 
 export default function BMICalculator() {
+  const [heightUnit, setHeightUnit] = useState<HeightUnit>("cm");
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>("kg");
   const [bmiResult, setBMIResult] = useState<{
     bmi: string;
     category: string;
     color: string;
   } | null>(null);
 
-  const form = useForm<z.infer<typeof bmiFormSchema>>({
-    resolver: zodResolver(bmiFormSchema),
+  const form = useForm<z.infer<ReturnType<typeof createBmiFormSchema>>>({
+    resolver: zodResolver(createBmiFormSchema(heightUnit, weightUnit)),
     defaultValues: {
       height: "",
+      heightUnit: "cm",
       weight: "",
+      weightUnit: "kg",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof bmiFormSchema>) => {
+  const onSubmit = (
+    values: z.infer<ReturnType<typeof createBmiFormSchema>>
+  ) => {
     const bmi = calculateBMI(
       parseFloat(values.weight),
-      parseFloat(values.height)
+      values.weightUnit,
+      parseFloat(values.height),
+      values.heightUnit
     );
     const { category, color } = getBMICategory(parseFloat(bmi));
     setBMIResult({ bmi, category, color });
+  };
+
+  const getPlaceholder = (type: "height" | "weight") => {
+    if (type === "height") {
+      switch (heightUnit) {
+        case "ft":
+          return "Enter height in feet (e.g., 5.75 for 5'9\")";
+        case "m":
+          return "Enter height in meters (e.g., 1.75)";
+        default:
+          return "Enter height in centimeters";
+      }
+    } else {
+      switch (weightUnit) {
+        case "lbs":
+          return "Enter weight in pounds";
+        case "st":
+          return "Enter weight in stones (e.g., 11.5)";
+        default:
+          return "Enter weight in kilograms";
+      }
+    }
   };
 
   return (
@@ -97,7 +199,7 @@ export default function BMICalculator() {
             </div>
             <CardDescription>
               Calculate your Body Mass Index (BMI) to check if your weight is
-              healthy
+              healthy. Choose your preferred units and enter your measurements.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,57 +209,123 @@ export default function BMICalculator() {
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="height"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Height</FormLabel>
-                        <FormControl>
-                          <div className="relative">
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="heightUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Height Unit</FormLabel>
+                          <Select
+                            onValueChange={(value: HeightUnit) => {
+                              field.onChange(value);
+                              setHeightUnit(value);
+                              form.setValue("height", ""); // Reset height when unit changes
+                            }}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {Object.entries(heightUnitLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="height"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Height</FormLabel>
+                          <FormControl>
                             <Input
-                              placeholder="Enter your height"
+                              placeholder={getPlaceholder("height")}
                               {...field}
-                              className="pr-12"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                              cm
-                            </span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Enter your height in centimeters
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="weight"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Weight</FormLabel>
-                        <FormControl>
-                          <div className="relative">
+                          </FormControl>
+                          <FormDescription>
+                            {heightUnit === "ft"
+                              ? "Use decimal for inches (e.g., 5.75 for 5'9\")"
+                              : `Enter your height in ${heightUnitLabels[
+                                  heightUnit
+                                ].toLowerCase()}`}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="weightUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight Unit</FormLabel>
+                          <Select
+                            onValueChange={(value: WeightUnit) => {
+                              field.onChange(value);
+                              setWeightUnit(value);
+                              form.setValue("weight", ""); // Reset weight when unit changes
+                            }}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {Object.entries(weightUnitLabels).map(
+                                ([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="weight"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight</FormLabel>
+                          <FormControl>
                             <Input
-                              placeholder="Enter your weight"
+                              placeholder={getPlaceholder("weight")}
                               {...field}
-                              className="pr-12"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                              kg
-                            </span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Enter your weight in kilograms
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormDescription>
+                            {weightUnit === "st"
+                              ? "Use decimal for pounds (e.g., 11.5 for 11st 7lb)"
+                              : `Enter your weight in ${weightUnitLabels[
+                                  weightUnit
+                                ].toLowerCase()}`}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
+
                 <Button type="submit" className="w-full">
                   Calculate BMI
                 </Button>

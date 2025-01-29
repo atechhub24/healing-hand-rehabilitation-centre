@@ -288,6 +288,65 @@ export default function BMICalculator() {
                   </Button>
                 </form>
               </Form>
+
+              <div className="mt-8 border-t pt-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">What is BMI?</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Body Mass Index (BMI) is a simple measure that uses your
+                      height and weight to work out if your weight is healthy.
+                      It&apos;s widely used by healthcare professionals to
+                      identify weight-related health risks.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">BMI Formula</h3>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm font-mono text-center">
+                        BMI = weight (kg) ÷ height² (m²)
+                      </p>
+                      <p className="text-xs text-muted-foreground text-center mt-2">
+                        Example: For a person weighing 70 kg and height 1.75 m
+                        <br />
+                        BMI = 70 ÷ (1.75 × 1.75) = 22.9
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">BMI Categories</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" />
+                        <span>Underweight: &lt; 18.5</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                        <span>Normal weight: 18.5 - 24.9</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                        <span>Overweight: 25 - 29.9</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500" />
+                        <span>Obese: ≥ 30</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    <p>
+                      Note: BMI is a general guide and doesn&apos;t account for
+                      factors like muscle mass, age, ethnicity, and gender.
+                      Always consult healthcare professionals for a complete
+                      health assessment.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

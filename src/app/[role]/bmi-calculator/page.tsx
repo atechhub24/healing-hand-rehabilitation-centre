@@ -21,17 +21,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Scale } from "lucide-react";
 import { BMIScale } from "@/components/bmi/bmi-scale";
+import { UnitSelector } from "@/components/bmi/unit-selector";
 import {
   HeightUnit,
   WeightUnit,
@@ -210,37 +204,15 @@ export default function BMICalculator() {
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="heightUnit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Height Unit</FormLabel>
-                          <Select
-                            onValueChange={(value: HeightUnit) => {
-                              field.onChange(value);
-                              setHeightUnit(value);
-                              form.setValue("height", ""); // Reset height when unit changes
-                            }}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select unit" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {Object.entries(heightUnitLabels).map(
-                                ([value, label]) => (
-                                  <SelectItem key={value} value={value}>
-                                    {label}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
+                    <UnitSelector<HeightUnit>
+                      label="Height Unit"
+                      value={heightUnit}
+                      onValueChange={(value) => {
+                        setHeightUnit(value);
+                        form.setValue("heightUnit", value);
+                        form.setValue("height", ""); // Reset height when unit changes
+                      }}
+                      units={heightUnitLabels}
                     />
                     <FormField
                       control={form.control}
@@ -268,37 +240,15 @@ export default function BMICalculator() {
                   </div>
 
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="weightUnit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Weight Unit</FormLabel>
-                          <Select
-                            onValueChange={(value: WeightUnit) => {
-                              field.onChange(value);
-                              setWeightUnit(value);
-                              form.setValue("weight", ""); // Reset weight when unit changes
-                            }}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select unit" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {Object.entries(weightUnitLabels).map(
-                                ([value, label]) => (
-                                  <SelectItem key={value} value={value}>
-                                    {label}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
+                    <UnitSelector<WeightUnit>
+                      label="Weight Unit"
+                      value={weightUnit}
+                      onValueChange={(value) => {
+                        setWeightUnit(value);
+                        form.setValue("weightUnit", value);
+                        form.setValue("weight", ""); // Reset weight when unit changes
+                      }}
+                      units={weightUnitLabels}
                     />
                     <FormField
                       control={form.control}

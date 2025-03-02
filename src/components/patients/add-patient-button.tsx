@@ -1,19 +1,21 @@
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface AddPatientButtonProps {
-  onClick: () => void;
-}
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 /**
  * AddPatientButton component provides a button to add new patients
- * @param onClick - Callback function triggered when the button is clicked
+ * Links to the add patient page
  */
-export function AddPatientButton({ onClick }: AddPatientButtonProps) {
+export function AddPatientButton() {
+  const { role } = useParams();
+
   return (
-    <Button onClick={onClick}>
-      <PlusCircle className="h-4 w-4 mr-2" />
-      Add Patient
-    </Button>
+    <Link href={`/${role}/patients/add`}>
+      <Button>
+        <PlusCircle className="h-4 w-4 mr-2" />
+        Add Patient
+      </Button>
+    </Link>
   );
 }

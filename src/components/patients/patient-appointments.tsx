@@ -1,296 +1,238 @@
+"use client";
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, Plus, User, Video } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  FileText,
+  Video,
+  Phone,
+  Plus,
+} from "lucide-react";
 
-interface PatientAppointmentsProps {
-  patientId: number;
-}
-
-// Sample data - in a real app, this would come from an API
-const upcomingAppointments = [
+// Sample appointment data
+const appointments = [
   {
     id: 1,
+    type: "Check-up",
     date: "2023-08-15",
-    time: "10:30 AM",
+    time: "09:30 AM",
     duration: "30 minutes",
-    doctor: "Dr. Sarah Johnson",
-    specialty: "Primary Care",
+    provider: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
     location: "Main Clinic, Room 105",
-    type: "In-person",
-    status: "Confirmed",
-    reason: "Annual physical examination",
+    status: "Upcoming",
+    mode: "In-person",
+    notes: "Annual physical examination",
   },
   {
     id: 2,
+    type: "Follow-up",
     date: "2023-09-05",
-    time: "2:00 PM",
-    duration: "45 minutes",
-    doctor: "Dr. Michael Chen",
-    specialty: "Cardiology",
-    location: "Cardiology Department, Room 302",
-    type: "In-person",
-    status: "Scheduled",
-    reason: "Follow-up on hypertension",
+    time: "02:15 PM",
+    duration: "20 minutes",
+    provider: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
+    location: "Virtual Visit",
+    status: "Upcoming",
+    mode: "Telemedicine",
+    notes: "Follow-up on medication adjustment",
   },
   {
     id: 3,
-    date: "2023-08-22",
-    time: "11:15 AM",
-    duration: "20 minutes",
-    doctor: "Dr. Emily Rodriguez",
-    specialty: "Endocrinology",
-    location: "Virtual Visit",
-    type: "Telemedicine",
-    status: "Confirmed",
-    reason: "Diabetes management check-in",
+    type: "Consultation",
+    date: "2023-07-20",
+    time: "11:00 AM",
+    duration: "45 minutes",
+    provider: "Dr. Michael Chen",
+    department: "Cardiology",
+    location: "Cardiology Clinic, Room 210",
+    status: "Completed",
+    mode: "In-person",
+    notes: "Initial cardiology consultation",
   },
-];
-
-const pastAppointments = [
   {
     id: 4,
+    type: "Lab Work",
     date: "2023-06-10",
-    time: "9:00 AM",
-    duration: "30 minutes",
-    doctor: "Dr. Sarah Johnson",
-    specialty: "Primary Care",
-    location: "Main Clinic, Room 105",
-    type: "In-person",
+    time: "08:00 AM",
+    duration: "15 minutes",
+    provider: "Lab Technician",
+    department: "Laboratory Services",
+    location: "Main Clinic, Lab Area",
     status: "Completed",
-    reason: "Blood pressure check",
-    notes: "Blood pressure improved. Continue current medication.",
+    mode: "In-person",
+    notes: "Blood work for annual check-up",
   },
   {
     id: 5,
-    date: "2023-05-22",
-    time: "1:30 PM",
-    duration: "45 minutes",
-    doctor: "Dr. Michael Chen",
-    specialty: "Cardiology",
-    location: "Cardiology Department, Room 302",
-    type: "In-person",
+    type: "Imaging",
+    date: "2023-05-05",
+    time: "03:30 PM",
+    duration: "30 minutes",
+    provider: "Radiology Dept",
+    department: "Radiology",
+    location: "Imaging Center, Floor 2",
     status: "Completed",
-    reason: "Initial cardiology consultation",
-    notes:
-      "Diagnosed with mild hypertension. Prescribed Lisinopril 10mg daily.",
+    mode: "In-person",
+    notes: "Chest X-ray",
   },
   {
     id: 6,
-    date: "2023-04-15",
+    type: "Phone Consultation",
+    date: "2023-04-12",
     time: "10:45 AM",
-    duration: "30 minutes",
-    doctor: "Dr. Sarah Johnson",
-    specialty: "Primary Care",
-    location: "Main Clinic, Room 105",
-    type: "In-person",
+    duration: "15 minutes",
+    provider: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
+    location: "Phone Call",
     status: "Completed",
-    reason: "Annual physical examination",
-    notes:
-      "Overall health is good. Recommended lifestyle changes to address elevated cholesterol.",
+    mode: "Phone",
+    notes: "Medication review",
   },
 ];
 
 /**
- * PatientAppointments component displays upcoming and past appointments for a patient
- * @param patientId - The ID of the patient to display appointments for
+ * PatientAppointments component displays a patient's past and upcoming appointments
+ * Allows viewing appointment details and scheduling new appointments
  */
-export function PatientAppointments({ patientId }: PatientAppointmentsProps) {
-  // In a real app, we would fetch the patient's appointments based on the ID
+export function PatientAppointments() {
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  // This would be used in a real app to handle appointment actions
-  const handleAppointmentAction = (id: number, action: string) => {
-    console.log(`Appointment ${id} action: ${action}`);
-    // In a real app, this would call an API to perform the action
+  // Filter appointments based on active tab
+  const filteredAppointments = appointments.filter((appointment) =>
+    activeTab === "upcoming"
+      ? appointment.status === "Upcoming"
+      : appointment.status === "Completed"
+  );
+
+  // Get appointment icon based on mode
+  const getAppointmentIcon = (mode: string) => {
+    switch (mode) {
+      case "Telemedicine":
+        return <Video className="h-4 w-4" />;
+      case "Phone":
+        return <Phone className="h-4 w-4" />;
+      default:
+        return <User className="h-4 w-4" />;
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Appointments</h3>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-[400px]"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="past">Past</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
           Schedule Appointment
         </Button>
       </div>
 
-      <Tabs
-        defaultValue="upcoming"
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="upcoming" className="space-y-4">
-          {upcomingAppointments.map((appointment) => (
+      {filteredAppointments.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <Calendar className="h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-lg font-medium">No appointments found</p>
+            <p className="text-sm text-muted-foreground">
+              {activeTab === "upcoming"
+                ? "There are no upcoming appointments scheduled."
+                : "There are no past appointments on record."}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {filteredAppointments.map((appointment) => (
             <Card key={appointment.id}>
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">
-                    {appointment.reason}
-                  </CardTitle>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-base">
+                      {appointment.type}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      with {appointment.provider}
+                    </p>
+                  </div>
                   <Badge
                     variant={
-                      appointment.status === "Confirmed"
+                      appointment.status === "Upcoming"
                         ? "default"
-                        : appointment.status === "Scheduled"
-                        ? "secondary"
-                        : "outline"
+                        : "secondary"
                     }
+                    className="flex items-center gap-1"
                   >
-                    {appointment.status}
+                    {getAppointmentIcon(appointment.mode)}
+                    <span>{appointment.mode}</span>
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                       <span>{appointment.date}</span>
                     </div>
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Clock className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
                       <span>
                         {appointment.time} ({appointment.duration})
                       </span>
                     </div>
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{appointment.doctor}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{appointment.location}</span>
-                    </div>
                   </div>
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Appointment Type</p>
-                      <div className="flex items-center mt-1">
-                        {appointment.type === "Telemedicine" ? (
-                          <Video className="h-4 w-4 mr-2 text-muted-foreground" />
-                        ) : (
-                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        )}
-                        <span>{appointment.type}</span>
-                      </div>
+
+                  <div className="flex items-start text-sm">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-muted-foreground mt-0.5" />
+                    <span>
+                      {appointment.location}
+                      <span className="block text-xs text-muted-foreground">
+                        {appointment.department}
+                      </span>
+                    </span>
+                  </div>
+
+                  {appointment.notes && (
+                    <div className="flex items-start text-sm">
+                      <FileText className="h-3.5 w-3.5 mr-1.5 text-muted-foreground mt-0.5" />
+                      <span className="text-muted-foreground">
+                        {appointment.notes}
+                      </span>
                     </div>
-                    <div className="mt-4 flex justify-end space-x-2">
-                      {appointment.type === "Telemedicine" && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() =>
-                            handleAppointmentAction(appointment.id, "join")
-                          }
-                        >
-                          <Video className="h-4 w-4 mr-1" /> Join Video
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleAppointmentAction(appointment.id, "reschedule")
-                        }
-                      >
+                  )}
+
+                  {appointment.status === "Upcoming" && (
+                    <div className="flex space-x-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1">
                         Reschedule
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleAppointmentAction(appointment.id, "cancel")
-                        }
-                      >
+                      <Button variant="outline" size="sm" className="flex-1">
                         Cancel
                       </Button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
-        </TabsContent>
-
-        <TabsContent value="past" className="space-y-4">
-          {pastAppointments.map((appointment) => (
-            <Card key={appointment.id}>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg">
-                    {appointment.reason}
-                  </CardTitle>
-                  <Badge variant="outline">{appointment.status}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{appointment.date}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>
-                        {appointment.time} ({appointment.duration})
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{appointment.doctor}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{appointment.location}</span>
-                    </div>
-                  </div>
-                  <div>
-                    {appointment.notes && (
-                      <div className="p-3 bg-muted rounded-md">
-                        <p className="text-sm font-medium">Notes:</p>
-                        <p className="text-sm">{appointment.notes}</p>
-                      </div>
-                    )}
-                    <div className="mt-4 flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleAppointmentAction(appointment.id, "viewSummary")
-                        }
-                      >
-                        View Summary
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleAppointmentAction(
-                            appointment.id,
-                            "bookFollowUp"
-                          )
-                        }
-                      >
-                        Book Follow-up
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }

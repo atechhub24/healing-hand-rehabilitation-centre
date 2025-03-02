@@ -1,35 +1,49 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Info } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
-interface PatientMedicalHistoryProps {
-  patientId: number;
-}
-
-// Sample data - in a real app, this would come from an API
+// Sample data for medical history
 const medicalConditions = [
   {
     id: 1,
     condition: "Hypertension",
-    diagnosedDate: "2020-03-15",
+    diagnosedDate: "2018-05-12",
     status: "Active",
-    notes: "Well-controlled with medication",
-    medications: ["Lisinopril 10mg daily"],
+    notes: "Well controlled with medication. Regular monitoring required.",
+    medications: ["Lisinopril 10mg daily", "Hydrochlorothiazide 12.5mg daily"],
   },
   {
     id: 2,
     condition: "Type 2 Diabetes",
-    diagnosedDate: "2019-07-22",
+    diagnosedDate: "2019-03-22",
     status: "Active",
-    notes: "Managed with diet and medication",
-    medications: ["Metformin 500mg twice daily"],
+    notes: "HbA1c levels stable at 6.8%. Diet and exercise regimen in place.",
+    medications: ["Metformin 1000mg twice daily"],
   },
   {
     id: 3,
-    condition: "Hyperlipidemia",
-    diagnosedDate: "2020-03-15",
+    condition: "Asthma",
+    diagnosedDate: "2010-11-05",
+    status: "Controlled",
+    notes: "Occasional exacerbations during spring allergy season.",
+    medications: ["Albuterol inhaler as needed", "Fluticasone inhaler daily"],
+  },
+  {
+    id: 4,
+    condition: "Hypercholesterolemia",
+    diagnosedDate: "2020-01-15",
     status: "Active",
-    notes: "Monitoring cholesterol levels",
+    notes: "Last lipid panel showed improvement. Continue current management.",
     medications: ["Atorvastatin 20mg daily"],
   },
 ];
@@ -38,42 +52,27 @@ const surgicalHistory = [
   {
     id: 1,
     procedure: "Appendectomy",
-    date: "2010-05-12",
+    date: "2005-08-17",
     hospital: "Memorial Hospital",
-    surgeon: "Dr. James Wilson",
-    notes: "No complications",
+    surgeon: "Dr. Sarah Johnson",
+    notes: "Laparoscopic procedure. No complications.",
   },
   {
     id: 2,
     procedure: "Knee Arthroscopy",
-    date: "2018-11-03",
-    hospital: "University Medical Center",
-    surgeon: "Dr. Sarah Johnson",
-    notes: "Meniscus repair",
-  },
-];
-
-const allergies = [
-  {
-    id: 1,
-    allergen: "Penicillin",
-    reaction: "Hives, difficulty breathing",
-    severity: "Severe",
-    noted: "2015-02-10",
-  },
-  {
-    id: 2,
-    allergen: "Shellfish",
-    reaction: "Nausea, vomiting",
-    severity: "Moderate",
-    noted: "2018-06-22",
+    date: "2015-11-23",
+    hospital: "Orthopedic Surgical Center",
+    surgeon: "Dr. Michael Chen",
+    notes:
+      "Right knee meniscus repair. Full recovery achieved after 3 months of physical therapy.",
   },
   {
     id: 3,
-    allergen: "Pollen",
-    reaction: "Sneezing, watery eyes",
-    severity: "Mild",
-    noted: "2012-04-15",
+    procedure: "Cholecystectomy",
+    date: "2019-04-05",
+    hospital: "University Medical Center",
+    surgeon: "Dr. Robert Williams",
+    notes: "Gallbladder removal due to gallstones. Uncomplicated recovery.",
   },
 ];
 
@@ -81,268 +80,170 @@ const familyHistory = [
   {
     id: 1,
     relation: "Father",
-    condition: "Hypertension",
-    age: 65,
-    notes: "Diagnosed at age 50",
+    condition: "Coronary Artery Disease",
+    age: "55",
+    notes: "Underwent bypass surgery at age 55. Currently stable.",
   },
   {
     id: 2,
     relation: "Mother",
+    condition: "Breast Cancer",
+    age: "62",
+    notes: "Diagnosed at age 62. In remission after treatment.",
+  },
+  {
+    id: 3,
+    relation: "Maternal Grandmother",
     condition: "Type 2 Diabetes",
-    age: 62,
-    notes: "Diagnosed at age 55",
+    age: "50",
+    notes:
+      "Diagnosed in her 50s. Managed with medication until her passing at age 78.",
   },
   {
-    id: 3,
+    id: 4,
     relation: "Paternal Grandfather",
-    condition: "Coronary Artery Disease",
-    age: "Deceased at 72",
-    notes: "Heart attack",
-  },
-];
-
-const immunizations = [
-  {
-    id: 1,
-    vaccine: "Influenza",
-    date: "2022-10-15",
-    location: "Primary Care Office",
-    notes: "Annual vaccination",
-  },
-  {
-    id: 2,
-    vaccine: "COVID-19",
-    date: "2021-04-10",
-    location: "Community Vaccination Center",
-    notes: "Pfizer - 2nd dose",
-  },
-  {
-    id: 3,
-    vaccine: "Tetanus/Diphtheria/Pertussis (Tdap)",
-    date: "2019-08-22",
-    location: "Primary Care Office",
-    notes: "10-year booster",
+    condition: "Stroke",
+    age: "68",
+    notes: "Fatal stroke at age 68. Had history of untreated hypertension.",
   },
 ];
 
 /**
- * PatientMedicalHistory component displays comprehensive medical history for a patient
- * @param patientId - The ID of the patient to display medical history for
+ * PatientMedicalHistory component displays a patient's medical conditions,
+ * surgical history, and family medical history
  */
-export function PatientMedicalHistory({
-  patientId,
-}: PatientMedicalHistoryProps) {
-  // In a real app, we would fetch the patient's medical history based on the ID
+export function PatientMedicalHistory() {
+  const [activeTab, setActiveTab] = useState("conditions");
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="conditions" className="space-y-4">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="conditions">Medical Conditions</TabsTrigger>
           <TabsTrigger value="surgical">Surgical History</TabsTrigger>
-          <TabsTrigger value="allergies">Allergies</TabsTrigger>
           <TabsTrigger value="family">Family History</TabsTrigger>
-          <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
         </TabsList>
 
+        {/* Medical Conditions Tab */}
         <TabsContent value="conditions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Medical Conditions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left font-medium">Condition</th>
-                      <th className="py-3 text-left font-medium">Diagnosed</th>
-                      <th className="py-3 text-left font-medium">Status</th>
-                      <th className="py-3 text-left font-medium">Notes</th>
-                      <th className="py-3 text-left font-medium">
-                        Medications
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {medicalConditions.map((condition) => (
-                      <tr key={condition.id} className="border-b">
-                        <td className="py-3 font-medium">
-                          {condition.condition}
-                        </td>
-                        <td className="py-3">{condition.diagnosedDate}</td>
-                        <td className="py-3">
-                          <Badge
-                            variant={
-                              condition.status === "Active"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {condition.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3">{condition.notes}</td>
-                        <td className="py-3">
-                          <ul className="list-disc pl-4">
-                            {condition.medications.map((med, idx) => (
-                              <li key={idx}>{med}</li>
-                            ))}
-                          </ul>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          {medicalConditions.map((condition) => (
+            <Card key={condition.id}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-base">
+                      {condition.condition}
+                    </CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground mt-1">
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      <span>Diagnosed: {condition.diagnosedDate}</span>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={
+                      condition.status === "Active"
+                        ? "default"
+                        : condition.status === "Controlled"
+                        ? "outline"
+                        : "secondary"
+                    }
+                  >
+                    {condition.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="text-sm">{condition.notes}</div>
+                  {condition.medications &&
+                    condition.medications.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium mt-2">
+                          Medications:
+                        </h4>
+                        <ul className="list-disc list-inside text-sm pl-2">
+                          {condition.medications.map((med, idx) => (
+                            <li key={idx}>{med}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
+        {/* Surgical History Tab */}
         <TabsContent value="surgical" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Surgical History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left font-medium">Procedure</th>
-                      <th className="py-3 text-left font-medium">Date</th>
-                      <th className="py-3 text-left font-medium">Hospital</th>
-                      <th className="py-3 text-left font-medium">Surgeon</th>
-                      <th className="py-3 text-left font-medium">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {surgicalHistory.map((surgery) => (
-                      <tr key={surgery.id} className="border-b">
-                        <td className="py-3 font-medium">
-                          {surgery.procedure}
-                        </td>
-                        <td className="py-3">{surgery.date}</td>
-                        <td className="py-3">{surgery.hospital}</td>
-                        <td className="py-3">{surgery.surgeon}</td>
-                        <td className="py-3">{surgery.notes}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          {surgicalHistory.map((surgery) => (
+            <Card key={surgery.id}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-base">
+                      {surgery.procedure}
+                    </CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground mt-1">
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      <span>{surgery.date}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="font-medium">Hospital:</span>{" "}
+                      {surgery.hospital}
+                    </div>
+                    <div>
+                      <span className="font-medium">Surgeon:</span>{" "}
+                      {surgery.surgeon}
+                    </div>
+                  </div>
+                  <div className="text-sm mt-2">{surgery.notes}</div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </TabsContent>
 
-        <TabsContent value="allergies" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Allergies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left font-medium">Allergen</th>
-                      <th className="py-3 text-left font-medium">Reaction</th>
-                      <th className="py-3 text-left font-medium">Severity</th>
-                      <th className="py-3 text-left font-medium">
-                        First Noted
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allergies.map((allergy) => (
-                      <tr key={allergy.id} className="border-b">
-                        <td className="py-3 font-medium">{allergy.allergen}</td>
-                        <td className="py-3">{allergy.reaction}</td>
-                        <td className="py-3">
-                          <Badge
-                            variant={
-                              allergy.severity === "Severe"
-                                ? "destructive"
-                                : allergy.severity === "Moderate"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {allergy.severity}
-                          </Badge>
-                        </td>
-                        <td className="py-3">{allergy.noted}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="family" className="space-y-4">
+        {/* Family History Tab */}
+        <TabsContent value="family">
           <Card>
             <CardHeader>
               <CardTitle>Family Medical History</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left font-medium">Relation</th>
-                      <th className="py-3 text-left font-medium">Condition</th>
-                      <th className="py-3 text-left font-medium">Age</th>
-                      <th className="py-3 text-left font-medium">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {familyHistory.map((history) => (
-                      <tr key={history.id} className="border-b">
-                        <td className="py-3 font-medium">{history.relation}</td>
-                        <td className="py-3">{history.condition}</td>
-                        <td className="py-3">{history.age}</td>
-                        <td className="py-3">{history.notes}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="immunizations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Immunization Records</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 text-left font-medium">Vaccine</th>
-                      <th className="py-3 text-left font-medium">Date</th>
-                      <th className="py-3 text-left font-medium">Location</th>
-                      <th className="py-3 text-left font-medium">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {immunizations.map((immunization) => (
-                      <tr key={immunization.id} className="border-b">
-                        <td className="py-3 font-medium">
-                          {immunization.vaccine}
-                        </td>
-                        <td className="py-3">{immunization.date}</td>
-                        <td className="py-3">{immunization.location}</td>
-                        <td className="py-3">{immunization.notes}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Accordion type="single" collapsible className="w-full">
+                {familyHistory.map((history) => (
+                  <AccordionItem key={history.id} value={`item-${history.id}`}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center text-left">
+                        <div className="mr-2">
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <span className="font-medium">
+                            {history.relation}:
+                          </span>{" "}
+                          {history.condition}
+                          {history.age && (
+                            <span className="text-muted-foreground ml-2">
+                              (Age: {history.age})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="pl-6 text-sm">{history.notes}</div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </CardContent>
           </Card>
         </TabsContent>

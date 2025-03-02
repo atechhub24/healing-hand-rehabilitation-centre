@@ -1,185 +1,237 @@
+"use client";
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Clock, User, Plus, Search, FileText } from "lucide-react";
 
-interface PatientNotesProps {
-  patientId: number;
-}
-
-// Sample data - in a real app, this would come from an API
-const initialNotes = [
+// Sample clinical notes data
+const clinicalNotes = [
   {
     id: 1,
-    date: "2023-06-15",
-    author: "Dr. Sarah Johnson",
+    date: "2023-07-15",
+    time: "10:45 AM",
+    provider: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
+    type: "Progress Note",
     content:
-      "Patient reports feeling better after starting new medication. Blood pressure has improved. Will continue current treatment plan.",
-    category: "Progress Note",
+      "Patient presents for annual physical examination. Reports feeling well overall with no significant complaints. Blood pressure is well-controlled on current medication regimen. Discussed importance of regular exercise and maintaining a healthy diet. Ordered routine blood work including lipid panel and comprehensive metabolic panel.",
+    tags: ["Annual Exam", "Preventive Care"],
   },
   {
     id: 2,
     date: "2023-05-22",
-    author: "Dr. Michael Chen",
+    time: "02:30 PM",
+    provider: "Dr. Michael Chen",
+    department: "Cardiology",
+    type: "Consultation Note",
     content:
-      "Initial cardiology consultation. Patient has mild hypertension. Prescribed Lisinopril 10mg daily. Recommended lifestyle modifications including reduced sodium intake and regular exercise.",
-    category: "Consultation Note",
+      "Initial cardiology consultation for evaluation of hypertension. Patient reports occasional chest discomfort with exertion. ECG shows normal sinus rhythm. Echocardiogram reveals mild left ventricular hypertrophy consistent with long-standing hypertension. Recommended adjustment to current antihypertensive medication and follow-up in 3 months. Discussed lifestyle modifications including sodium restriction and regular aerobic exercise.",
+    tags: ["Cardiology", "Hypertension", "Consultation"],
   },
   {
     id: 3,
-    date: "2023-04-15",
-    author: "Dr. Sarah Johnson",
+    date: "2023-04-10",
+    time: "09:15 AM",
+    provider: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
+    type: "Phone Encounter",
     content:
-      "Annual physical examination. Overall health is good. Cholesterol levels are slightly elevated. Recommended dietary changes and follow-up in 3 months.",
-    category: "Progress Note",
+      "Patient called with concerns about medication side effects. Reports experiencing mild dizziness after starting new blood pressure medication. Advised to take medication at bedtime instead of morning. Will follow up in one week to assess if symptoms improve. Patient instructed to call back or seek emergency care if symptoms worsen.",
+    tags: ["Medication Management", "Phone Call"],
+  },
+  {
+    id: 4,
+    date: "2023-02-05",
+    time: "11:30 AM",
+    provider: "Dr. Emily Rodriguez",
+    department: "Endocrinology",
+    type: "Progress Note",
+    content:
+      "Follow-up for diabetes management. HbA1c improved from 7.2% to 6.8%. Patient reports compliance with medication and has been monitoring blood glucose regularly. Diet has improved with reduction in carbohydrate intake. Continuing current medication regimen. Encouraged continued lifestyle modifications and regular blood glucose monitoring. Will repeat HbA1c in 3 months.",
+    tags: ["Diabetes", "Follow-up"],
+  },
+  {
+    id: 5,
+    date: "2022-11-18",
+    time: "03:45 PM",
+    provider: "Dr. Robert Williams",
+    department: "Pulmonology",
+    type: "Consultation Note",
+    content:
+      "Pulmonology consultation for evaluation of chronic cough. Patient reports productive cough for past 2 months, worse in the morning. Denies fever, night sweats, or weight loss. Chest X-ray shows no acute findings. Pulmonary function tests within normal limits. Impression: likely post-viral bronchitis with possible component of gastroesophageal reflux. Recommended trial of proton pump inhibitor and follow-up in 4 weeks if symptoms persist.",
+    tags: ["Pulmonology", "Chronic Cough", "Consultation"],
   },
 ];
 
 /**
- * PatientNotes component displays and manages clinical notes for a patient
- * @param patientId - The ID of the patient to display notes for
+ * PatientNotes component displays clinical notes for a patient
+ * Includes search functionality and the ability to add new notes
  */
-export function PatientNotes({ patientId }: PatientNotesProps) {
-  // In a real app, we would fetch the patient's notes based on the ID
-  const [notes, setNotes] = useState(initialNotes);
-  const [newNote, setNewNote] = useState("");
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-  const [editedContent, setEditedContent] = useState("");
+export function PatientNotes() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAddNote, setShowAddNote] = useState(false);
+  const [newNote, setNewNote] = useState({
+    type: "",
+    content: "",
+    tags: "",
+  });
 
-  // This would be used in a real app to handle note actions
+  // Filter notes based on search query
+  const filteredNotes = clinicalNotes.filter((note) => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      note.provider.toLowerCase().includes(query) ||
+      note.type.toLowerCase().includes(query) ||
+      note.content.toLowerCase().includes(query) ||
+      note.tags.some((tag) => tag.toLowerCase().includes(query))
+    );
+  });
+
+  // Handle adding a new note
   const handleAddNote = () => {
-    if (newNote.trim()) {
-      const currentDate = new Date().toISOString().split("T")[0];
-      const newNoteObj = {
-        id: notes.length + 1,
-        date: currentDate,
-        author: "Dr. Sarah Johnson", // In a real app, this would be the logged-in user
-        content: newNote,
-        category: "Progress Note",
-      };
-
-      setNotes([newNoteObj, ...notes]);
-      setNewNote("");
-      setIsAddingNote(false);
-    }
-  };
-
-  const handleEditNote = (id: number) => {
-    const noteToEdit = notes.find((note) => note.id === id);
-    if (noteToEdit) {
-      setEditingNoteId(id);
-      setEditedContent(noteToEdit.content);
-    }
-  };
-
-  const handleSaveEdit = (id: number) => {
-    if (editedContent.trim()) {
-      setNotes(
-        notes.map((note) =>
-          note.id === id ? { ...note, content: editedContent } : note
-        )
-      );
-      setEditingNoteId(null);
-      setEditedContent("");
-    }
-  };
-
-  const handleDeleteNote = (id: number) => {
-    setNotes(notes.filter((note) => note.id !== id));
+    // In a real app, this would save the note to a database
+    console.log("New note:", newNote);
+    setNewNote({ type: "", content: "", tags: "" });
+    setShowAddNote(false);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Clinical Notes</h3>
-        {!isAddingNote && (
-          <Button size="sm" onClick={() => setIsAddingNote(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Note
+        <div className="flex items-center space-x-2">
+          <div className="relative w-[300px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search notes..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button
+            variant={showAddNote ? "secondary" : "default"}
+            onClick={() => setShowAddNote(!showAddNote)}
+          >
+            {showAddNote ? "Cancel" : <Plus className="h-4 w-4 mr-2" />}
+            {showAddNote ? "Cancel" : "Add Note"}
           </Button>
-        )}
+        </div>
       </div>
 
-      {isAddingNote && (
+      {/* Add Note Form */}
+      {showAddNote && (
         <Card>
           <CardHeader>
-            <CardTitle>New Clinical Note</CardTitle>
+            <CardTitle className="text-base">Add New Clinical Note</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              placeholder="Enter your clinical note here..."
-              className="min-h-[150px] mb-4"
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsAddingNote(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddNote}>Save Note</Button>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Note Type</label>
+                  <Input
+                    placeholder="Progress Note, Consultation, etc."
+                    value={newNote.type}
+                    onChange={(e) =>
+                      setNewNote({ ...newNote, type: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tags</label>
+                  <Input
+                    placeholder="Comma-separated tags"
+                    value={newNote.tags}
+                    onChange={(e) =>
+                      setNewNote({ ...newNote, tags: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Note Content</label>
+                <Textarea
+                  placeholder="Enter clinical note details here..."
+                  className="min-h-[200px]"
+                  value={newNote.content}
+                  onChange={(e) =>
+                    setNewNote({ ...newNote, content: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleAddNote}>Save Note</Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Notes List */}
       <div className="space-y-4">
-        {notes.map((note) => (
-          <Card key={note.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-base">{note.category}</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {note.date} by {note.author}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditNote(note.id)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteNote(note.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {editingNoteId === note.id ? (
-                <div className="space-y-4">
-                  <Textarea
-                    className="min-h-[100px]"
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                  />
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingNoteId(null)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={() => handleSaveEdit(note.id)}>
-                      Save Changes
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap">{note.content}</p>
-              )}
+        {filteredNotes.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-10">
+              <FileText className="h-10 w-10 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">No notes found</p>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery
+                  ? "No notes match your search criteria."
+                  : "There are no clinical notes for this patient yet."}
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredNotes.map((note) => (
+            <Card key={note.id}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-base">{note.type}</CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground mt-1">
+                      <User className="h-3.5 w-3.5 mr-1" />
+                      <span>{note.provider}</span>
+                      <span className="mx-1">•</span>
+                      <span>{note.department}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 mr-1" />
+                      <span>{note.date}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5 mr-1" />
+                      <span>{note.time}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm whitespace-pre-line">{note.content}</p>
+                  {note.tags && note.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-2">
+                      {note.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

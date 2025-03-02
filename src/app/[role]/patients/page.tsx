@@ -39,15 +39,6 @@ export default function PatientsPage() {
     setFilteredPatients(filtered);
   };
 
-  /**
-   * Handles the add patient button click
-   * In a real application, this would open a form or modal
-   */
-  const handleAddPatient = () => {
-    console.log("Add patient button clicked");
-    // Here you would typically open a modal or navigate to a form
-  };
-
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-none">
@@ -61,7 +52,7 @@ export default function PatientsPage() {
             </div>
             <div className="flex gap-2">
               <PatientSearch onSearch={handleSearch} />
-              <AddPatientButton onClick={handleAddPatient} />
+              <AddPatientButton />
             </div>
           </div>
         </CardContent>

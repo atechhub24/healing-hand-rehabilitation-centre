@@ -9,12 +9,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 /**
  * PatientCard component displays individual patient information in a card format
  * @param patient - Patient object containing patient details
  */
 export function PatientCard({ patient }: { patient: Patient }) {
+  // role
+  const { role } = useParams();
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -61,7 +65,9 @@ export function PatientCard({ patient }: { patient: Patient }) {
         </div>
       </CardContent>
       <CardFooter className="flex gap-2 pt-2">
-        <Button className="flex-1">View Details</Button>
+        <Link href={`/${role}/patients/${patient.id}`} className="flex-1">
+          <Button className="w-full">View Details</Button>
+        </Link>
         <Button variant="outline">Update Record</Button>
       </CardFooter>
     </Card>

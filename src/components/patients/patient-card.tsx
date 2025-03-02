@@ -68,7 +68,11 @@ export function PatientCard({ patient }: { patient: Patient }) {
         <Link href={`/${role}/patients/${patient.id}`} className="flex-1">
           <Button className="w-full">View Details</Button>
         </Link>
-        <Button variant="outline">Update Record</Button>
+        <Link href={`/${role}/patients/${patient.id}/edit`} className="flex-1">
+          <Button variant="outline" className="w-full">
+            Edit Patient
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

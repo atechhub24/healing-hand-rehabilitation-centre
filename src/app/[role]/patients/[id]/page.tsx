@@ -1,192 +1,232 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Edit,
-  FileText,
-  Printer,
-  Share2,
-} from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Calendar, Mail, MapPin, Phone, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { samplePatients } from "@/components/patients/patient-list";
-import { Patient } from "@/types/patient";
-import Link from "next/link";
-import { PatientVitals } from "@/components/patients/patient-vitals";
-import { PatientMedicalHistory } from "@/components/patients/patient-medical-history";
+import { MedicalRecordsTab } from "@/components/patients/medical-records-tab";
+import { PatientOverview } from "@/components/patients/patient-overview";
 import { PatientPrescriptions } from "@/components/patients/patient-prescriptions";
 import { PatientLabResults } from "@/components/patients/patient-lab-results";
 import { PatientAppointments } from "@/components/patients/patient-appointments";
 import { PatientNotes } from "@/components/patients/patient-notes";
-import { cn } from "@/lib/utils";
+
+// Sample patient data
+const patientData = {
+  id: 1,
+  name: "John Smith",
+  email: "john.smith@example.com",
+  phone: "+1 (555) 123-4567",
+  dob: "1985-06-15",
+  gender: "Male",
+  address: "123 Main St, Anytown, CA 94123",
+  bloodType: "O+",
+  allergies: ["Penicillin", "Peanuts"],
+  emergencyContact: {
+    name: "Jane Smith",
+    relation: "Spouse",
+    phone: "+1 (555) 987-6543",
+  },
+  insuranceProvider: "HealthPlus Insurance",
+  insuranceNumber: "HP12345678",
+  registrationDate: "2022-03-10",
+};
 
 /**
- * PatientDetailsPage displays comprehensive information about a specific patient
- * It includes multiple tabs for different aspects of patient care
+ * PatientDetailsPage component displays detailed information about a patient
  */
 export default function PatientDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const patientId = Number(params.id);
-  const [patient, setPatient] = useState<Patient | null>(null);
-  const [activeTab, setActiveTab] = useState("overview");
-  // In a real app, this would fetch from an API
-  useEffect(() => {
-    const foundPatient = samplePatients.find((p) => p.id === patientId);
-    if (foundPatient) {
-      setPatient(foundPatient);
-    }
-  }, [patientId]);
 
-  if (!patient) {
-    return (
-      <div className="p-8 text-center">Loading patient information...</div>
-    );
-  }
+  // In a real application, we would fetch the patient data based on the ID
+  // const { data: patient, isLoading, error } = useFetch(`/api/patients/${patientId}`);
+
+  const handleBack = () => {
+    router.back();
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header with patient info and actions */}
-      <div className="flex flex-col space-y-4 md:flex-row md:justify-between md:space-y-0">
-        <div className="flex items-center space-x-4">
-          <Link href={`/${params.role}/patients`}>
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">{patient.name}</h1>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <span>{patient.age} years</span>
-              <span>•</span>
-              <span>{patient.gender}</span>
-              <span>•</span>
-              <Badge
-                variant={patient.status === "Stable" ? "default" : "secondary"}
-                className={cn(
-                  patient.status === "Stable"
-                    ? "bg-green-100 text-green-800 hover:bg-green-200"
-                    : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                )}
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={handleBack}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-2xl font-bold">Patient Details</h1>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Patient Profile Card */}
+        <Card className="md:col-span-1">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center space-y-4">
+              <Avatar className="h-24 w-24">
+                <AvatarImage
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${patientData.name}`}
+                  alt={patientData.name}
+                />
+                <AvatarFallback>
+                  {patientData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-center">
+                <h2 className="text-xl font-semibold">{patientData.name}</h2>
+                <p className="text-sm text-muted-foreground">
+                  Patient ID: {patientData.id}
+                </p>
+                <div className="flex justify-center mt-2">
+                  <Badge variant="outline">{patientData.bloodType}</Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className="flex items-start gap-2">
+                <User className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Gender & DOB</p>
+                  <p className="text-sm text-muted-foreground">
+                    {patientData.gender} •{" "}
+                    {new Date(patientData.dob).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm text-muted-foreground">
+                    {patientData.phone}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Mail className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm text-muted-foreground">
+                    {patientData.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Address</p>
+                  <p className="text-sm text-muted-foreground">
+                    {patientData.address}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Registration Date</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(
+                      patientData.registrationDate
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-2">Allergies</h3>
+              <div className="flex flex-wrap gap-2">
+                {patientData.allergies.map((allergy, index) => (
+                  <Badge key={index} variant="secondary">
+                    {allergy}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-2">Emergency Contact</h3>
+              <div className="text-sm">
+                <p>
+                  {patientData.emergencyContact.name} (
+                  {patientData.emergencyContact.relation})
+                </p>
+                <p className="text-muted-foreground">
+                  {patientData.emergencyContact.phone}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-2">Insurance</h3>
+              <div className="text-sm">
+                <p>{patientData.insuranceProvider}</p>
+                <p className="text-muted-foreground">
+                  Policy: {patientData.insuranceNumber}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Button
+                className="w-full"
+                onClick={() =>
+                  router.push(`/doctor/patients/${patientId}/edit`)
+                }
               >
-                {patient.status}
-              </Badge>
+                Edit Patient
+              </Button>
             </div>
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Printer className="mr-2 h-4 w-4" />
-            Print
-          </Button>
-          <Button variant="outline" size="sm">
-            <Share2 className="mr-2 h-4 w-4" />
-            Share
-          </Button>
-          <Button size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Patient
-          </Button>
+          </CardContent>
+        </Card>
+
+        {/* Main Content Area */}
+        <div className="md:col-span-2">
+          <Tabs defaultValue="overview" className="mt-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="medical-records">Medical Records</TabsTrigger>
+              <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+              <TabsTrigger value="lab-results">Lab Results</TabsTrigger>
+              <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-4 mt-6">
+              <PatientOverview patientId={patientId} />
+            </TabsContent>
+
+            <TabsContent value="medical-records" className="mt-6">
+              <MedicalRecordsTab patientId={patientId} />
+            </TabsContent>
+
+            <TabsContent value="prescriptions" className="mt-6">
+              <PatientPrescriptions />
+            </TabsContent>
+
+            <TabsContent value="lab-results" className="mt-6">
+              <PatientLabResults />
+            </TabsContent>
+
+            <TabsContent value="appointments" className="mt-6">
+              <PatientAppointments />
+            </TabsContent>
+
+            <TabsContent value="notes" className="mt-6">
+              <PatientNotes />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
-
-      {/* Patient summary cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Next Appointment
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">Aug 12, 2023</span>
-            </div>
-            <div className="mt-1 flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span>10:30 AM</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Primary Condition
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">{patient.condition}</span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Diagnosed on {patient.lastVisit}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Contact Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-sm">
-              <span className="font-medium">Phone:</span> {patient.phone}
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Email:</span> {patient.email}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs for different sections */}
-      <Tabs
-        defaultValue="overview"
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="history">Medical History</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="lab-results">Lab Results</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <PatientVitals patientId={patient.id} />
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-4">
-          <PatientMedicalHistory patientId={patient.id} />
-        </TabsContent>
-
-        <TabsContent value="prescriptions" className="space-y-4">
-          <PatientPrescriptions patientId={patient.id} />
-        </TabsContent>
-
-        <TabsContent value="lab-results" className="space-y-4">
-          <PatientLabResults patientId={patient.id} />
-        </TabsContent>
-
-        <TabsContent value="appointments" className="space-y-4">
-          <PatientAppointments patientId={patient.id} />
-        </TabsContent>
-
-        <TabsContent value="notes" className="space-y-4">
-          <PatientNotes patientId={patient.id} />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

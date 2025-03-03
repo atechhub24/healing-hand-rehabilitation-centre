@@ -1,48 +1,56 @@
 import { Patient } from "@/types/patient";
 import { PatientCard } from "./patient-card";
 
-/**
- * Sample patient data for demonstration
- */
-export const samplePatients: Patient[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    age: 45,
-    gender: "Male",
-    phone: "+1 234-567-8900",
-    email: "john.doe@example.com",
-    lastVisit: "2024-01-15",
-    condition: "Hypertension",
-    status: "Stable",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    age: 32,
-    gender: "Female",
-    phone: "+1 234-567-8901",
-    email: "jane.smith@example.com",
-    lastVisit: "2024-01-18",
-    condition: "Diabetes Type 2",
-    status: "Under Observation",
-  },
-  // Add more patients as needed
-];
-
 interface PatientListProps {
-  patients: Patient[];
+  patients: Patient[] | null;
+  isLoading: boolean;
 }
 
 /**
  * PatientList component displays a grid of patient cards
  * @param patients - Array of patient objects to display
+ * @param isLoading - Boolean indicating if data is still loading
  */
-export function PatientList({ patients }: PatientListProps) {
+export function PatientList({ patients, isLoading }: PatientListProps) {
+  if (isLoading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {Array(6)
+          .fill(0)
+          .map((_, index) => (
+            <div
+              key={index}
+              className="rounded-lg border bg-card text-card-foreground shadow-sm"
+            >
+              <div className="p-6 space-y-4">
+                <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-2/3 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
+  if (!patients || patients.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <h3 className="text-lg font-medium">No patients found</h3>
+        <p className="text-muted-foreground">
+          Add a new patient to get started.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {patients.map((patient) => (
-        <PatientCard key={patient.id} patient={patient} />
+        <PatientCard key={patient.uid} patient={patient} />
       ))}
     </div>
   );

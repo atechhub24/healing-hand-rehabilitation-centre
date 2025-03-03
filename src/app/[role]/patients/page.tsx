@@ -1,42 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import {
-  PatientList,
-  samplePatients,
-} from "@/components/patients/patient-list";
+import { useState, useMemo } from "react";
+import { PatientList } from "@/components/patients/patient-list";
 import { PatientSearch } from "@/components/patients/patient-search";
 import { AddPatientButton } from "@/components/patients/add-patient-button";
 import { Patient } from "@/types/patient";
 import { Card, CardContent } from "@/components/ui/card";
+import useFetch from "@/lib/hooks/use-fetch";
 
 /**
  * PatientsPage is the main page for viewing and managing patient records
  * It includes search functionality and displays a list of patient cards
  */
 export default function PatientsPage() {
-  const [filteredPatients, setFilteredPatients] =
-    useState<Patient[]>(samplePatients);
+  // Fetch patients directly from the patients path
+  const [patients, isLoading] = useFetch<Patient[]>("patients");
+
+  // State for search query
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Derive filtered patients from patients data and search query
+  const filteredPatients = useMemo(() => {
+    if (!patients) return null;
+
+    if (!searchQuery.trim()) {
+      return patients;
+    }
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+    return patients.filter(
+      (patient) =>
+        patient.name?.toLowerCase().includes(lowercaseQuery) ||
+        patient.email?.toLowerCase().includes(lowercaseQuery) ||
+        patient.condition?.toLowerCase().includes(lowercaseQuery) ||
+        patient.phone?.toLowerCase().includes(lowercaseQuery)
+    );
+  }, [patients, searchQuery]);
 
   /**
-   * Handles search queries and filters the patient list
+   * Handles search queries and updates the search query state
    * @param query - The search query string
    */
   const handleSearch = (query: string) => {
-    if (!query.trim()) {
-      setFilteredPatients(samplePatients);
-      return;
-    }
-
-    const lowercaseQuery = query.toLowerCase();
-    const filtered = samplePatients.filter(
-      (patient) =>
-        patient.name.toLowerCase().includes(lowercaseQuery) ||
-        patient.email.toLowerCase().includes(lowercaseQuery) ||
-        patient.condition.toLowerCase().includes(lowercaseQuery)
-    );
-
-    setFilteredPatients(filtered);
+    setSearchQuery(query);
   };
 
   return (
@@ -58,7 +64,7 @@ export default function PatientsPage() {
         </CardContent>
       </Card>
 
-      <PatientList patients={filteredPatients} />
+      <PatientList patients={filteredPatients} isLoading={isLoading} />
     </div>
   );
 }

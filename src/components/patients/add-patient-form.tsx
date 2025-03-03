@@ -4,8 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,27 +24,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Define the form schema with Zod
 const patientFormSchema = z.object({
   // Basic Information (Required)
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  dateOfBirth: z.date().optional(),
-  age: z.coerce.number().min(0).optional(),
+  age: z.coerce.number().min(0, { message: "Age is required" }),
   gender: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
   address: z.string().optional(),
-  emergencyContact: z.string().optional(),
-  emergencyPhone: z.string().optional(),
+  emergencyContact: z.string().optional().default(""),
+  emergencyPhone: z.string().optional().default(""),
 
   // Medical Information (Optional)
   bloodType: z.string().optional(),
@@ -124,13 +115,18 @@ interface FamilyHistory {
 
 interface AddPatientFormProps {
   onSubmit: (data: PatientFormValues) => void;
+  isSubmitting?: boolean;
 }
 
 /**
  * AddPatientForm component provides a comprehensive form for adding a new patient
  * @param onSubmit - Callback function triggered when the form is submitted
+ * @param isSubmitting - Boolean indicating if form is currently submitting
  */
-export function AddPatientForm({ onSubmit }: AddPatientFormProps) {
+export function AddPatientForm({
+  onSubmit,
+  isSubmitting = false,
+}: AddPatientFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
 
   // Initialize form with default values
@@ -138,6 +134,16 @@ export function AddPatientForm({ onSubmit }: AddPatientFormProps) {
     resolver: zodResolver(patientFormSchema),
     defaultValues: {
       name: "",
+      age: undefined,
+      gender: undefined,
+      phone: "",
+      email: "",
+      address: "",
+      emergencyContact: "",
+      emergencyPhone: "",
+      bloodType: undefined,
+      height: undefined,
+      weight: undefined,
       allergies: [],
       currentMedications: [],
       medicalConditions: [],
@@ -189,7 +195,16 @@ export function AddPatientForm({ onSubmit }: AddPatientFormProps) {
     data.surgicalHistory = surgicalHistory;
     data.familyHistory = familyHistory;
 
-    onSubmit(data);
+    // Clean up the data to remove undefined values
+    const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+      // Only include defined values
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, unknown>);
+
+    onSubmit(cleanData as PatientFormValues);
   };
 
   // Add a new allergy
@@ -309,52 +324,10 @@ export function AddPatientForm({ onSubmit }: AddPatientFormProps) {
 
               <FormField
                 control={form.control}
-                name="dateOfBirth"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date of Birth</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="age"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Age</FormLabel>
+                    <FormLabel>Age *</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -951,7 +924,9 @@ export function AddPatientForm({ onSubmit }: AddPatientFormProps) {
           >
             Cancel
           </Button>
-          <Button type="submit">Save Patient</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Patient"}
+          </Button>
         </div>
       </form>
     </Form>

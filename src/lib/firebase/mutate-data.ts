@@ -1,6 +1,10 @@
 import { auth, database } from "@/lib/firebase";
 import { ref, remove, set, push, update } from "firebase/database";
 
+/**
+ * Generates system information for audit tracking
+ * @returns Object containing system and user information
+ */
 const generateSystemInfo = () => {
   const timestamp = new Date().toISOString();
   const actionBy = auth.currentUser?.uid;
@@ -29,6 +33,24 @@ const generateSystemInfo = () => {
     browser,
   };
 };
+
+/**
+ * Result interface for mutate operations
+ */
+interface MutateResult {
+  success: boolean;
+  id?: string | null;
+  path?: string;
+  error?: string;
+}
+
+/**
+ * Mutate data in Firebase Realtime Database
+ * @param path - Path to the data in the database
+ * @param data - Data to mutate
+ * @param action - Action to perform (create, update, delete, createWithId)
+ * @returns Promise with the result of the operation
+ */
 export default async function mutate({
   path,
   data = {},
@@ -37,25 +59,47 @@ export default async function mutate({
   path: string;
   data?: Record<string, unknown>;
   action: "create" | "update" | "delete" | "createWithId";
-}) {
-  const systemInfo = generateSystemInfo();
-  const db = database;
-  const dbRef = ref(db, path);
+}): Promise<MutateResult> {
+  try {
+    const systemInfo = generateSystemInfo();
+    const dbRef = ref(database, path);
 
-  switch (action) {
-    case "create":
-      await set(dbRef, { ...data, creatorInfo: systemInfo });
-      break;
-    case "createWithId":
-      await push(dbRef, { ...data, creatorInfo: systemInfo });
-      break;
-    case "update":
-      await update(dbRef, { ...data, updaterInfo: systemInfo });
-      break;
-    case "delete":
-      await remove(dbRef);
-      break;
-    default:
-      throw new Error("Invalid action type");
+    // Clean up the data to remove undefined and null values
+    const cleanData = data
+      ? Object.entries(data).reduce((acc, [key, value]) => {
+          // Only include defined and non-null values
+          if (value !== undefined && value !== null) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, unknown>)
+      : {};
+
+    switch (action) {
+      case "create":
+        await set(dbRef, { ...cleanData, creatorInfo: systemInfo });
+        return { success: true, path };
+      case "createWithId":
+        const newRef = await push(dbRef, {
+          ...cleanData,
+          creatorInfo: systemInfo,
+        });
+        return { success: true, id: newRef.key, path };
+      case "update":
+        await update(dbRef, { ...cleanData, updaterInfo: systemInfo });
+        return { success: true, path };
+      case "delete":
+        await remove(dbRef);
+        return { success: true, path };
+      default:
+        throw new Error("Invalid action type");
+    }
+  } catch (error) {
+    console.error(`Database operation failed:`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+      path,
+    };
   }
 }

@@ -19,6 +19,12 @@ import { useParams } from "next/navigation";
 export function PatientCard({ patient }: { patient: Patient }) {
   // role
   const { role } = useParams();
+
+  // Format the last visit date or show "No visits yet"
+  const lastVisitDisplay = patient.lastVisit
+    ? new Date(patient.lastVisit).toLocaleDateString()
+    : "No visits yet";
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -57,7 +63,7 @@ export function PatientCard({ patient }: { patient: Patient }) {
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Calendar className="h-4 w-4" />
-          <span>Last Visit: {patient.lastVisit}</span>
+          <span>Last Visit: {lastVisitDisplay}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <FileText className="h-4 w-4" />
@@ -65,10 +71,16 @@ export function PatientCard({ patient }: { patient: Patient }) {
         </div>
       </CardContent>
       <CardFooter className="flex gap-2 pt-2">
-        <Link href={`/${role}/patients/${patient.id}`} className="flex-1">
+        <Link
+          href={`/${role}/patients/${patient.id || patient.uid}`}
+          className="flex-1"
+        >
           <Button className="w-full">View Details</Button>
         </Link>
-        <Link href={`/${role}/patients/${patient.id}/edit`} className="flex-1">
+        <Link
+          href={`/${role}/patients/${patient.id || patient.uid}/edit`}
+          className="flex-1"
+        >
           <Button variant="outline" className="w-full">
             Edit Patient
           </Button>

@@ -30,7 +30,7 @@ import { useParams } from "next/navigation";
 const patientFormSchema = z.object({
   // Basic Information (Required)
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  age: z.coerce.number().min(0, { message: "Age must be a positive number" }),
+  age: z.coerce.number().min(0, { message: "Age is required" }),
   gender: z.string().min(1, { message: "Please select a gender" }),
   phone: z.string().min(1, { message: "Phone number is required" }),
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -79,7 +79,16 @@ export function EditPatientForm({
 
   // Handle form submission
   const handleSubmit = (data: PatientFormValues) => {
-    onSubmit(data);
+    // Clean up the data to remove undefined values
+    const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+      // Only include defined values
+      if (value !== undefined && value !== null) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, unknown>);
+
+    onSubmit(cleanData as PatientFormValues);
   };
 
   return (

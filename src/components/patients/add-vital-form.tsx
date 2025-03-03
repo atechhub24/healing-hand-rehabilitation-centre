@@ -5,8 +5,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,14 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import mutate from "@/lib/firebase/mutate-data";
+import { Calendar } from "@/components/ui/calendar";
 
 /**
  * Schema for vital sign form validation
@@ -41,9 +34,13 @@ const vitalFormSchema = z.object({
   type: z.enum(["blood-pressure", "blood-glucose", "weight", "heart-rate"], {
     required_error: "Please select a vital type",
   }),
-  date: z.date({
-    required_error: "Please select a date",
-  }),
+  date: z
+    .date({
+      required_error: "Please select a date",
+    })
+    .refine((val) => val instanceof Date && !isNaN(val.getTime()), {
+      message: "Please select a valid date",
+    }),
   systolic: z.coerce
     .number()
     .min(70, "Systolic pressure must be at least 70")
@@ -68,7 +65,11 @@ type VitalFormValues = z.infer<typeof vitalFormSchema>;
  */
 const defaultValues: Partial<VitalFormValues> = {
   type: "blood-pressure",
-  date: new Date(),
+  date: (() => {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today;
+  })(),
 };
 
 /**
@@ -94,11 +95,28 @@ export function AddVitalForm({
 
   const onSubmit = async (data: VitalFormValues) => {
     setIsSubmitting(true);
+    console.log("Form submitted with data:", data);
+
     try {
+      if (
+        !data.date ||
+        !(data.date instanceof Date) ||
+        isNaN(data.date.getTime())
+      ) {
+        toast({
+          title: "Invalid date",
+          description: "Please select a valid date for the vital sign.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Prepare the data based on vital type
       let vitalData: Record<string, unknown> = {
         date: format(data.date, "yyyy-MM-dd"),
         notes: data.notes || "",
+        timestamp: new Date().toISOString(), // Add timestamp for sorting
       };
 
       // Add specific fields based on vital type
@@ -170,7 +188,7 @@ export function AddVitalForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-2">
         <FormField
           control={form.control}
           name="type"
@@ -208,38 +226,27 @@ export function AddVitalForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                      disabled={isSubmitting}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
+              <div className="w-full">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={(date) => {
+                    console.log("Calendar onSelect called with date:", date);
+                    if (date) {
+                      // Force the date to be set to noon to avoid timezone issues
+                      const adjustedDate = new Date(date);
+                      adjustedDate.setHours(12, 0, 0, 0);
+                      field.onChange(adjustedDate);
+                    } else {
+                      field.onChange(undefined);
                     }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                  }}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  className="rounded-md border shadow mx-auto w-full max-w-[350px]"
+                />
+              </div>
               <FormDescription>
                 The date when the vital sign was measured.
               </FormDescription>
@@ -265,6 +272,9 @@ export function AddVitalForm({
                         disabled={isSubmitting}
                       />
                     </FormControl>
+                    <FormDescription>
+                      The top number in a blood pressure reading.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -283,6 +293,9 @@ export function AddVitalForm({
                         disabled={isSubmitting}
                       />
                     </FormControl>
+                    <FormDescription>
+                      The bottom number in a blood pressure reading.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -316,6 +329,13 @@ export function AddVitalForm({
                     disabled={isSubmitting}
                   />
                 </FormControl>
+                <FormDescription>
+                  {vitalType === "blood-glucose"
+                    ? "Blood glucose level in milligrams per deciliter."
+                    : vitalType === "weight"
+                    ? "Weight in pounds."
+                    : "Heart rate in beats per minute."}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -327,7 +347,7 @@ export function AddVitalForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes (Optional)</FormLabel>
+              <FormLabel>Notes</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Any additional notes"
@@ -336,7 +356,7 @@ export function AddVitalForm({
                 />
               </FormControl>
               <FormDescription>
-                Add any relevant notes about this measurement.
+                Optional notes about the measurement.
               </FormDescription>
               <FormMessage />
             </FormItem>

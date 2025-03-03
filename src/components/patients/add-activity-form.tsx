@@ -5,8 +5,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -26,14 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
 import mutate from "@/lib/firebase/mutate-data";
+import { DatePicker } from "./date-picker";
 
 /**
  * Schema for activity form validation
@@ -87,7 +80,19 @@ export function AddActivityForm({
 
   const onSubmit = async (data: ActivityFormValues) => {
     setIsSubmitting(true);
+    console.log("Activity form submitted with data:", data);
+
     try {
+      if (!data.date) {
+        toast({
+          title: "Missing date",
+          description: "Please select a date for the activity.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Prepare the data
       const activityData = {
         type: data.type,
@@ -170,38 +175,16 @@ export function AddActivityForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                      disabled={isSubmitting}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                date={field.value}
+                onDateChange={(date) => {
+                  console.log("Date changed in activity form:", date);
+                  if (date) {
+                    field.onChange(date);
+                  }
+                }}
+                disabled={isSubmitting}
+              />
               <FormDescription>
                 The date when the activity occurred.
               </FormDescription>
@@ -224,8 +207,8 @@ export function AddActivityForm({
                 />
               </FormControl>
               <FormDescription>
-                A short description of the activity (e.g., "Checkup with Dr.
-                Smith").
+                A short description of the activity (e.g., &quot;Checkup with
+                Dr. Smith&quot;).
               </FormDescription>
               <FormMessage />
             </FormItem>

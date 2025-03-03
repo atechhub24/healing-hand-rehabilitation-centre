@@ -79,12 +79,19 @@ export function PatientVitals({ patientId }: { patientId: string }) {
         .map(([id, data]) => ({
           ...data,
           id,
+          originalDate: data.date, // Keep original date for sorting
           date: new Date(data.date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
         }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .sort((a, b) => {
+          // Sort by date, newest first
+          const dateA = new Date(a.originalDate).getTime();
+          const dateB = new Date(b.originalDate).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 10) // Show only the 10 most recent readings
     : [];
 
   const processedGlucoseData = glucoseData
@@ -92,12 +99,19 @@ export function PatientVitals({ patientId }: { patientId: string }) {
         .map(([id, data]) => ({
           ...data,
           id,
+          originalDate: data.date, // Keep original date for sorting
           date: new Date(data.date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
         }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .sort((a, b) => {
+          // Sort by date, newest first
+          const dateA = new Date(a.originalDate).getTime();
+          const dateB = new Date(b.originalDate).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 10) // Show only the 10 most recent readings
     : [];
 
   const processedWeightData = weightData
@@ -105,12 +119,19 @@ export function PatientVitals({ patientId }: { patientId: string }) {
         .map(([id, data]) => ({
           ...data,
           id,
+          originalDate: data.date, // Keep original date for sorting
           date: new Date(data.date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
         }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .sort((a, b) => {
+          // Sort by date, newest first
+          const dateA = new Date(a.originalDate).getTime();
+          const dateB = new Date(b.originalDate).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 10) // Show only the 10 most recent readings
     : [];
 
   const processedHeartRateData = heartRateData
@@ -118,12 +139,19 @@ export function PatientVitals({ patientId }: { patientId: string }) {
         .map(([id, data]) => ({
           ...data,
           id,
+          originalDate: data.date, // Keep original date for sorting
           date: new Date(data.date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           }),
         }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .sort((a, b) => {
+          // Sort by date, newest first
+          const dateA = new Date(a.originalDate).getTime();
+          const dateB = new Date(b.originalDate).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 10) // Show only the 10 most recent readings
     : [];
 
   // Fallback to sample data if no data is available
@@ -217,7 +245,7 @@ export function PatientVitals({ patientId }: { patientId: string }) {
                   Add Vital
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add New Vital Sign</DialogTitle>
                 </DialogHeader>

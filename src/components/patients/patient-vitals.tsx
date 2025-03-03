@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,7 +14,16 @@ import {
   Legend,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-// import useFetch from "@/lib/hooks/use-fetch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { AddVitalForm } from "./add-vital-form";
+import useFetch from "@/lib/hooks/use-fetch";
 
 /**
  * Interface for blood pressure data points
@@ -23,6 +32,8 @@ interface BPDataPoint {
   date: string;
   systolic: number;
   diastolic: number;
+  id?: string;
+  notes?: string;
 }
 
 /**
@@ -31,6 +42,8 @@ interface BPDataPoint {
 interface VitalDataPoint {
   date: string;
   value: number;
+  id?: string;
+  notes?: string;
 }
 
 /**
@@ -39,44 +52,100 @@ interface VitalDataPoint {
  */
 export function PatientVitals({ patientId }: { patientId: string }) {
   const [timeRange, setTimeRange] = useState<"1m" | "3m" | "6m" | "1y">("3m");
+  const [addVitalOpen, setAddVitalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("blood-pressure");
 
-  // In a real implementation, we would fetch vitals data from Firebase
-  // Example: const [vitalsData, isLoading] = useFetch<any>(`/patients/${patientId}/vitals`);
+  // Fetch vitals data from Firebase
+  const [bpData, bpLoading, bpRefetch] = useFetch<Record<string, BPDataPoint>>(
+    `/patients/${patientId}/vitals/blood-pressure`,
+    { needRaw: true }
+  );
 
-  // Sample data for blood pressure
-  const bpData: BPDataPoint[] = [
+  const [glucoseData, glucoseLoading, glucoseRefetch] = useFetch<
+    Record<string, VitalDataPoint>
+  >(`/patients/${patientId}/vitals/blood-glucose`, { needRaw: true });
+
+  const [weightData, weightLoading, weightRefetch] = useFetch<
+    Record<string, VitalDataPoint>
+  >(`/patients/${patientId}/vitals/weight`, { needRaw: true });
+
+  const [heartRateData, heartRateLoading, heartRateRefetch] = useFetch<
+    Record<string, VitalDataPoint>
+  >(`/patients/${patientId}/vitals/heart-rate`, { needRaw: true });
+
+  // Process the data for charts
+  const processedBPData = bpData
+    ? Object.entries(bpData)
+        .map(([id, data]) => ({
+          ...data,
+          id,
+          date: new Date(data.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [];
+
+  const processedGlucoseData = glucoseData
+    ? Object.entries(glucoseData)
+        .map(([id, data]) => ({
+          ...data,
+          id,
+          date: new Date(data.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [];
+
+  const processedWeightData = weightData
+    ? Object.entries(weightData)
+        .map(([id, data]) => ({
+          ...data,
+          id,
+          date: new Date(data.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [];
+
+  const processedHeartRateData = heartRateData
+    ? Object.entries(heartRateData)
+        .map(([id, data]) => ({
+          ...data,
+          id,
+          date: new Date(data.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [];
+
+  // Fallback to sample data if no data is available
+  const fallbackBPData: BPDataPoint[] = [
     { date: "Jan 1", systolic: 120, diastolic: 80 },
-    { date: "Jan 15", systolic: 118, diastolic: 78 },
     { date: "Feb 1", systolic: 122, diastolic: 82 },
-    { date: "Feb 15", systolic: 125, diastolic: 85 },
     { date: "Mar 1", systolic: 121, diastolic: 79 },
-    { date: "Mar 15", systolic: 119, diastolic: 77 },
     { date: "Apr 1", systolic: 120, diastolic: 80 },
-    { date: "Apr 15", systolic: 117, diastolic: 76 },
     { date: "May 1", systolic: 118, diastolic: 78 },
-    { date: "May 15", systolic: 116, diastolic: 75 },
     { date: "Jun 1", systolic: 120, diastolic: 80 },
-    { date: "Jun 15", systolic: 122, diastolic: 82 },
   ];
 
-  // Sample data for blood glucose
-  const glucoseData: VitalDataPoint[] = [
+  const fallbackGlucoseData: VitalDataPoint[] = [
     { date: "Jan 1", value: 110 },
-    { date: "Jan 15", value: 105 },
     { date: "Feb 1", value: 112 },
-    { date: "Feb 15", value: 108 },
     { date: "Mar 1", value: 115 },
-    { date: "Mar 15", value: 110 },
     { date: "Apr 1", value: 107 },
-    { date: "Apr 15", value: 105 },
     { date: "May 1", value: 110 },
-    { date: "May 15", value: 108 },
     { date: "Jun 1", value: 112 },
-    { date: "Jun 15", value: 110 },
   ];
 
-  // Sample data for weight
-  const weightData: VitalDataPoint[] = [
+  const fallbackWeightData: VitalDataPoint[] = [
     { date: "Jan 1", value: 180 },
     { date: "Feb 1", value: 178 },
     { date: "Mar 1", value: 176 },
@@ -85,72 +154,88 @@ export function PatientVitals({ patientId }: { patientId: string }) {
     { date: "Jun 1", value: 172 },
   ];
 
-  // Sample data for heart rate
-  const heartRateData: VitalDataPoint[] = [
+  const fallbackHeartRateData: VitalDataPoint[] = [
     { date: "Jan 1", value: 72 },
-    { date: "Jan 15", value: 75 },
     { date: "Feb 1", value: 70 },
-    { date: "Feb 15", value: 73 },
     { date: "Mar 1", value: 71 },
-    { date: "Mar 15", value: 74 },
     { date: "Apr 1", value: 72 },
-    { date: "Apr 15", value: 70 },
     { date: "May 1", value: 71 },
-    { date: "May 15", value: 73 },
     { date: "Jun 1", value: 72 },
-    { date: "Jun 15", value: 71 },
   ];
 
-  // In a real application, we would fetch this data based on the patientId and timeRange
-  useEffect(() => {
-    // This function would be implemented to fetch real data
-    // const fetchVitalsData = async () => {
-    //   // Fetch data from Firebase based on patientId and timeRange
-    //   // Example: const response = await fetch(`/patients/${patientId}/vitals?timeRange=${timeRange}`);
-    // };
-    // Uncomment to implement real data fetching
-    // fetchVitalsData();
-  }, [patientId, timeRange]);
+  // Handle successful form submission
+  const handleVitalAdded = () => {
+    setAddVitalOpen(false);
+    // Refetch the data for the active tab
+    if (activeTab === "blood-pressure") bpRefetch();
+    if (activeTab === "blood-glucose") glucoseRefetch();
+    if (activeTab === "weight") weightRefetch();
+    if (activeTab === "heart-rate") heartRateRefetch();
+  };
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl">Vital Signs</CardTitle>
-          <div className="flex space-x-2">
-            <Button
-              variant={timeRange === "1m" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("1m")}
-            >
-              1M
-            </Button>
-            <Button
-              variant={timeRange === "3m" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("3m")}
-            >
-              3M
-            </Button>
-            <Button
-              variant={timeRange === "6m" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("6m")}
-            >
-              6M
-            </Button>
-            <Button
-              variant={timeRange === "1y" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("1y")}
-            >
-              1Y
-            </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex space-x-2">
+              <Button
+                variant={timeRange === "1m" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("1m")}
+              >
+                1M
+              </Button>
+              <Button
+                variant={timeRange === "3m" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("3m")}
+              >
+                3M
+              </Button>
+              <Button
+                variant={timeRange === "6m" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("6m")}
+              >
+                6M
+              </Button>
+              <Button
+                variant={timeRange === "1y" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("1y")}
+              >
+                1Y
+              </Button>
+            </div>
+
+            <Dialog open={addVitalOpen} onOpenChange={setAddVitalOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  Add Vital
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Vital Sign</DialogTitle>
+                </DialogHeader>
+                <AddVitalForm
+                  patientId={patientId}
+                  onSuccess={handleVitalAdded}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="blood-pressure">
+        <Tabs
+          defaultValue="blood-pressure"
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value)}
+        >
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="blood-pressure">Blood Pressure</TabsTrigger>
             <TabsTrigger value="blood-glucose">Blood Glucose</TabsTrigger>
@@ -162,7 +247,11 @@ export function PatientVitals({ patientId }: { patientId: string }) {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={bpData}
+                  data={
+                    processedBPData.length > 0
+                      ? processedBPData
+                      : fallbackBPData
+                  }
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -180,13 +269,28 @@ export function PatientVitals({ patientId }: { patientId: string }) {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            {bpLoading && (
+              <div className="text-center py-4 text-muted-foreground">
+                Loading blood pressure data...
+              </div>
+            )}
+            {!bpLoading && processedBPData.length === 0 && (
+              <div className="text-center py-4 text-muted-foreground">
+                No blood pressure data available. Add new measurements using the
+                "Add Vital" button.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="blood-glucose" className="pt-4">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={glucoseData}
+                  data={
+                    processedGlucoseData.length > 0
+                      ? processedGlucoseData
+                      : fallbackGlucoseData
+                  }
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -204,13 +308,28 @@ export function PatientVitals({ patientId }: { patientId: string }) {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            {glucoseLoading && (
+              <div className="text-center py-4 text-muted-foreground">
+                Loading blood glucose data...
+              </div>
+            )}
+            {!glucoseLoading && processedGlucoseData.length === 0 && (
+              <div className="text-center py-4 text-muted-foreground">
+                No blood glucose data available. Add new measurements using the
+                "Add Vital" button.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="weight" className="pt-4">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={weightData}
+                  data={
+                    processedWeightData.length > 0
+                      ? processedWeightData
+                      : fallbackWeightData
+                  }
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -228,13 +347,28 @@ export function PatientVitals({ patientId }: { patientId: string }) {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            {weightLoading && (
+              <div className="text-center py-4 text-muted-foreground">
+                Loading weight data...
+              </div>
+            )}
+            {!weightLoading && processedWeightData.length === 0 && (
+              <div className="text-center py-4 text-muted-foreground">
+                No weight data available. Add new measurements using the "Add
+                Vital" button.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="heart-rate" className="pt-4">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={heartRateData}
+                  data={
+                    processedHeartRateData.length > 0
+                      ? processedHeartRateData
+                      : fallbackHeartRateData
+                  }
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -252,6 +386,17 @@ export function PatientVitals({ patientId }: { patientId: string }) {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            {heartRateLoading && (
+              <div className="text-center py-4 text-muted-foreground">
+                Loading heart rate data...
+              </div>
+            )}
+            {!heartRateLoading && processedHeartRateData.length === 0 && (
+              <div className="text-center py-4 text-muted-foreground">
+                No heart rate data available. Add new measurements using the
+                "Add Vital" button.
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { PatientOverview } from "@/components/patients/patient-overview";
+import { PatientVitals } from "@/components/patients/patient-vitals";
 import useFetch from "@/lib/hooks/use-fetch";
 import { Patient } from "@/types/patient";
 
@@ -115,13 +116,7 @@ export default function PatientDetailPage() {
         </TabsContent>
 
         <TabsContent value="vitals" className="mt-6">
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-center text-muted-foreground py-8">
-                Vitals will be implemented soon
-              </p>
-            </CardContent>
-          </Card>
+          <PatientVitals patientId={patient.id || patient.uid} />
         </TabsContent>
 
         <TabsContent value="notes" className="mt-6">

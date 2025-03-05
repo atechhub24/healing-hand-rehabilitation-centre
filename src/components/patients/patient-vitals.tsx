@@ -305,7 +305,7 @@ export function PatientVitals({ patientId }: { patientId: string }) {
             {!bpLoading && processedBPData.length === 0 && (
               <div className="text-center py-4 text-muted-foreground">
                 No blood pressure data available. Add new measurements using the
-                "Add Vital" button.
+                &quot;Add Vital&quot; button.
               </div>
             )}
           </TabsContent>
@@ -344,7 +344,7 @@ export function PatientVitals({ patientId }: { patientId: string }) {
             {!glucoseLoading && processedGlucoseData.length === 0 && (
               <div className="text-center py-4 text-muted-foreground">
                 No blood glucose data available. Add new measurements using the
-                "Add Vital" button.
+                &quot;Add Vital&quot; button.
               </div>
             )}
           </TabsContent>
@@ -382,8 +382,8 @@ export function PatientVitals({ patientId }: { patientId: string }) {
             )}
             {!weightLoading && processedWeightData.length === 0 && (
               <div className="text-center py-4 text-muted-foreground">
-                No weight data available. Add new measurements using the "Add
-                Vital" button.
+                No weight data available. Add new measurements using the
+                &quot;Add Vital&quot; button.
               </div>
             )}
           </TabsContent>
@@ -422,7 +422,7 @@ export function PatientVitals({ patientId }: { patientId: string }) {
             {!heartRateLoading && processedHeartRateData.length === 0 && (
               <div className="text-center py-4 text-muted-foreground">
                 No heart rate data available. Add new measurements using the
-                "Add Vital" button.
+                &quot;Add Vital&quot; button.
               </div>
             )}
           </TabsContent>

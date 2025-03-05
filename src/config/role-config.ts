@@ -1,5 +1,4 @@
 import {
-  Activity,
   Ambulance,
   Bell,
   BookOpen,
@@ -33,7 +32,6 @@ export const roleConfig = {
         icon: Dumbbell,
         href: "/admin/tdee-calculator",
       },
-      { label: "Analytics", icon: Activity, href: "/admin/analytics" },
       { label: "Settings", icon: Settings, href: "/admin/settings" },
     ],
   },

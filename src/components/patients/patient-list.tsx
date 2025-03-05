@@ -4,14 +4,20 @@ import { PatientCard } from "./patient-card";
 interface PatientListProps {
   patients: Patient[] | null;
   isLoading: boolean;
+  onPatientDeleted?: () => void;
 }
 
 /**
  * PatientList component displays a grid of patient cards
  * @param patients - Array of patient objects to display
  * @param isLoading - Boolean indicating if data is still loading
+ * @param onPatientDeleted - Optional callback function when a patient is deleted
  */
-export function PatientList({ patients, isLoading }: PatientListProps) {
+export function PatientList({
+  patients,
+  isLoading,
+  onPatientDeleted,
+}: PatientListProps) {
   if (isLoading) {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -50,7 +56,11 @@ export function PatientList({ patients, isLoading }: PatientListProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {patients.map((patient) => (
-        <PatientCard key={patient.uid} patient={patient} />
+        <PatientCard
+          key={patient.uid}
+          patient={patient}
+          onDeleted={onPatientDeleted}
+        />
       ))}
     </div>
   );

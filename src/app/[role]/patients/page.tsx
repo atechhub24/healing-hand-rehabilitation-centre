@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { PatientList } from "@/components/patients/patient-list";
 import { PatientSearch } from "@/components/patients/patient-search";
 import { AddPatientButton } from "@/components/patients/add-patient-button";
@@ -14,7 +14,7 @@ import useFetch from "@/lib/hooks/use-fetch";
  */
 export default function PatientsPage() {
   // Fetch patients directly from the patients path
-  const [patients, isLoading] = useFetch<Patient[]>("patients");
+  const [patients, isLoading, refetch] = useFetch<Patient[]>("patients");
 
   // State for search query
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,6 +45,14 @@ export default function PatientsPage() {
     setSearchQuery(query);
   };
 
+  /**
+   * Handles patient deletion by refreshing the patient list
+   */
+  const handlePatientDeleted = useCallback(() => {
+    // Refetch the patients list to reflect the deletion
+    refetch();
+  }, [refetch]);
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-none">
@@ -64,7 +72,11 @@ export default function PatientsPage() {
         </CardContent>
       </Card>
 
-      <PatientList patients={filteredPatients} isLoading={isLoading} />
+      <PatientList
+        patients={filteredPatients}
+        isLoading={isLoading}
+        onPatientDeleted={handlePatientDeleted}
+      />
     </div>
   );
 }

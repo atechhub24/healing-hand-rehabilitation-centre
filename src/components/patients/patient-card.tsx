@@ -11,12 +11,19 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { DeletePatientButton } from "./delete-patient-button";
+
+interface PatientCardProps {
+  patient: Patient;
+  onDeleted?: () => void;
+}
 
 /**
  * PatientCard component displays individual patient information in a card format
  * @param patient - Patient object containing patient details
+ * @param onDeleted - Optional callback function when the patient is deleted
  */
-export function PatientCard({ patient }: { patient: Patient }) {
+export function PatientCard({ patient, onDeleted }: PatientCardProps) {
   // role
   const { role } = useParams();
 
@@ -85,6 +92,7 @@ export function PatientCard({ patient }: { patient: Patient }) {
             Edit Patient
           </Button>
         </Link>
+        <DeletePatientButton patient={patient} onDeleted={onDeleted} />
       </CardFooter>
     </Card>
   );

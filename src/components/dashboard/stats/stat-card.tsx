@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import Link from "next/link";
+import { LucideIcon } from "lucide-react";
 
 export interface DashboardCard {
   title: string;
@@ -10,7 +12,12 @@ export interface DashboardCard {
     trend: "up" | "down";
   };
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
+  action?: {
+    label: string;
+    href: string;
+    icon: LucideIcon;
+  };
 }
 
 export default function StatCard({ card }: { card: DashboardCard }) {
@@ -45,6 +52,15 @@ export default function StatCard({ card }: { card: DashboardCard }) {
             )}
           </div>
           <p className="text-sm text-muted-foreground">{card.description}</p>
+          {card.action && (
+            <Link
+              href={card.action.href}
+              className="inline-flex items-center gap-2 mt-4 text-sm font-medium text-primary hover:underline"
+            >
+              <card.action.icon className="h-4 w-4" />
+              {card.action.label}
+            </Link>
+          )}
         </div>
       </div>
     </Card>

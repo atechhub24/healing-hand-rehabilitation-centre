@@ -1,123 +1,25 @@
+"use client";
+
+import { useCallback } from "react";
 import {
   Activity,
   Calendar,
   Users,
-  DollarSign,
   Clock,
   FileText,
   TestTube,
+  UserPlus,
 } from "lucide-react";
 import StatCard, { DashboardCard } from "./stat-card";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Patient } from "@/types/patient";
 
-const roleBasedCards: Record<string, DashboardCard[]> = {
-  admin: [
-    {
-      title: "Total Users",
-      value: "1,234",
-      change: { value: "+12.5%", trend: "up" },
-      description: "Active users in the system",
-      icon: Users,
-    },
-    {
-      title: "Appointments",
-      value: "156",
-      change: { value: "+8.2%", trend: "up" },
-      description: "Scheduled today",
-      icon: Calendar,
-    },
-    {
-      title: "Revenue",
-      value: "$12,345",
-      change: { value: "-2.4%", trend: "down" },
-      description: "This month",
-      icon: DollarSign,
-    },
-  ],
-  doctor: [
-    {
-      title: "Today's Appointments",
-      value: "8",
-      change: { value: "+2", trend: "up" },
-      description: "Scheduled appointments",
-      icon: Calendar,
-    },
-    {
-      title: "Patients",
-      value: "45",
-      change: { value: "+5", trend: "up" },
-      description: "Under your care",
-      icon: Users,
-    },
-    {
-      title: "Average Time",
-      value: "25min",
-      description: "Per consultation",
-      icon: Clock,
-    },
-  ],
-  paramedic: [
-    {
-      title: "Emergency Calls",
-      value: "3",
-      description: "Active emergency calls",
-      icon: Activity,
-    },
-    {
-      title: "Patients Attended",
-      value: "12",
-      change: { value: "+2", trend: "up" },
-      description: "Today",
-      icon: Users,
-    },
-    {
-      title: "Response Time",
-      value: "8min",
-      description: "Average response time",
-      icon: Clock,
-    },
-  ],
-  lab: [
-    {
-      title: "Test Orders",
-      value: "24",
-      change: { value: "+4", trend: "up" },
-      description: "Pending tests",
-      icon: TestTube,
-    },
-    {
-      title: "Reports",
-      value: "18",
-      description: "Ready for delivery",
-      icon: FileText,
-    },
-    {
-      title: "Processing Time",
-      value: "45min",
-      description: "Average processing time",
-      icon: Clock,
-    },
-  ],
-  patient: [
-    {
-      title: "Appointments",
-      value: "2",
-      description: "Upcoming appointments",
-      icon: Calendar,
-    },
-    {
-      title: "Test Results",
-      value: "3",
-      description: "Pending results",
-      icon: TestTube,
-    },
-    {
-      title: "Prescriptions",
-      value: "5",
-      description: "Active prescriptions",
-      icon: FileText,
-    },
-  ],
-};
+interface Staff {
+  id: string;
+  name: string;
+  role: string;
+  status: string;
+}
 
 interface RoleStatsProps {
   role: string;
@@ -125,6 +27,143 @@ interface RoleStatsProps {
 }
 
 export default function RoleStats({ role, onError }: RoleStatsProps) {
+  // Fetch patients data
+  const [patients] = useFetch<Patient[]>("patients");
+
+  // Fetch staff data
+  const [staff] = useFetch<Staff[]>("staff");
+
+  // Calculate active patients (patients with status "active")
+  const activePatients = useCallback(() => {
+    if (!patients) return 0;
+    return patients.filter((patient) => patient.status === "active").length;
+  }, [patients]);
+
+  // Get total patients count
+  const totalPatients = patients?.length || 0;
+
+  // Get total staff count
+  const totalStaff = staff?.length || 0;
+
+  // Define role-based cards with dynamic data
+  const roleBasedCards: Record<string, DashboardCard[]> = {
+    admin: [
+      {
+        title: "Total Patients",
+        value: totalPatients.toString(),
+        description: "Registered patients",
+        icon: Users,
+        action: {
+          label: "Add Patient",
+          href: `/${role}/patients/add`,
+          icon: UserPlus,
+        },
+      },
+      {
+        title: "Active Patients",
+        value: activePatients().toString(),
+        description: "Currently active patients",
+        icon: Activity,
+      },
+      {
+        title: "Total Staff",
+        value: totalStaff.toString(),
+        description: "Medical staff members",
+        icon: Users,
+      },
+    ],
+    doctor: [
+      {
+        title: "Total Patients",
+        value: totalPatients.toString(),
+        description: "Under your care",
+        icon: Users,
+        action: {
+          label: "Add Patient",
+          href: `/${role}/patients/add`,
+          icon: UserPlus,
+        },
+      },
+      {
+        title: "Active Patients",
+        value: activePatients().toString(),
+        description: "Currently active patients",
+        icon: Activity,
+      },
+      {
+        title: "Today's Appointments",
+        value: "0",
+        description: "Scheduled appointments",
+        icon: Calendar,
+      },
+    ],
+    paramedic: [
+      {
+        title: "Total Patients",
+        value: totalPatients.toString(),
+        description: "In the system",
+        icon: Users,
+        action: {
+          label: "Add Patient",
+          href: `/${role}/patients/add`,
+          icon: UserPlus,
+        },
+      },
+      {
+        title: "Active Cases",
+        value: activePatients().toString(),
+        description: "Currently active cases",
+        icon: Activity,
+      },
+      {
+        title: "Response Time",
+        value: "8min",
+        description: "Average response time",
+        icon: Clock,
+      },
+    ],
+    lab: [
+      {
+        title: "Total Patients",
+        value: totalPatients.toString(),
+        description: "In the system",
+        icon: Users,
+      },
+      {
+        title: "Pending Tests",
+        value: "0",
+        description: "Tests to be processed",
+        icon: TestTube,
+      },
+      {
+        title: "Reports",
+        value: "0",
+        description: "Ready for delivery",
+        icon: FileText,
+      },
+    ],
+    patient: [
+      {
+        title: "Appointments",
+        value: "0",
+        description: "Upcoming appointments",
+        icon: Calendar,
+      },
+      {
+        title: "Test Results",
+        value: "0",
+        description: "Pending results",
+        icon: TestTube,
+      },
+      {
+        title: "Prescriptions",
+        value: "0",
+        description: "Active prescriptions",
+        icon: FileText,
+      },
+    ],
+  };
+
   const cards = roleBasedCards[role] || [];
 
   if (cards.length === 0) {

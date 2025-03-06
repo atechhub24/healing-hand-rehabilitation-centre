@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import RoleStats from "@/components/dashboard/stats/role-stats";
-import QuickLinks from "@/components/dashboard/quick-links/quick-links";
-import RecentActivity from "@/components/dashboard/activity/recent-activity";
 import RecentPatients from "@/components/dashboard/patients/recent-patients";
+import QuickLinks from "@/components/dashboard/quick-links/quick-links";
+import RoleStats from "@/components/dashboard/stats/role-stats";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 export default function DashboardPage() {
   const params = useParams();
@@ -47,11 +46,6 @@ export default function DashboardPage() {
       {/* Recent Patients Section */}
       <section aria-label="Recent Patients">
         <RecentPatients role={role} onError={handleError} />
-      </section>
-
-      {/* Recent Activity Section */}
-      <section aria-label="Recent Activity">
-        <RecentActivity role={role} onError={handleError} />
       </section>
 
       <AlertDialog open={!!error} onOpenChange={() => setError(null)}>

@@ -42,7 +42,10 @@ export default function Layout({ children }: LayoutProps) {
   // 2. Main content area (header + page content)
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Sidebar panel */}
       <Panel />
+
+      {/* Main content area - no shifting on mobile */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={title} />
         <main className="flex-1 overflow-y-auto p-6">

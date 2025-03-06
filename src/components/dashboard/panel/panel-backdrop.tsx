@@ -11,12 +11,11 @@ export function Backdrop({ isOpen, onClick }: BackdropProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: isOpen ? 0.5 : 0 }}
+      animate={{ opacity: isOpen ? 0.7 : 0 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onClick}
-      className={`fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden ${
-        isOpen ? "pointer-events-auto" : "pointer-events-none"
-      }`}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[45] lg:hidden"
     />
   );
 }

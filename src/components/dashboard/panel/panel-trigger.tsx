@@ -13,8 +13,9 @@ export function MobileTrigger({ isOpen, onToggle }: MobileTriggerProps) {
     <Button
       variant="ghost"
       size="icon"
-      className="fixed top-4 left-4 z-50 lg:hidden bg-background/50 backdrop-blur-sm border shadow-sm"
+      className="fixed top-4 left-4 z-[60] lg:hidden bg-background/90 backdrop-blur-sm border shadow-md hover:bg-background/95 transition-all"
       onClick={onToggle}
+      aria-label={isOpen ? "Close menu" : "Open menu"}
     >
       {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
     </Button>

@@ -81,9 +81,13 @@ export default function RecentPatients({ role, onError }: RecentPatientsProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Age</TableHead>
+              <TableHead>Gender</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Blood Type</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Condition</TableHead>
               <TableHead>Last Visit</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,6 +101,17 @@ export default function RecentPatients({ role, onError }: RecentPatientsProps) {
                     {patient.name}
                   </Link>
                 </TableCell>
+                <TableCell>{patient.age} yrs</TableCell>
+                <TableCell>{patient.gender}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col text-sm">
+                    <span>{patient.phone}</span>
+                    <span className="text-muted-foreground">
+                      {patient.email}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>{patient.bloodType || "N/A"}</TableCell>
                 <TableCell>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -110,11 +125,17 @@ export default function RecentPatients({ role, onError }: RecentPatientsProps) {
                     {patient.status}
                   </span>
                 </TableCell>
-                <TableCell>{patient.condition}</TableCell>
                 <TableCell>
                   {patient.lastVisit
                     ? new Date(patient.lastVisit).toLocaleDateString()
                     : "No visits"}
+                </TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/${role}/patients/${patient.uid}`}>
+                      View Details
+                    </Link>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

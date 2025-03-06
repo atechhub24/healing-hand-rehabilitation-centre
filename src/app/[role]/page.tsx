@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import RoleStats from "@/components/dashboard/stats/role-stats";
 import QuickLinks from "@/components/dashboard/quick-links/quick-links";
 import RecentActivity from "@/components/dashboard/activity/recent-activity";
+import RecentPatients from "@/components/dashboard/patients/recent-patients";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,11 @@ export default function DashboardPage() {
       {/* Quick Links Section */}
       <section aria-label="Quick Links">
         <QuickLinks role={role} onError={handleError} />
+      </section>
+
+      {/* Recent Patients Section */}
+      <section aria-label="Recent Patients">
+        <RecentPatients role={role} onError={handleError} />
       </section>
 
       {/* Recent Activity Section */}

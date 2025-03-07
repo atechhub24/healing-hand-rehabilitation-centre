@@ -13,7 +13,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 interface FileUploadProps {
   bucketName?: string;
   folderPath?: string;
-  onUploadComplete?: (url: string) => void;
+  onUploadComplete?: (url: string, file: File, storagePath: string) => void;
   allowedFileTypes?: string[];
   maxSizeMB?: number;
   className?: string;
@@ -140,7 +140,7 @@ export function FileUpload({
 
       // Call the onUploadComplete callback if provided
       if (onUploadComplete) {
-        onUploadComplete(publicUrl);
+        onUploadComplete(publicUrl, file, filePath);
       }
     } catch (err: unknown) {
       console.error("Error uploading file:", err);

@@ -123,3 +123,19 @@ export interface Appointment {
   updaterInfo: UpdaterInfo;
   note?: string;
 }
+
+export interface PatientDocument {
+  id: string;
+  patientId: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  storagePath: string;
+  uploadedAt: string;
+  uploadedBy?: string;
+  description?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -1,4 +1,10 @@
-export type UserRole = "admin" | "doctor" | "paramedic" | "lab" | "patient";
+export type UserRole =
+  | "admin"
+  | "doctor"
+  | "paramedic"
+  | "lab"
+  | "patient"
+  | "staff";
 
 export interface UserData {
   uid: string;
@@ -81,6 +87,9 @@ export interface Doctor extends UserData {
   specialization?: string;
   experience?: number;
 }
+
+// Staff is an alias for Doctor type
+export type Staff = Doctor;
 
 export interface CreatorInfo {
   actionBy: string;

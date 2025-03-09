@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +19,10 @@ import {
   Plus,
   X,
   ArrowLeft,
-  Lock,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import Link from "next/link";
+import useFetch from "@/lib/hooks/use-fetch";
 import { useToast } from "@/hooks/use-toast";
-import { createUser } from "@/lib/firebase/create-user";
 import mutateData from "@/lib/firebase/mutate-data";
 import { Label } from "@/components/ui/label";
 
@@ -41,37 +38,44 @@ interface ClinicAddress {
   };
 }
 
-export default function NewDoctorPage() {
+interface Staff {
+  uid: string;
+  email: string;
+  name: string;
+  qualification: string;
+  specialization: string;
+  experience: number;
+  clinicAddresses: ClinicAddress[];
+  role: string;
+  createdAt: string;
+  lastLogin: string;
+}
+
+interface PageParams {
+  role: string;
+  id: string;
+}
+
+export default function EditStaffPage() {
   const router = useRouter();
-  const { role } = useParams();
+  const rawParams = useParams();
+  const params: PageParams = {
+    role: rawParams.role as string,
+    id: rawParams.id as string,
+  };
+  const { role } = params;
+  const staffId = params.id;
+
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [clinicAddresses, setClinicAddresses] = useState<ClinicAddress[]>([
-    {
-      address: "",
-      city: "",
-      state: "",
-      pincode: "",
-      timings: {
-        startTime: "09:00",
-        endTime: "17:00",
-        days: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-      },
-    },
-  ]);
+  const [staff, isLoading] = useFetch<Staff>(`/users/${staffId}`, {
+    needRaw: true,
+  });
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
     name: "",
     qualification: "",
     specialization: "",
@@ -91,52 +95,68 @@ export default function NewDoctorPage() {
     ],
   });
 
+  useEffect(() => {
+    if (staff && !isFormInitialized) {
+      setFormData({
+        email: staff.email || "",
+        name: staff.name || "",
+        qualification: staff.qualification || "",
+        specialization: staff.specialization || "",
+        experience: staff.experience?.toString() || "",
+        clinicAddresses: staff.clinicAddresses || [
+          {
+            address: "",
+            city: "",
+            state: "",
+            pincode: "",
+            timings: {
+              startTime: "09:00",
+              endTime: "17:00",
+              days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            },
+          },
+        ],
+      });
+      setIsFormInitialized(true);
+    }
+  }, [staff, isFormInitialized]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSaving(true);
     setError("");
 
     try {
-      // First create the user authentication
-      const authResponse = await createUser(formData.email, formData.password);
-
-      if (!authResponse.localId) {
-        throw new Error("Failed to create user authentication");
-      }
-
-      // Prepare the doctor data
-      const doctorData = {
-        email: formData.email,
+      // Prepare the staff data - remove email from update data
+      const staffData = {
         name: formData.name,
         qualification: formData.qualification,
         specialization: formData.specialization,
         experience: parseInt(formData.experience),
-        clinicAddresses,
+        clinicAddresses: formData.clinicAddresses,
         role: "doctor",
-        createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
-        uid: authResponse.localId,
       };
 
-      // Store the doctor data in the database
+      // Update the staff data in the database
       await mutateData({
-        path: `/users/${authResponse.localId}`,
-        data: doctorData,
-        action: "create",
+        path: `/users/${staffId}`,
+        data: staffData,
+        action: "update",
       });
 
       toast({
         title: "Success",
-        description: "Doctor created successfully",
+        description: "Staff updated successfully",
       });
-      router.push(`/${role}/manage/doctors`);
+      router.push(`/${role}/manage/staff`);
     } catch (error) {
-      console.error("Error creating doctor:", error);
-      setError("Failed to create doctor. Please try again.");
+      console.error("Error updating staff:", error);
+      setError("Failed to update staff. Please try again.");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create doctor",
+        description: "Failed to update staff",
       });
     }
     setIsSaving(false);
@@ -156,9 +176,11 @@ export default function NewDoctorPage() {
     field: keyof Omit<ClinicAddress, "timings">,
     value: string
   ) => {
-    const newAddresses = [...clinicAddresses];
-    newAddresses[index] = { ...newAddresses[index], [field]: value };
-    setClinicAddresses(newAddresses);
+    setFormData((prev) => {
+      const newAddresses = [...prev.clinicAddresses];
+      newAddresses[index] = { ...newAddresses[index], [field]: value };
+      return { ...prev, clinicAddresses: newAddresses };
+    });
   };
 
   const handleTimingsChange = (
@@ -166,66 +188,75 @@ export default function NewDoctorPage() {
     field: keyof ClinicAddress["timings"],
     value: string | string[]
   ) => {
-    const newAddresses = [...clinicAddresses];
-    newAddresses[index] = {
-      ...newAddresses[index],
-      timings: {
-        ...newAddresses[index].timings,
-        [field]: value,
-      },
-    };
-    setClinicAddresses(newAddresses);
+    setFormData((prev) => {
+      const newAddresses = [...prev.clinicAddresses];
+      newAddresses[index] = {
+        ...newAddresses[index],
+        timings: {
+          ...newAddresses[index].timings,
+          [field]: value,
+        },
+      };
+      return { ...prev, clinicAddresses: newAddresses };
+    });
   };
 
   const addClinicAddress = () => {
-    setClinicAddresses([
-      ...clinicAddresses,
-      {
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        timings: {
-          startTime: "09:00",
-          endTime: "17:00",
-          days: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ],
+    setFormData((prev) => ({
+      ...prev,
+      clinicAddresses: [
+        ...prev.clinicAddresses,
+        {
+          address: "",
+          city: "",
+          state: "",
+          pincode: "",
+          timings: {
+            startTime: "09:00",
+            endTime: "17:00",
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          },
         },
-      },
-    ]);
+      ],
+    }));
   };
 
   const removeClinicAddress = (index: number) => {
-    if (clinicAddresses.length > 1) {
-      setClinicAddresses(clinicAddresses.filter((_, i) => i !== index));
+    if (formData.clinicAddresses.length > 1) {
+      setFormData((prev) => ({
+        ...prev,
+        clinicAddresses: prev.clinicAddresses.filter((_, i) => i !== index),
+      }));
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="max-w-3xl mx-auto text-center text-muted-foreground">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href={`/${role}/manage/doctors`}>
+          <Link href={`/${role}/manage/staff`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Doctors
+              Back to Staff
             </Button>
           </Link>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Add New Doctor
-          </h1>
+          <h1 className="text-2xl font-semibold text-foreground">Edit Staff</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-card rounded-lg shadow p-6 space-y-4">
             <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
-              Credentials
+              Personal Information
             </h2>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -240,47 +271,11 @@ export default function NewDoctorPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    disabled
                     className="pl-10"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Enter password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="pl-10 pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-lg shadow p-6 space-y-4">
-            <h2 className="text-lg font-medium text-foreground pb-2 border-b border-border">
-              Personal Information
-            </h2>
-            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">
@@ -374,7 +369,7 @@ export default function NewDoctorPage() {
                 <Plus className="h-4 w-4 mr-2" /> Add Another Clinic
               </Button>
             </div>
-            {clinicAddresses.map((clinic, index) => (
+            {formData.clinicAddresses.map((clinic, index) => (
               <div key={index} className="space-y-4 pt-4">
                 {index > 0 && (
                   <div className="flex justify-end">
@@ -494,13 +489,13 @@ export default function NewDoctorPage() {
           )}
 
           <div className="flex justify-end gap-4">
-            <Link href={`/${role}/manage/doctors`}>
+            <Link href={`/${role}/manage/staff`}>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </Link>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Creating..." : "Create Doctor"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

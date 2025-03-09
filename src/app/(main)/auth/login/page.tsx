@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,11 +95,6 @@ export default function LoginPage() {
         </div>
 
         <Tabs defaultValue="email" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="phone">Phone</TabsTrigger>
-          </TabsList>
-
           <TabsContent value="email">
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-3">
@@ -224,18 +218,6 @@ export default function LoginPage() {
         {error && (
           <p className="text-sm text-red-500 text-center mt-2">{error}</p>
         )}
-
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="text-primary hover:underline"
-            >
-              Register
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );

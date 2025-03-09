@@ -11,7 +11,6 @@ import {
   Clock,
   ArrowLeft,
   Briefcase,
-  Building,
   Timer,
   GraduationCap,
   Stethoscope,
@@ -23,7 +22,8 @@ import { format } from "date-fns";
 import useFetch from "@/lib/hooks/use-fetch";
 import { useAuth } from "@/lib/hooks/use-auth";
 import Link from "next/link";
-import { Doctor, Appointment } from "@/types";
+import { Staff, Appointment, ClinicAddress } from "@/types";
+
 interface InfoItemProps {
   icon: React.ReactNode;
   label: string;
@@ -137,12 +137,12 @@ function AppointmentCard({ appointmentId, appointment }: AppointmentCardProps) {
   );
 }
 
-export default function DoctorDetailsPage() {
+export default function StaffDetailsPage() {
   const router = useRouter();
   const params = useParams();
 
-  // Fetch doctor data
-  const [doctorData, isLoadingDoctor] = useFetch<Doctor>(`users/${params.id}`, {
+  // Fetch staff data
+  const [staffData, isLoadingStaff] = useFetch<Staff>(`users/${params.id}`, {
     needRaw: true,
   });
 
@@ -153,7 +153,7 @@ export default function DoctorDetailsPage() {
     needRaw: true,
   });
 
-  const isLoading = isLoadingDoctor || isLoadingAppointments;
+  const isLoading = isLoadingStaff || isLoadingAppointments;
 
   if (isLoading) {
     return (
@@ -163,15 +163,15 @@ export default function DoctorDetailsPage() {
     );
   }
 
-  if (!doctorData) {
+  if (!staffData) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <p className="text-muted-foreground">Doctor not found</p>
+        <p className="text-muted-foreground">Staff not found</p>
       </div>
     );
   }
 
-  // Process appointments to get all appointments for this doctor
+  // Process appointments to get all appointments for this staff
   const appointments = appointmentsData
     ? Object.values(appointmentsData)
         .flatMap((userAppointments) =>
@@ -198,10 +198,10 @@ export default function DoctorDetailsPage() {
           </Button>
           <div>
             <h2 className="text-2xl font-bold text-foreground">
-              Doctor Details
+              Staff Details
             </h2>
             <p className="text-sm text-muted-foreground">
-              View doctor information and appointments
+              View staff information and appointments
             </p>
           </div>
         </div>
@@ -222,10 +222,10 @@ export default function DoctorDetailsPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                {doctorData.name}
+                {staffData.name}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {doctorData.specialization}
+                {staffData.specialization}
               </p>
             </div>
           </div>
@@ -235,22 +235,22 @@ export default function DoctorDetailsPage() {
               <InfoItem
                 icon={<Mail className="h-4 w-4" />}
                 label="Email"
-                value={doctorData.email}
+                value={staffData.email}
               />
               <InfoItem
                 icon={<GraduationCap className="h-4 w-4" />}
                 label="Qualification"
-                value={doctorData.qualification}
+                value={staffData.qualification}
               />
               <InfoItem
                 icon={<Stethoscope className="h-4 w-4" />}
                 label="Specialization"
-                value={doctorData.specialization}
+                value={staffData.specialization}
               />
               <InfoItem
                 icon={<Briefcase className="h-4 w-4" />}
                 label="Experience"
-                value={`${doctorData.experience} years`}
+                value={`${staffData.experience} years`}
               />
             </div>
 
@@ -258,12 +258,12 @@ export default function DoctorDetailsPage() {
               <InfoItem
                 icon={<Calendar className="h-4 w-4" />}
                 label="Member Since"
-                value={format(new Date(doctorData.createdAt), "PPP")}
+                value={format(new Date(staffData.createdAt), "PPP")}
               />
               <InfoItem
                 icon={<Clock className="h-4 w-4" />}
                 label="Last Login"
-                value={format(new Date(doctorData.lastLogin), "PPP")}
+                value={format(new Date(staffData.lastLogin), "PPP")}
               />
             </div>
           </div>
@@ -275,39 +275,46 @@ export default function DoctorDetailsPage() {
             Clinic Information
           </h3>
           <div className="space-y-6">
-            {doctorData.clinicAddresses.map((clinic, index) => (
-              <div key={index} className="space-y-4">
-                {index > 0 && <div className="border-t border-border pt-4" />}
-                <InfoItem
-                  icon={<Building className="h-4 w-4" />}
-                  label={`Clinic ${index + 1}`}
-                  value={
-                    <div className="space-y-1">
-                      <p>{clinic.address}</p>
-                      <p>{`${clinic.city}, ${clinic.state} - ${clinic.pincode}`}</p>
+            <h3 className="text-xl font-semibold text-foreground mb-4">
+              Clinic Locations
+            </h3>
+            <div className="space-y-6">
+              {staffData.clinicAddresses.map(
+                (clinic: ClinicAddress, index: number) => (
+                  <div key={index} className="space-y-4">
+                    {index > 0 && (
+                      <div className="border-t border-border pt-4" />
+                    )}
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-medium">{clinic.address}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {clinic.city}, {clinic.state} - {clinic.pincode}
+                        </p>
+                      </div>
                     </div>
-                  }
-                />
-                <InfoItem
-                  icon={<Timer className="h-4 w-4" />}
-                  label="Working Hours"
-                  value={`${clinic.timings.startTime} - ${clinic.timings.endTime}`}
-                />
-                <InfoItem
-                  icon={<Calendar className="h-4 w-4" />}
-                  label="Working Days"
-                  value={
-                    <div className="flex flex-wrap gap-1">
-                      {clinic.timings.days.map((day) => (
-                        <Badge key={day} variant="secondary">
-                          {day}
-                        </Badge>
-                      ))}
+                    <div className="ml-7">
+                      <p className="text-sm font-medium mb-1">Working Hours</p>
+                      <p className="text-sm text-muted-foreground">
+                        {clinic.timings.startTime} - {clinic.timings.endTime}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {clinic.timings.days.map((day: string) => (
+                          <Badge
+                            key={day}
+                            variant="outline"
+                            className="text-xs font-normal"
+                          >
+                            {day}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  }
-                />
-              </div>
-            ))}
+                  </div>
+                )
+              )}
+            </div>
           </div>
         </Card>
       </div>

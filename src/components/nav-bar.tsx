@@ -1,20 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  X,
-  User,
-  Settings,
-  LogOut,
-  Bell,
-  Edit,
-  ChevronDown,
-  UserPlus,
-} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +10,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/hooks/use-auth";
+import {
+  Bell,
+  ChevronDown,
+  Edit,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,26 +36,6 @@ export function NavBar() {
     await signOut();
   };
 
-  const RegisterButton = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="default" className="flex items-center gap-2">
-          <UserPlus className="h-5 w-5" />
-          <span>Register</span>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link href="/auth/register/customer">Register as Patient</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/auth/register">Register as Provider</Link>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-sm bg-white/75 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -64,7 +43,7 @@ export function NavBar() {
           {/* Logo and brand */}
           <div className="flex-shrink-0">
             <Link href="/" className="text-xl font-bold">
-              Healthcare+
+              Soundarya Cosmetic
             </Link>
           </div>
 
@@ -168,7 +147,6 @@ export function NavBar() {
                   <Link href="/auth/login">
                     <Button variant="ghost">Sign In</Button>
                   </Link>
-                  <RegisterButton />
                 </>
               )}
             </div>

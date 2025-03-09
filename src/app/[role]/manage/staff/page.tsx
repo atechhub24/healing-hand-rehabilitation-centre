@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Doctor {
+interface Staff {
   uid: string;
   name: string;
   email: string;
@@ -43,22 +43,22 @@ interface Doctor {
   }[];
 }
 
-export default function DoctorsPage() {
+export default function StaffPage() {
   const { role } = useParams();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null);
+  const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null);
 
-  const [doctors, isLoading] = useFetch<Doctor[]>("users", {
+  const [staffMembers, isLoading] = useFetch<Staff[]>("users", {
     filter: (item: unknown) => {
-      const doctor = item as Doctor;
-      return doctor.role === "doctor";
+      const staff = item as Staff;
+      return staff.role === "staff";
     },
   });
 
-  const handleDelete = async (doctor: Doctor) => {
-    if (!doctor.password) {
+  const handleDelete = async (staff: Staff) => {
+    if (!staff.password) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -68,47 +68,47 @@ export default function DoctorsPage() {
       return;
     }
 
-    setDoctorToDelete(doctor);
+    setStaffToDelete(staff);
   };
 
   const confirmDelete = async () => {
-    if (!doctorToDelete) return;
+    if (!staffToDelete) return;
 
-    setIsDeleting(doctorToDelete.uid);
+    setIsDeleting(staffToDelete.uid);
     try {
       // First delete the user authentication
-      await deleteUser(doctorToDelete.email, doctorToDelete.password!);
+      await deleteUser(staffToDelete.email, staffToDelete.password!);
 
       // Then remove the user data from the database
       await mutateData({
-        path: `/users/${doctorToDelete.uid}`,
+        path: `/users/${staffToDelete.uid}`,
         action: "delete",
       });
 
       toast({
         title: "Success",
-        description: "Doctor deleted successfully",
+        description: "Staff deleted successfully",
       });
 
       // Refresh the page to update the list
       window.location.reload();
     } catch (error) {
-      console.error("Error deleting doctor:", error);
+      console.error("Error deleting staff:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete doctor. Please try again.",
+        description: "Failed to delete staff. Please try again.",
       });
     }
     setIsDeleting(null);
-    setDoctorToDelete(null);
+    setStaffToDelete(null);
   };
 
   return (
     <>
       <AlertDialog
-        open={!!doctorToDelete}
-        onOpenChange={() => setDoctorToDelete(null)}
+        open={!!staffToDelete}
+        onOpenChange={() => setStaffToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -116,7 +116,7 @@ export default function DoctorsPage() {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete{" "}
               <span className="font-medium text-foreground">
-                {doctorToDelete?.name}
+                {staffToDelete?.name}
               </span>
               &apos;s account and remove their data from our servers.
             </AlertDialogDescription>
@@ -136,11 +136,11 @@ export default function DoctorsPage() {
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-foreground">
-            Doctors Management
+            Staff Management
           </h1>
-          <Link href={`/${role}/manage/doctors/new`}>
+          <Link href={`/${role}/manage/staff/new`}>
             <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Add New Doctor
+              <Plus className="h-4 w-4" /> Add New Staff
             </Button>
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function DoctorsPage() {
         <div className="mb-4">
           <Input
             type="search"
-            placeholder="Search doctors..."
+            placeholder="Search staff..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -175,46 +175,46 @@ export default function DoctorsPage() {
                       colSpan={6}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
-                      Loading doctors...
+                      Loading staff...
                     </td>
                   </tr>
-                ) : !doctors ||
-                  (Array.isArray(doctors) && doctors.length === 0) ? (
+                ) : !staffMembers ||
+                  (Array.isArray(staffMembers) && staffMembers.length === 0) ? (
                   <tr>
                     <td
                       colSpan={6}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
-                      No doctors found
+                      No staff found
                     </td>
                   </tr>
                 ) : (
-                  doctors?.map((doctor) => (
-                    <tr key={doctor.uid} className="hover:bg-muted/50">
+                  staffMembers?.map((staff) => (
+                    <tr key={staff.uid} className="hover:bg-muted/50">
                       <td className="px-6 py-4 text-foreground">
-                        {doctor.name}
+                        {staff.name}
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {doctor.email}
+                        {staff.email}
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {doctor.specialization}
+                        {staff.specialization}
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {doctor.experience} years
+                        {staff.experience} years
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {doctor.clinicAddresses?.length || 0} locations
+                        {staff.clinicAddresses?.length || 0} locations
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <Link href={`/${role}/manage/doctors/${doctor.uid}`}>
+                          <Link href={`/${role}/manage/staff/${staff.uid}`}>
                             <Button variant="ghost" size="sm">
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
                           <Link
-                            href={`/${role}/manage/doctors/${doctor.uid}/edit`}
+                            href={`/${role}/manage/staff/${staff.uid}/edit`}
                           >
                             <Button variant="ghost" size="sm">
                               <Pencil className="h-4 w-4" />
@@ -224,8 +224,8 @@ export default function DoctorsPage() {
                             variant="ghost"
                             size="sm"
                             className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                            onClick={() => handleDelete(doctor)}
-                            disabled={isDeleting === doctor.uid}
+                            onClick={() => handleDelete(staff)}
+                            disabled={isDeleting === staff.uid}
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -240,7 +240,7 @@ export default function DoctorsPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          You haven&apos;t added any doctors yet.
+          You haven&apos;t added any staff yet.
         </p>
       </div>
     </>

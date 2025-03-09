@@ -12,7 +12,7 @@ export function Brand({ isOpen }: BrandProps) {
   return (
     <Link href="/" className="flex items-center gap-2 px-4 py-3">
       <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-        <span className="font-bold text-primary-foreground">H+</span>
+        <span className="font-bold text-primary-foreground">SC</span>
       </div>
       <motion.span
         initial={{ opacity: 0, width: 0 }}
@@ -25,7 +25,7 @@ export function Brand({ isOpen }: BrandProps) {
           isOpen ? "ml-2" : "w-0 ml-0"
         )}
       >
-        HPluz
+        Soundarya Cosmetic
       </motion.span>
     </Link>
   );

@@ -8,8 +8,9 @@ import { Loader2 } from "lucide-react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Healthcare+",
-  description: "Modern Healthcare Management System",
+  title: "Soundarya Cosmetic Laser Surgery Clinic ",
+  description:
+    "Modern Healthcare Management System for Soundarya Cosmetic Laser Surgery Clinic",
 };
 
 export default function RootLayout({

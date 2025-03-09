@@ -1,18 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
-import {
-  Activity,
-  Calendar,
-  Users,
-  Clock,
-  FileText,
-  TestTube,
-  UserPlus,
-} from "lucide-react";
-import StatCard, { DashboardCard } from "./stat-card";
 import useFetch from "@/lib/hooks/use-fetch";
 import { Patient } from "@/types/patient";
+import { Activity, UserPlus, Users } from "lucide-react";
+import { useCallback } from "react";
+import StatCard, { DashboardCard } from "./stat-card";
 
 interface Staff {
   id: string;
@@ -72,11 +64,12 @@ export default function RoleStats({ role, onError }: RoleStatsProps) {
         icon: Users,
       },
     ],
-    doctor: [
+
+    staff: [
       {
         title: "Total Patients",
         value: totalPatients.toString(),
-        description: "Under your care",
+        description: "Registered patients",
         icon: Users,
         action: {
           label: "Add Patient",
@@ -89,77 +82,6 @@ export default function RoleStats({ role, onError }: RoleStatsProps) {
         value: activePatients().toString(),
         description: "Currently active patients",
         icon: Activity,
-      },
-      {
-        title: "Today's Appointments",
-        value: "0",
-        description: "Scheduled appointments",
-        icon: Calendar,
-      },
-    ],
-    paramedic: [
-      {
-        title: "Total Patients",
-        value: totalPatients.toString(),
-        description: "In the system",
-        icon: Users,
-        action: {
-          label: "Add Patient",
-          href: `/${role}/patients/add`,
-          icon: UserPlus,
-        },
-      },
-      {
-        title: "Active Cases",
-        value: activePatients().toString(),
-        description: "Currently active cases",
-        icon: Activity,
-      },
-      {
-        title: "Response Time",
-        value: "8min",
-        description: "Average response time",
-        icon: Clock,
-      },
-    ],
-    lab: [
-      {
-        title: "Total Patients",
-        value: totalPatients.toString(),
-        description: "In the system",
-        icon: Users,
-      },
-      {
-        title: "Pending Tests",
-        value: "0",
-        description: "Tests to be processed",
-        icon: TestTube,
-      },
-      {
-        title: "Reports",
-        value: "0",
-        description: "Ready for delivery",
-        icon: FileText,
-      },
-    ],
-    patient: [
-      {
-        title: "Appointments",
-        value: "0",
-        description: "Upcoming appointments",
-        icon: Calendar,
-      },
-      {
-        title: "Test Results",
-        value: "0",
-        description: "Pending results",
-        icon: TestTube,
-      },
-      {
-        title: "Prescriptions",
-        value: "0",
-        description: "Active prescriptions",
-        icon: FileText,
       },
     ],
   };

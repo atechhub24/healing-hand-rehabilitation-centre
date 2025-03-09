@@ -1,15 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import useFetch from "@/lib/hooks/use-fetch";
-import { Eye, Pencil, Plus, Trash } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { deleteUser } from "@/lib/firebase/delete-user";
-import mutateData from "@/lib/firebase/mutate-data";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +10,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { deleteUser } from "@/lib/firebase/delete-user";
+import mutateData from "@/lib/firebase/mutate-data";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 interface Staff {
   uid: string;
@@ -162,9 +162,6 @@ export default function StaffPage() {
                 <tr>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Email</th>
-                  <th className="px-6 py-3">Specialization</th>
-                  <th className="px-6 py-3">Experience</th>
-                  <th className="px-6 py-3">Clinics</th>
                   <th className="px-6 py-3">Actions</th>
                 </tr>
               </thead>
@@ -197,29 +194,8 @@ export default function StaffPage() {
                       <td className="px-6 py-4 text-foreground">
                         {staff.email}
                       </td>
-                      <td className="px-6 py-4 text-foreground">
-                        {staff.specialization}
-                      </td>
-                      <td className="px-6 py-4 text-foreground">
-                        {staff.experience} years
-                      </td>
-                      <td className="px-6 py-4 text-foreground">
-                        {staff.clinicAddresses?.length || 0} locations
-                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <Link href={`/${role}/manage/staff/${staff.uid}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Link
-                            href={`/${role}/manage/staff/${staff.uid}/edit`}
-                          >
-                            <Button variant="ghost" size="sm">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </Link>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -238,10 +214,6 @@ export default function StaffPage() {
             </table>
           </div>
         </div>
-
-        <p className="text-sm text-muted-foreground">
-          You haven&apos;t added any staff yet.
-        </p>
       </div>
     </>
   );

@@ -1,16 +1,8 @@
 import {
-  Ambulance,
-  Bell,
-  BookOpen,
-  Calendar,
-  CalendarDays,
-  ClipboardList,
   Dumbbell,
-  FileText,
   LayoutDashboard,
   Scale,
   Settings,
-  TestTube,
   Users,
 } from "lucide-react";
 
@@ -35,110 +27,22 @@ export const roleConfig = {
       { label: "Settings", icon: Settings, href: "/admin/settings" },
     ],
   },
-  doctor: {
-    title: "Doctor Dashboard",
+  staff: {
+    title: "Admin Dashboard",
     menuItems: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/doctor" },
-      { label: "Appointments", icon: Calendar, href: "/doctor/appointments" },
-      { label: "Patients", icon: Users, href: "/doctor/patients" },
-      { label: "Prescriptions", icon: FileText, href: "/doctor/prescriptions" },
-      {
-        label: "Request Paramedic",
-        icon: Ambulance,
-        href: "/doctor/paramedic-booking",
-      },
-      {
-        label: "My Paramedic Bookings",
-        icon: BookOpen,
-        href: "/doctor/paramedic-booking/bookings",
-      },
-      { label: "Settings", icon: Settings, href: "/doctor/settings" },
-      {
-        label: "Slot Management",
-        icon: CalendarDays,
-        href: "/doctor/slots",
-      },
-    ],
-  },
-  paramedic: {
-    title: "Paramedic Dashboard",
-    menuItems: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/paramedic" },
-      {
-        label: "Emergency Calls",
-        icon: Bell,
-        href: "/paramedic/emergency-calls",
-      },
-      {
-        label: "My Bookings",
-        icon: BookOpen,
-        href: "/paramedic/paramedic-booking/bookings",
-      },
-      { label: "Patients", icon: Users, href: "/paramedic/patients" },
-      { label: "Reports", icon: FileText, href: "/paramedic/reports" },
-      { label: "Settings", icon: Settings, href: "/paramedic/settings" },
-    ],
-  },
-  lab: {
-    title: "Laboratory Dashboard",
-    menuItems: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/lab" },
-      { label: "Test Orders", icon: TestTube, href: "/lab/test-orders" },
-      { label: "Reports", icon: FileText, href: "/lab/reports" },
-      { label: "Inventory", icon: ClipboardList, href: "/lab/inventory" },
-      {
-        label: "Request Paramedic",
-        icon: Ambulance,
-        href: "/lab/paramedic-booking",
-      },
-      {
-        label: "My Paramedic Bookings",
-        icon: BookOpen,
-        href: "/lab/paramedic-booking/bookings",
-      },
-      { label: "Settings", icon: Settings, href: "/lab/settings" },
-    ],
-  },
-  patient: {
-    title: "Patient Dashboard",
-    menuItems: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/patient" },
-      {
-        label: "Appointments",
-        icon: Calendar,
-        href: "/patient/appointments",
-      },
-      {
-        label: "Medical Records",
-        icon: FileText,
-        href: "/patient/medical-records",
-      },
-      {
-        label: "Test Results",
-        icon: TestTube,
-        href: "/patient/test-results",
-      },
-      {
-        label: "Book Paramedic",
-        icon: Ambulance,
-        href: "/patient/paramedic-booking",
-      },
-      {
-        label: "My Paramedic Bookings",
-        icon: BookOpen,
-        href: "/patient/paramedic-booking/bookings",
-      },
+      { label: "Dashboard", icon: LayoutDashboard, href: "/staff" },
+      { label: "Patients", icon: Users, href: "/staff/patients" },
       {
         label: "BMI Calculator",
         icon: Scale,
-        href: "/patient/bmi-calculator",
+        href: "/staff/bmi-calculator",
       },
       {
         label: "TDEE Calculator",
         icon: Dumbbell,
-        href: "/patient/tdee-calculator",
+        href: "/staff/tdee-calculator",
       },
-      { label: "Settings", icon: Settings, href: "/patient/settings" },
+      { label: "Settings", icon: Settings, href: "/staff/settings" },
     ],
   },
 } as const;

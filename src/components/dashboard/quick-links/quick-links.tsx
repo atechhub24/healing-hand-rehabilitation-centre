@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Settings, UserCog, Users } from "lucide-react";
+import { ChartBar, Settings, UserCog, Users } from "lucide-react";
 import Link from "next/link";
 
 interface QuickLink {
@@ -26,12 +26,12 @@ const quickLinks: Record<string, QuickLink[]> = {
       icon: Users,
       color: "text-emerald-500",
     },
-    // {
-    //   title: "Analytics",
-    //   href: "/admin/analytics",
-    //   icon: ChartBar,
-    //   color: "text-indigo-500",
-    // },
+    {
+      title: "Analytics",
+      href: "/admin/analytics",
+      icon: ChartBar,
+      color: "text-indigo-500",
+    },
     {
       title: "Settings",
       href: "/admin/settings",

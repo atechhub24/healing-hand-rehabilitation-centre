@@ -137,7 +137,6 @@ export function AddPatientForm({
       age: undefined,
       gender: undefined,
       phone: "",
-      email: "",
       address: "",
       emergencyContact: "",
       emergencyPhone: "",

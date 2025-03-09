@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { AddPatientForm } from "@/components/patients/add-patient-form";
 import { PatientFormValues } from "@/components/patients/add-patient-form";
+import mutate from "@/lib/firebase/mutate-data";
 
 /**
  * AddPatientPage provides a form to add a new patient with comprehensive information
@@ -24,6 +25,7 @@ export default function AddPatientPage() {
   const handleSubmit = (data: PatientFormValues) => {
     console.log("Form submitted with data:", data);
     // Here you would typically save the data to your database
+    mutate({ path: "patients", data, action: "createWithId" });
     // Then navigate back to the patients list
     router.push(`/${params.role}/patients`);
   };

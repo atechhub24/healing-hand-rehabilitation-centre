@@ -21,7 +21,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PatientDocument } from "@/types";
-import { createClient } from "@supabase/supabase-js";
 import useFetch from "@/lib/hooks/use-fetch";
 import mutate from "@/lib/firebase/mutate-data";
 import {
@@ -35,11 +34,8 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { auth } from "@/lib/firebase";
-
-// Initialize Supabase client
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 interface PatientDocumentsProps {
   patientId: string;
@@ -52,6 +48,9 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
   const [selectedDocument, setSelectedDocument] =
     useState<PatientDocument | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Convex mutations
+  const deleteFile = useMutation(api.files.deleteFile);
 
   // Fetch patient documents from Firebase
   const [documents, isLoading, refetch] = useFetch<
@@ -90,7 +89,7 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
       if (result.success) {
         // Reset form
         setDescription("");
-        setTags([]);
+        setTags(["document"]);
         setTagInput("");
 
         // Refresh documents list
@@ -110,16 +109,8 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
     try {
       setIsDeleting(true);
 
-      // Delete file from Supabase storage
-      const { error: storageError } = await supabase.storage
-        .from("a-clinic-software")
-        .remove([document.storagePath]);
-
-      if (storageError) {
-        console.error("Error deleting file from storage:", storageError);
-        alert("Failed to delete file from storage. Please try again.");
-        return;
-      }
+      // Delete file from Convex storage
+      await deleteFile({ storageId: document.storagePath });
 
       // Delete document metadata from Firebase
       const result = await mutate({

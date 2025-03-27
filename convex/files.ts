@@ -66,3 +66,27 @@ export const getFilesByPatient = mutation({
     return await query.collect();
   },
 });
+
+/**
+ * Delete a file and its metadata
+ */
+export const deleteFile = mutation({
+  args: { storageId: v.string() },
+  handler: async (ctx, args) => {
+    // Delete the file from storage
+    await ctx.storage.delete(args.storageId);
+
+    // Delete the file metadata from the database
+    const files = await ctx.db
+      .query("files")
+      .filter((q) => q.eq(q.field("storageId"), args.storageId))
+      .collect();
+
+    // Delete all matching file records
+    for (const file of files) {
+      await ctx.db.delete(file._id);
+    }
+
+    return true;
+  },
+});

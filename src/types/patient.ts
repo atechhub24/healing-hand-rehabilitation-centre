@@ -3,15 +3,15 @@
  */
 export interface Patient {
   id?: string; // Firebase document ID
-  uid: string; // Firebase UID (deprecated, use id instead)
+  uid?: string; // Firebase UID (deprecated, use id instead)
   name: string;
   age: number;
   gender: string;
   phone: string;
   email: string;
   lastVisit?: string;
-  condition: string;
-  status: string;
+  condition?: string;
+  status?: string;
   address?: string;
   /** @deprecated Use age field instead. This field is kept for backward compatibility. */
   dateOfBirth?: string;
@@ -30,6 +30,9 @@ export interface Patient {
   updatedAt?: string;
   creatorInfo?: SystemInfo;
   updaterInfo?: SystemInfo;
+  photoUrl?: string;
+  chronicConditions?: string;
+  registrationDate?: string;
 }
 
 /**

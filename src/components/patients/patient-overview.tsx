@@ -16,6 +16,9 @@ import {
 import { Plus } from "lucide-react";
 import { AddActivityForm } from "./add-activity-form";
 import useFetch from "@/lib/hooks/use-fetch";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
+import { useToast } from "@/components/ui/use-toast";
+import mutate from "@/lib/firebase/mutate-data";
 
 /**
  * Interface for patient activity
@@ -35,15 +38,24 @@ interface PatientActivity {
  */
 export function PatientOverview({ patient }: { patient: Patient }) {
   const [addActivityOpen, setAddActivityOpen] = useState(false);
+  const { toast } = useToast();
 
-  // Fetch activities from Firebase
+  // Validate patient ID with proper type checking
+  const patientId = useMemo(() => {
+    if (!patient) return null;
+    return patient.id || patient.uid;
+  }, [patient]);
+  console.log(patient);
+  // Fetch activities from Firebase - with proper type handling
   const [activities, activitiesLoading, activitiesRefetch] = useFetch<
     Record<string, PatientActivity>
-  >(`/patients/${patient.id || patient.uid}/activities`, { needRaw: true });
+  >(patientId ? `/patients/${patientId}/activities` : "/empty", {
+    needRaw: true,
+  });
 
   // Process activities for display
   const processedActivities = useMemo(() => {
-    if (!activities) return [];
+    if (!activities || !patientId) return [];
 
     return Object.entries(activities)
       .map(([id, activity]) => ({
@@ -53,7 +65,23 @@ export function PatientOverview({ patient }: { patient: Patient }) {
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
-  }, [activities]);
+  }, [activities, patientId]);
+
+  // Handle missing patient ID with a user-friendly error UI
+  if (!patientId) {
+    return (
+      <Card className="p-6">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-red-600">
+            Invalid Patient Data
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Unable to display patient overview. Patient ID is missing.
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   // Fallback data if no activities
   const displayActivities = processedActivities.length
@@ -79,6 +107,27 @@ export function PatientOverview({ patient }: { patient: Patient }) {
     activitiesRefetch();
   };
 
+  const handlePhotoUpload = async (fileUrl: string) => {
+    try {
+      await mutate({
+        path: `/patients/${patientId}`,
+        data: { photoUrl: fileUrl },
+        action: "update",
+      });
+      toast({
+        title: "Photo updated",
+        description: "Patient photo has been successfully updated.",
+      });
+    } catch (error) {
+      console.error("Failed to update patient photo:", error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update patient photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -87,9 +136,12 @@ export function PatientOverview({ patient }: { patient: Patient }) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary">
-              {patient.name?.substring(0, 2).toUpperCase() || "P"}
-            </div>
+            <AvatarUpload
+              initialImageUrl={patient.photoUrl}
+              onUploadComplete={handlePhotoUpload}
+              patientId={patientId}
+              patientName={patient.name}
+            />
             <div>
               <h2 className="text-xl font-semibold">{patient.name}</h2>
               <p className="text-sm text-muted-foreground">
@@ -155,7 +207,7 @@ export function PatientOverview({ patient }: { patient: Patient }) {
       </Card>
 
       {/* Vital Signs Charts */}
-      <PatientVitals patientId={patient.id || patient.uid} />
+      <PatientVitals patientId={patientId} />
 
       {/* Recent Activity */}
       <Card>
@@ -174,7 +226,7 @@ export function PatientOverview({ patient }: { patient: Patient }) {
                   <DialogTitle>Add New Activity</DialogTitle>
                 </DialogHeader>
                 <AddActivityForm
-                  patientId={patient.id || patient.uid}
+                  patientId={patientId}
                   onSuccess={handleActivityAdded}
                 />
               </DialogContent>

@@ -60,11 +60,11 @@ export default function PatientDetailPage() {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
-      <PatientOverview patient={patient} />
-
+      {!isLoading && (
+        <PatientOverview patient={{ ...patient, id: patientId }} />
+      )}
       <Tabs defaultValue="medical-history" className="w-full">
         <TabsList className="grid grid-cols-7 h-auto">
           <TabsTrigger value="medical-history">Medical History</TabsTrigger>
@@ -117,7 +117,7 @@ export default function PatientDetailPage() {
         </TabsContent>
 
         <TabsContent value="vitals" className="mt-6">
-          <PatientVitals patientId={patient.id || patient.uid} />
+          <PatientVitals patientId={patientId!} />
         </TabsContent>
 
         <TabsContent value="notes" className="mt-6">
@@ -131,7 +131,7 @@ export default function PatientDetailPage() {
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
-          <PatientDocuments patientId={patient.id || patient.uid} />
+          <PatientDocuments patientId={patientId!} />
         </TabsContent>
       </Tabs>
     </div>

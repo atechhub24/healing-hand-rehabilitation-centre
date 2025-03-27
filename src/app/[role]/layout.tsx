@@ -10,6 +10,9 @@ import Header from "@/components/dashboard/header";
 import Panel from "@/components/dashboard/panel";
 import { BreadcrumbNav } from "@/components/ui/breadcrumb";
 import { generateBreadcrumbs } from "@/lib/utils/breadcrumb";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,28 +44,30 @@ export default function Layout({ children }: LayoutProps) {
   // 1. Sidebar (navigation)
   // 2. Main content area (header + page content)
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar panel */}
-      <Panel />
+    <ConvexProvider client={convex}>
+      <div className="flex h-screen overflow-hidden bg-background">
+        {/* Sidebar panel */}
+        <Panel />
 
-      {/* Main content area - no shifting on mobile */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={title} />
-        <main className="flex-1 overflow-y-auto p-6">
-          <BreadcrumbNav segments={breadcrumbSegments} />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentRole}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
+        {/* Main content area - no shifting on mobile */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header title={title} />
+          <main className="flex-1 overflow-y-auto p-6">
+            <BreadcrumbNav segments={breadcrumbSegments} />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentRole}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+        <Toaster />
       </div>
-      <Toaster />
-    </div>
+    </ConvexProvider>
   );
 }

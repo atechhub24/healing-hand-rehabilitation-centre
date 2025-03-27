@@ -47,7 +47,7 @@ interface PatientDocumentsProps {
 
 export function PatientDocuments({ patientId }: PatientDocumentsProps) {
   const [description, setDescription] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(["document"]);
   const [tagInput, setTagInput] = useState("");
   const [selectedDocument, setSelectedDocument] =
     useState<PatientDocument | null>(null);
@@ -62,7 +62,7 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
   const handleUploadComplete = async (
     url: string,
     file: File,
-    storagePath: string
+    storageId: string
   ) => {
     try {
       // Create document metadata in Firebase
@@ -72,7 +72,7 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
         type: file.type,
         size: file.size,
         url,
-        storagePath,
+        storagePath: storageId,
         uploadedAt: new Date().toISOString(),
         uploadedBy: auth.currentUser?.uid,
         description: description || undefined,
@@ -444,8 +444,7 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
 
               <div>
                 <FileUpload
-                  bucketName="a-clinic-software"
-                  folderPath={`patient-documents/${patientId}`}
+                  patientId={patientId}
                   allowedFileTypes={[
                     "pdf",
                     "image",
@@ -459,6 +458,7 @@ export function PatientDocuments({ patientId }: PatientDocumentsProps) {
                   maxSizeMB={10}
                   onUploadComplete={handleUploadComplete}
                   className="border-none p-0"
+                  tags={tags}
                 />
               </div>
             </div>

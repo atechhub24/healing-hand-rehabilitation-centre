@@ -1,31 +1,39 @@
 "use client";
 
 import { useState, ChangeEvent, useRef, DragEvent } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { Button } from "./button";
 import { Upload, File as FileIcon } from "lucide-react";
+import { useFileUpload } from "@/lib/hooks/use-file-upload";
+import { toast } from "./use-toast";
 
-// Initialize Supabase client
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Define MIME type mappings
+const FILE_TYPE_MAPPINGS = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  image: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+};
 
 interface FileUploadProps {
-  bucketName?: string;
-  folderPath?: string;
-  onUploadComplete?: (url: string, file: File, storagePath: string) => void;
+  onUploadComplete?: (fileUrl: string, file: File, storageId: string) => void;
   allowedFileTypes?: string[];
   maxSizeMB?: number;
   className?: string;
+  tags?: string[];
+  patientId: string;
 }
 
 export function FileUpload({
-  bucketName = "a-clinic-software",
-  folderPath = "uploads",
   onUploadComplete,
   allowedFileTypes,
   maxSizeMB = 10,
   className = "",
+  tags = [],
+  patientId,
 }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -33,6 +41,18 @@ export function FileUpload({
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile: upload } = useFileUpload();
+
+  // Convert file types to MIME types
+  const getAllowedMimeTypes = (types: string[] = []): string[] => {
+    return types
+      .flatMap((type) => {
+        const mimeType =
+          FILE_TYPE_MAPPINGS[type as keyof typeof FILE_TYPE_MAPPINGS];
+        return Array.isArray(mimeType) ? mimeType : [mimeType];
+      })
+      .filter(Boolean);
+  };
 
   // Validate file
   const validateFile = (selectedFile: File): boolean => {
@@ -40,8 +60,8 @@ export function FileUpload({
 
     // Validate file type if allowedFileTypes is provided
     if (allowedFileTypes && allowedFileTypes.length > 0) {
-      const fileType = selectedFile.type;
-      if (!allowedFileTypes.some((type) => fileType.includes(type))) {
+      const allowedMimeTypes = getAllowedMimeTypes(allowedFileTypes);
+      if (!allowedMimeTypes.includes(selectedFile.type)) {
         setError(
           `File type not allowed. Please upload: ${allowedFileTypes.join(", ")}`
         );
@@ -109,8 +129,8 @@ export function FileUpload({
     fileInputRef.current?.click();
   };
 
-  // Upload file to Supabase storage
-  const uploadFile = async () => {
+  // Upload file using Convex
+  const uploadFileToStorage = async () => {
     if (!file) {
       setError("Please select a file!");
       return;
@@ -120,31 +140,33 @@ export function FileUpload({
       setUploading(true);
       setError(null);
 
-      // Create a unique file path
-      const filePath = `${folderPath}/${Date.now()}_${file.name}`;
+      const { fileUrl, storageId } = await upload(file, {
+        patientId,
+        tags,
+        maxSizeMB,
+        allowedTypes: allowedFileTypes
+          ? getAllowedMimeTypes(allowedFileTypes)
+          : undefined,
+      });
 
-      // Upload file to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL for the uploaded file
-      const { data: publicUrlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
-
-      const publicUrl = publicUrlData.publicUrl;
-      setUploadedUrl(publicUrl);
+      setUploadedUrl(fileUrl);
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
 
       // Call the onUploadComplete callback if provided
       if (onUploadComplete) {
-        onUploadComplete(publicUrl, file, filePath);
+        onUploadComplete(fileUrl, file, storageId);
       }
     } catch (err: unknown) {
       console.error("Error uploading file:", err);
-      setError(err instanceof Error ? err.message : "Failed to upload file");
+      toast({
+        title: "Error",
+        description:
+          err instanceof Error ? err.message : "Failed to upload file",
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }
@@ -210,7 +232,11 @@ export function FileUpload({
               >
                 Change
               </Button>
-              <Button onClick={uploadFile} disabled={uploading} size="sm">
+              <Button
+                onClick={uploadFileToStorage}
+                disabled={uploading}
+                size="sm"
+              >
                 {uploading ? "Uploading..." : "Upload"}
               </Button>
             </>

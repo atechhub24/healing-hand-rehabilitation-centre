@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 /**
  * Generate a URL for file upload
@@ -47,7 +47,7 @@ export const getFileUrl = mutation({
 /**
  * Get files by patient ID and optional tag
  */
-export const getFilesByPatient = mutation({
+export const getFilesByPatient = query({
   args: {
     patientId: v.string(),
     tag: v.optional(v.string()), // Optional tag to filter by

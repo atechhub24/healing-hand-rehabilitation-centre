@@ -2,39 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Save, ArrowLeft, Settings } from "lucide-react";
-import { useState } from "react";
+import { Save, ArrowLeft } from "lucide-react";
 import {
   PatientInfoSection,
   MedicationSection,
-  DoctorInfoSection,
   usePrescription,
   previewPrescription,
-  previewCosmeticPrescription,
 } from "@/components/prescriptions";
+import { Textarea } from "@/components/ui/textarea";
 
 // Types are now imported from the prescriptions module
 
 export default function NewPrescriptionPage() {
   const router = useRouter();
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    "medical" | "cosmetic"
-  >("medical");
 
   const {
     formData,
     updatePatient,
     updateDiagnosis,
     updateMedications,
-    updateDoctorName,
     updateNotes,
+    updateProcedure,
     validateForm,
     convertToPrescription,
   } = usePrescription();
@@ -62,12 +50,7 @@ export default function NewPrescriptionPage() {
     }
 
     const prescription = convertToPrescription(Date.now());
-
-    if (selectedTemplate === "cosmetic") {
-      previewCosmeticPrescription(prescription);
-    } else {
-      previewPrescription(prescription);
-    }
+    previewPrescription(prescription);
   };
 
   return (
@@ -98,31 +81,25 @@ export default function NewPrescriptionPage() {
           onChange={updateMedications}
         />
 
-        <DoctorInfoSection
-          doctorName={formData.doctorName}
-          onChange={updateDoctorName}
-          notes={formData.notes}
-          onNotesChange={updateNotes}
-        />
-
-        {/* Template Selector */}
-        <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
-          <Settings className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Select Template:</span>
-          <Select
-            value={selectedTemplate}
-            onValueChange={(value: "medical" | "cosmetic") =>
-              setSelectedTemplate(value)
-            }
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="medical">🏥 Medical Template</SelectItem>
-              <SelectItem value="cosmetic">💄 Cosmetic Template</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Doctor&apos;s Notes</h3>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) => updateNotes(e.target.value)}
+              placeholder="Enter any additional notes or instructions..."
+              rows={4}
+            />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Diagnostic Procedure</h3>
+            <Textarea
+              value={formData.procedure || ""}
+              onChange={(e) => updateProcedure(e.target.value)}
+              placeholder="Describe the diagnostic procedure, examination methods, tests performed, and clinical findings..."
+              rows={4}
+            />
+          </div>
         </div>
 
         {/* Action Buttons */}

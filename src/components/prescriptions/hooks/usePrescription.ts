@@ -27,6 +27,7 @@ export const usePrescription = (
       },
     ],
     notes: initialData?.notes || "",
+    procedure: initialData?.procedure || "",
     doctorName: initialData?.doctorName || "Dr. Laxmi Kanta Mishra",
   });
 
@@ -48,6 +49,10 @@ export const usePrescription = (
 
   const updateNotes = useCallback((notes: string) => {
     setFormData((prev) => ({ ...prev, notes }));
+  }, []);
+
+  const updateProcedure = useCallback((procedure: string) => {
+    setFormData((prev) => ({ ...prev, procedure }));
   }, []);
 
   const addMedication = useCallback(() => {
@@ -104,6 +109,7 @@ export const usePrescription = (
         },
       ],
       notes: "",
+      procedure: "",
       doctorName: "Dr. Laxmi Kanta Mishra",
     });
   }, []);
@@ -140,6 +146,7 @@ export const usePrescription = (
         medications: formData.medications,
         diagnosis: formData.diagnosis,
         notes: formData.notes,
+        procedure: formData.procedure,
         doctorName: formData.doctorName,
         status: "active",
       };
@@ -154,6 +161,7 @@ export const usePrescription = (
     updateMedications,
     updateDoctorName,
     updateNotes,
+    updateProcedure,
     addMedication,
     removeMedication,
     updateMedication,

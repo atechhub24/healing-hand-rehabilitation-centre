@@ -20,6 +20,7 @@ export interface Prescription {
   medications: Medication[];
   diagnosis: string;
   notes: string;
+  procedure?: string;
   doctorName: string;
   status: "active" | "completed" | "expired";
 }
@@ -29,6 +30,7 @@ export interface PrescriptionFormData {
   diagnosis: string;
   medications: Medication[];
   notes: string;
+  procedure?: string;
   doctorName: string;
 }
 

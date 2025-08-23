@@ -124,12 +124,7 @@ export const usePrescription = (
 
     // Check required medication fields
     for (const med of medications) {
-      if (
-        !med.name.trim() ||
-        !med.dosage.trim() ||
-        !med.frequency.trim() ||
-        !med.duration.trim()
-      ) {
+      if (!med.name.trim()) {
         return false;
       }
     }

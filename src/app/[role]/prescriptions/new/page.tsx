@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Save, ArrowLeft } from "lucide-react";
+import { useState } from "react";
 import {
   PatientInfoSection,
   MedicationSection,
@@ -10,11 +11,17 @@ import {
   previewPrescription,
 } from "@/components/prescriptions";
 import { Textarea } from "@/components/ui/textarea";
+import mutate from "@/lib/firebase/mutate-data";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { toast } from "@/components/ui/use-toast";
 
 // Types are now imported from the prescriptions module
 
 export default function NewPrescriptionPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { role } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     formData,
@@ -27,7 +34,7 @@ export default function NewPrescriptionPage() {
     convertToPrescription,
   } = usePrescription();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -35,12 +42,42 @@ export default function NewPrescriptionPage() {
       return;
     }
 
-    const prescription = convertToPrescription(Date.now());
-    console.log("Prescription data:", prescription);
+    if (!user) {
+      alert("You must be logged in to create a prescription");
+      return;
+    }
 
-    // Here you would typically save to your database
-    alert("Prescription created successfully!");
-    router.push("/doctor/prescriptions");
+    setIsSubmitting(true);
+
+    try {
+      const prescription = convertToPrescription(Date.now());
+
+      // Save prescription to Firebase database
+      const result = await mutate({
+        path: `prescriptions/${user.uid}`,
+        data: prescription as unknown as Record<string, unknown>,
+        action: "createWithId",
+      });
+
+      if (result.success) {
+        toast({
+          title: "Prescription created successfully!",
+          description: "You can now view it in the prescriptions page.",
+        });
+        router.push(`/${role}/prescriptions`);
+      } else {
+        throw new Error(result.error || "Failed to create prescription");
+      }
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+      toast({
+        title: "Failed to create prescription",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePreview = () => {
@@ -107,9 +144,9 @@ export default function NewPrescriptionPage() {
           <Button type="button" variant="outline" onClick={handlePreview}>
             Preview Prescription
           </Button>
-          <Button type="submit" className="flex-1">
+          <Button type="submit" className="flex-1" disabled={isSubmitting}>
             <Save className="h-4 w-4 mr-2" />
-            Create Prescription
+            {isSubmitting ? "Creating..." : "Create Prescription"}
           </Button>
         </div>
       </form>

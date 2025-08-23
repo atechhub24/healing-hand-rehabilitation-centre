@@ -75,7 +75,7 @@ export const MedicationSection: React.FC<MedicationSectionProps> = ({
       <CardContent className="space-y-6">
         {medications.map((medication, index) => (
           <div
-            key={`medication-${medication.name}-${index}`}
+            key={`medication-${index}`}
             className="border rounded-lg p-4 space-y-4"
           >
             <div className="flex items-center justify-between">
@@ -105,21 +105,20 @@ export const MedicationSection: React.FC<MedicationSectionProps> = ({
                 />
               </div>
               <div>
-                <Label>Dosage *</Label>
+                <Label>Dosage</Label>
                 <Input
                   value={medication.dosage}
                   onChange={(e) =>
                     updateMedication(index, "dosage", e.target.value)
                   }
                   placeholder="e.g., 500mg"
-                  required
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Frequency *</Label>
+                <Label>Frequency</Label>
                 <Select
                   value={medication.frequency}
                   onValueChange={(value) =>
@@ -139,14 +138,13 @@ export const MedicationSection: React.FC<MedicationSectionProps> = ({
                 </Select>
               </div>
               <div>
-                <Label>Duration *</Label>
+                <Label>Duration</Label>
                 <Input
                   value={medication.duration}
                   onChange={(e) =>
                     updateMedication(index, "duration", e.target.value)
                   }
                   placeholder="e.g., 7 days, 2 weeks"
-                  required
                 />
               </div>
             </div>

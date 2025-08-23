@@ -501,6 +501,20 @@ export const generateCosmeticPrescriptionHTML = (
                 : ""
             }
 
+            <!-- Procedure Section -->
+            ${
+              prescription.procedure
+                ? `
+                <div class="prescription-section">
+                    <div class="section-title">🔬 Diagnostic Procedure</div>
+                    <div class="prescription-content">
+                        ${prescription.procedure}
+                    </div>
+                </div>
+            `
+                : ""
+            }
+
             <!-- Footer Section -->
             <div class="footer-section">
                 <div class="clinic-footer-name">SOUNDARYA COSMETIC AND LASER SURGERY CLINIC</div>
@@ -952,7 +966,7 @@ export const generatePrescriptionHTML = (
             border: 1px dashed #dee2e6;
           }
           .signature-section {
-            border-top: 1px solid #2c5530;
+            // border-top: 1px solid #2c5530;
             padding-top: 6px;
             margin-top: 8px;
           }
@@ -1165,15 +1179,18 @@ export const generatePrescriptionHTML = (
           }
 
           <!-- Procedure Section -->
-          <div class="procedure-section">
-            <div class="section-title">🔬 Diagnostic Procedure</div>
-            <div class="procedure-content">
-              <div class="procedure-placeholder">
-                Space for doctor to describe the diagnostic procedure followed,<br>
-                examination methods, tests performed, and clinical findings
+          ${
+            prescription.procedure
+              ? `
+            <div class="procedure-section">
+              <div class="section-title">🔬 Diagnostic Procedure</div>
+              <div class="procedure-content">
+                ${prescription.procedure}
               </div>
             </div>
-          </div>
+          `
+              : ""
+          }
 
          
 

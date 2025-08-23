@@ -1,28 +1,14 @@
-import {
-  User,
-  Calendar,
-  Clock,
-  Printer,
-  Download,
-  Settings,
-} from "lucide-react";
+import { User, Calendar, Clock, Download, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useState } from "react";
-import {
-  printPrescription,
-  printCosmeticPrescription,
-  previewPrescription,
-  previewCosmeticPrescription,
-} from "./utils/printUtils";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { printPrescription, previewPrescription } from "./utils/printUtils";
 import { Prescription, PrescriptionCardProps } from "./types";
 
 export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
@@ -31,30 +17,14 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    "medical" | "cosmetic"
-  >("medical");
-
-  const handlePrint = () => {
-    if (selectedTemplate === "cosmetic") {
-      printCosmeticPrescription(prescription);
-    } else {
-      printPrescription(prescription);
-    }
-    onPrint(prescription);
-  };
-
   const handlePreview = () => {
-    if (selectedTemplate === "cosmetic") {
-      previewCosmeticPrescription(prescription);
-    } else {
-      previewPrescription(prescription);
-    }
+    previewPrescription(prescription);
   };
 
   const handleDownload = () => {
     // For now, just trigger print - you can implement PDF download later
-    handlePrint();
+    printPrescription(prescription);
+    onPrint(prescription);
   };
 
   const getStatusColor = (status: Prescription["status"]) => {
@@ -105,32 +75,48 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
         </div>
 
         <div>
-          <h4 className="font-semibold text-sm mb-2">Medications</h4>
-          <div className="space-y-2">
-            {prescription.medications.map((med, index) => (
-              <div
-                key={`${prescription.id}-med-${index}`}
-                className="bg-muted p-3 rounded-lg"
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-medium">{med.name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {med.dosage}
+          <h4 className="font-semibold text-sm mb-2">
+            Medications ({prescription.medications.length})
+          </h4>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="medications" className="border-none">
+              <AccordionTrigger className="py-2 hover:no-underline">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    Click to view {prescription.medications.length} medications
                   </span>
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200" />
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {med.frequency}
-                  </div>
-                  <div>Duration: {med.duration}</div>
-                  {med.instructions && (
-                    <div>Instructions: {med.instructions}</div>
-                  )}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 pt-2">
+                  {prescription.medications.map((med, index) => (
+                    <div
+                      key={`${prescription.id}-med-${index}`}
+                      className="bg-muted p-3 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-medium">{med.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {med.dosage}
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {med.frequency}
+                        </div>
+                        <div>Duration: {med.duration}</div>
+                        {med.instructions && (
+                          <div>Instructions: {med.instructions}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {prescription.notes && (
@@ -141,25 +127,6 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
             </p>
           </div>
         )}
-
-        {/* Template Selector */}
-        <div className="flex items-center gap-2 pt-2 pb-2">
-          <Settings className="h-4 w-4 text-muted-foreground" />
-          <Select
-            value={selectedTemplate}
-            onValueChange={(value: "medical" | "cosmetic") =>
-              setSelectedTemplate(value)
-            }
-          >
-            <SelectTrigger className="w-32 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="medical">Medical</SelectItem>
-              <SelectItem value="cosmetic">Cosmetic</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="flex gap-2 pt-2">
           {onEdit && (
@@ -179,15 +146,6 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
             className="flex-1"
           >
             Preview
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            className="flex-1"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print
           </Button>
           <Button
             variant="outline"

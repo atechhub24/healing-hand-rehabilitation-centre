@@ -197,7 +197,7 @@ export default function PrescriptionsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {prescriptions.map((prescription) => (
           <PrescriptionCard
             key={prescription.id}

@@ -283,7 +283,7 @@ export const generateCosmeticPrescriptionHTML = (
 
             /* Footer Section */
             .footer-section {
-                background: linear-gradient(135deg, #a8375e 0%, #d63384 100%);
+                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
                 color: white;
                 border-radius: 15px;
                 padding: 25px;
@@ -528,8 +528,6 @@ export const generatePrescriptionHTML = (
     showWatermark = true,
     showPreviewBanner = false,
     clinicName = "🏥 Soundarya Cosmetic & Laser Surgery Clinic",
-    clinicAddress = "A-15, Ruchika Market, Near Durga Mandap, Baramunda, Bhubaneswar - 751003",
-    clinicContact = "Phone: 9437920023, 8093060023 | Email: drlkmishra@gmail.com | www.cosmeticsurgeonbbsr.com",
     template = "medical",
   } = options;
 
@@ -548,13 +546,15 @@ export const generatePrescriptionHTML = (
         <style>
           @page {
             size: A4;
-            margin: 1cm;
+            margin: 0.5cm;
           }
           * {
             box-sizing: border-box;
           }
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+          
           body {
-            font-family: 'Times New Roman', serif;
+            font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             font-size: 12pt;
             line-height: 1.4;
             color: #333;
@@ -565,11 +565,54 @@ export const generatePrescriptionHTML = (
           .prescription-container {
             max-width: 210mm;
             margin: 0 auto;
-            padding: 15mm;
+            padding: 10mm 10mm 5mm 10mm;
             border: 2px solid #2c5530;
             border-radius: 8px;
             background: white;
             position: relative;
+          }
+          .prescription-content {
+            display: flex;
+            gap: 15mm;
+            margin-bottom: 0;
+          }
+          .prescription-main {
+            flex: 1;
+            max-width: 70%;
+          }
+          .prescription-sidebar {
+            flex-shrink: 0;
+            width: 30%;
+            min-height: 200mm;
+            background: #ffffff;
+            border-left: 2px dashed #ddd;
+            padding: 8mm;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+          }
+          .sidebar-placeholder {
+            font-size: 9pt;
+            color: #999;
+            text-align: center;
+            line-height: 1.4;
+            margin-top: 15mm;
+            padding: 5mm;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            background: #f9f9f9;
+            font-family: 'Inter', sans-serif;
+          }
+          .sidebar-title {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #2c5530;
+            text-align: center;
+            margin-bottom: 8mm;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 3mm;
+            font-family: 'Inter', sans-serif;
           }
           ${
             showWatermark
@@ -589,202 +632,347 @@ export const generatePrescriptionHTML = (
               : ""
           }
           .header {
-            text-align: center;
-            border-bottom: 3px solid #2c5530;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #2c5530;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
             position: relative;
           }
+          .header-left {
+            flex: 1;
+            text-align: left;
+          }
+          .header-divider {
+            width: 1px;
+            height: 80px;
+            background: #8B4513;
+            margin: 0 20px;
+            flex-shrink: 0;
+          }
+          .header-right {
+            flex-shrink: 0;
+            width: 120px;
+            text-align: center;
+            margin-left: 10px;
+          }
+          .clinic-logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+          }
+          .clinic-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+          }
+
           .clinic-info {
-            font-size: 14pt;
-            font-weight: bold;
+            font-size: 10pt;
+            font-weight: 600;
             color: #2c5530;
-            margin-bottom: 5px;
+            margin-bottom: 1px;
+            font-family: 'Inter', sans-serif;
           }
           .clinic-address {
-            font-size: 10pt;
+            font-size: 7pt;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 1px;
+            font-family: 'Inter', sans-serif;
           }
           .clinic-contact {
-            font-size: 9pt;
+            font-size: 6pt;
             color: #888;
+            margin-bottom: 1px;
+            font-family: 'Inter', sans-serif;
           }
           .prescription-title {
-            font-size: 18pt;
-            font-weight: bold;
+            font-size: 10pt;
+            font-weight: 600;
+            color: #2c5530;
+            margin: 3px 0 2px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: 'Inter', sans-serif;
+          }
+          .prescription-title-main {
+            font-size: 12pt;
+            font-weight: 700;
             color: #2c5530;
             margin: 15px 0 10px 0;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            border-bottom: 2px solid #2c5530;
+            padding-bottom: 8px;
           }
           ${
             showPreviewBanner
               ? `
-            .preview-banner {
-              position: absolute;
-              top: 10px;
-              right: 10px;
-              background: #ff6b35;
-              color: white;
-              padding: 5px 10px;
-              border-radius: 4px;
-              font-size: 9pt;
-              font-weight: bold;
-              transform: rotate(15deg);
-              box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            }
+                      .preview-banner {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff6b35;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+            transform: rotate(15deg);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+          }
           `
               : `
-            .prescription-number {
-              position: absolute;
-              top: 10px;
-              right: 10px;
-              background: #2c5530;
-              color: white;
-              padding: 5px 10px;
-              border-radius: 4px;
-              font-size: 9pt;
-              font-weight: bold;
-            }
+                      .prescription-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #2c5530;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+          }
           `
           }
           .doctor-info {
             background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2c5530;
+            padding: 5px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+            border-left: 2px solid #2c5530;
           }
           .doctor-name {
-            font-size: 12pt;
-            font-weight: bold;
+            font-size: 10pt;
+            font-weight: 600;
             color: #2c5530;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            font-family: 'Inter', sans-serif;
           }
           .prescription-date {
-            font-size: 10pt;
+            font-size: 8pt;
             color: #666;
             text-align: right;
-            margin-bottom: 15px;
-            padding-right: 10px;
+            margin-bottom: 5px;
+            padding-right: 3px;
+          }
+          .doctor-header-section {
+            margin-bottom: 10px;
+          }
+          .doctor-name-main {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #8B4513;
+            margin-bottom: 4px;
+            font-family: 'Inter', sans-serif;
+          }
+          .doctor-qualifications {
+            font-size: 8pt;
+            color: #666;
+            margin-bottom: 3px;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+          }
+          .doctor-designation {
+            font-size: 9pt;
+            color: #555;
+            margin-bottom: 4px;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+          }
+          .doctor-designation strong {
+            color: #8B4513;
+            font-weight: 700;
+          }
+          .doctor-contact {
+            margin-bottom: 2px;
+            font-family: 'Inter', sans-serif;
+          }
+          .contact-label {
+            font-size: 8pt;
+            color: #666;
+            font-weight: 500;
+          }
+          .contact-numbers {
+            font-size: 8pt;
+            color: #8B4513;
+            font-weight: 600;
+          }
+          .doctor-email-web {
+            font-size: 7pt;
+            color: #666;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
           }
           .patient-section {
-            background: #f0f8f0;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #d4edda;
+            background: #e8f4fd;
+            padding: 6px 8px;
+            border-radius: 3px;
+            margin-bottom: 6px;
+            border-left: 3px solid #2c5530;
           }
           .section-title {
-            font-size: 11pt;
-            font-weight: bold;
+            font-size: 9pt;
+            font-weight: 600;
             color: #2c5530;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.2px;
+            font-family: 'Inter', sans-serif;
           }
           .patient-info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 10pt;
+            gap: 4px;
+            font-size: 8pt;
+            font-family: 'Inter', sans-serif;
           }
           .info-label {
-            font-weight: bold;
+            font-weight: 600;
             color: #555;
-            min-width: 80px;
+            min-width: 60px;
+            font-family: 'Inter', sans-serif;
           }
           .diagnosis-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 4px;
+            border-radius: 2px;
+            margin-top: 4px;
           }
           .medications-section {
-            margin-bottom: 20px;
+            margin-bottom: 6px;
           }
-          .medication-item {
-            border: 2px solid #e9ecef;
-            border-left: 4px solid #2c5530;
-            padding: 12px;
-            margin-bottom: 10px;
+          .medications-table {
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
             background: white;
-            border-radius: 4px;
-            position: relative;
           }
-          .medication-number {
-            position: absolute;
-            top: -8px;
-            left: 10px;
+          .table-header {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            font-size: 8pt;
+            color: #2c5530;
+            font-family: 'Inter', sans-serif;
+          }
+          .medication-row {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+            min-height: 20px;
+            font-family: 'Inter', sans-serif;
+          }
+          .medication-row:last-child {
+            border-bottom: none;
+          }
+          .medication-row:nth-child(even) {
+            background: #fafafa;
+          }
+          .col-med {
+            flex: 2;
+            padding: 3px 4px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            font-size: 8pt;
+            font-family: 'Inter', sans-serif;
+          }
+          .col-dose, .col-freq, .col-dur, .col-inst {
+            flex: 1;
+            padding: 3px 4px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            font-size: 7pt;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+          }
+          .col-inst {
+            border-right: none;
+          }
+          .med-number {
             background: #2c5530;
             color: white;
-            width: 20px;
-            height: 20px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9pt;
-            font-weight: bold;
+            font-size: 6pt;
+            font-weight: 600;
+            margin-right: 6px;
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
           }
-          .medication-name {
-            font-size: 11pt;
-            font-weight: bold;
+          .med-name {
+            font-weight: 600;
             color: #2c5530;
-            margin-bottom: 5px;
-            margin-left: 30px;
-          }
-          .medication-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 9pt;
-            margin-left: 30px;
-          }
-          .medication-instructions {
-            background: #f8f9fa;
-            padding: 8px;
-            border-radius: 3px;
-            margin-top: 5px;
-            font-style: italic;
-            border-left: 3px solid #17a2b8;
+            font-family: 'Inter', sans-serif;
           }
           .notes-section {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-          }
-          .notes-content {
-            font-size: 10pt;
-            line-height: 1.5;
-            color: #856404;
-          }
-          .signature-section {
-            border-top: 2px solid #2c5530;
-            padding-top: 20px;
-            margin-top: 30px;
-          }
-          .signature-line {
-            width: 200px;
-            border-bottom: 1px solid #333;
-            margin-top: 30px;
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 4px;
+            border-radius: 2px;
             margin-bottom: 5px;
           }
+          .notes-content {
+            font-size: 8pt;
+            line-height: 1.2;
+            color: #856404;
+          }
+          .procedure-section {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 8px;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            min-height: 60px;
+          }
+          .procedure-content {
+            font-size: 8pt;
+            line-height: 1.3;
+            color: #0c5460;
+          }
+          .procedure-placeholder {
+            font-style: italic;
+            color: #6c757d;
+            text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 2px;
+            border: 1px dashed #dee2e6;
+          }
+          .signature-section {
+            border-top: 1px solid #2c5530;
+            padding-top: 6px;
+            margin-top: 8px;
+          }
+          .signature-line {
+            width: 150px;
+            border-bottom: 1px solid #333;
+            margin-top: 8px;
+            margin-bottom: 2px;
+          }
           .signature-text {
-            font-size: 9pt;
+            font-size: 8pt;
             color: #666;
           }
           .disclaimer-section {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 20px;
-            font-size: 8pt;
+            padding: 3px;
+            border-radius: 2px;
+            margin-top: 5px;
+            font-size: 6pt;
             color: #6c757d;
             text-align: center;
           }
@@ -803,6 +991,42 @@ export const generatePrescriptionHTML = (
             text-transform: uppercase;
             letter-spacing: 2px;
           }
+          .clinic-footer {
+            background: #1e3a8a;
+            color: white;
+            padding: 8px 10px;
+            text-align: center;
+            margin-top: 10px;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100%;
+            margin-left: 0;
+            margin-right: 0;
+            border: 1px solid #1e40af;
+          }
+          .clinic-footer-name {
+            font-size: 12pt;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+            text-shadow: none;
+            letter-spacing: 0.5px;
+            font-family: 'Inter', sans-serif;
+          }
+          .clinic-footer-address {
+            font-size: 9pt;
+            color: #e0e7ff;
+            margin-bottom: 6px;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+          }
+          .clinic-footer-timing {
+            font-size: 9pt;
+            color: #e0e7ff;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+          }
           @media print {
             body { background: white; }
             .prescription-container {
@@ -816,20 +1040,42 @@ export const generatePrescriptionHTML = (
         </style>
       </head>
       <body>
-        <div class="prescription-container">
+                <div class="prescription-container">
           <!-- Header -->
           <div class="header">
-            <div class="clinic-info">${clinicName}</div>
-            <div style="font-size: 12pt; font-weight: bold; color: #a8375e; margin: 8px 0;">COSMETIC & LASER SURGERY CLINIC</div>
-            <div class="clinic-address">${clinicAddress}</div>
-            <div class="clinic-contact">${clinicContact}</div>
-            <div class="prescription-title">Medical Prescription</div>
+            <div class="header-left">
+              <!-- Doctor Info Section -->
+              <div class="doctor-header-section">
+                <div class="doctor-name-main">Dr. ${prescription.doctorName}</div>
+                <div class="doctor-qualifications">M.B.B.S., M.S.(Gen. Surgery), M.Ch. (Plastic Surgery) (Delhi University)</div>
+                <div class="doctor-designation">Senior Consultant - <strong>Cosmetic & Plastic Surgery</strong>, Apollo Hospital, BBSR</div>
+                <div class="doctor-contact">
+                  <span class="contact-label">Mob.:</span> 
+                  <span class="contact-numbers">9437920023, 8093060023</span>
+                </div>
+                <div class="doctor-email-web">
+                  Email: drlkmishra@gmail.com | www.cosmeticsurgeonbbsr.com
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vertical Divider Line -->
+            <div class="header-divider"></div>
+            
+            <div class="header-right">
+              <div class="clinic-logo-section">
+                <img src="/clinic-logo.png" alt="Soundarya Clinic Logo" class="clinic-logo" />
+              </div>
+            </div>
             ${
               showPreviewBanner
                 ? '<div class="preview-banner">PREVIEW</div>'
-                : `<div class="prescription-number">RX-${prescription.id}</div>`
+                : ""
             }
           </div>
+
+          <div class="prescription-content">
+            <div class="prescription-main">
 
           <!-- Preview Notice (if in preview mode) -->
           ${
@@ -844,21 +1090,8 @@ export const generatePrescriptionHTML = (
               : ""
           }
 
-          <!-- Doctor Info -->
-          <div class="doctor-info">
-            <div class="doctor-name">Dr. ${prescription.doctorName}</div>
-            <div style="font-size: 9pt; color: #666;">M.B.B.S., M.S.(Gen. Surgery), M.Ch. (Plastic Surgery) (Delhi University)</div>
-            <div style="font-size: 10pt; color: #555; margin-top: 5px;">Senior Consultant - Cosmetic & Plastic Surgery, Apollo Hospital, BBSR</div>
-          </div>
-
-          <!-- Date -->
-          <div class="prescription-date">
-            Date: ${new Date(prescription.date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </div>
+          <!-- Prescription Title -->
+          <div class="prescription-title-main">MEDICAL PRESCRIPTION</div>
 
           <!-- Patient Information -->
           <div class="patient-section">
@@ -880,33 +1113,43 @@ export const generatePrescriptionHTML = (
             }
           </div>
 
+          <!-- Date -->
+          <div class="prescription-date">
+            Date: ${new Date(prescription.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
+
           <!-- Medications -->
           <div class="medications-section">
             <div class="section-title">💊 Prescribed Medications</div>
-            ${prescription.medications
-              .map(
-                (med, index) => `
-              <div class="medication-item">
-                <div class="medication-number">${index + 1}</div>
-                <div class="medication-name">${med.name}</div>
-                <div class="medication-details">
-                  <div><span class="info-label">Dosage:</span> ${med.dosage}</div>
-                  <div><span class="info-label">Frequency:</span> ${med.frequency}</div>
-                  <div><span class="info-label">Duration:</span> ${med.duration}</div>
-                </div>
-                ${
-                  med.instructions
-                    ? `
-                  <div class="medication-instructions">
-                    <span class="info-label">Instructions:</span> ${med.instructions}
-                  </div>
-                `
-                    : ""
-                }
+            <div class="medications-table">
+              <div class="table-header">
+                <div class="col-med">Medication</div>
+                <div class="col-dose">Dosage</div>
+                <div class="col-freq">Frequency</div>
+                <div class="col-dur">Duration</div>
+                <div class="col-inst">Instructions</div>
               </div>
-            `
-              )
-              .join("")}
+              ${prescription.medications
+                .map(
+                  (med, index) => `
+                <div class="medication-row">
+                  <div class="col-med">
+                    <span class="med-number">${index + 1}.</span>
+                    <span class="med-name">${med.name}</span>
+                  </div>
+                  <div class="col-dose">${med.dosage}</div>
+                  <div class="col-freq">${med.frequency}</div>
+                  <div class="col-dur">${med.duration}</div>
+                  <div class="col-inst">${med.instructions || "-"}</div>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
           </div>
 
           <!-- Doctor's Notes -->
@@ -921,30 +1164,50 @@ export const generatePrescriptionHTML = (
               : ""
           }
 
-          <!-- Signature Section -->
-          <div class="signature-section">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-              <div style="flex: 1;">
-                <div class="signature-line"></div>
-                <div class="signature-text">Doctor's Signature</div>
-              </div>
-              <div style="text-align: right; font-size: 9pt; color: #666;">
-                <div>Registration: ${showPreviewBanner ? "#PREVIEW" : `#${Math.random().toString(36).substr(2, 6).toUpperCase()}`}</div>
-                <div>License Valid Until: ${showPreviewBanner ? "Preview Mode" : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
+          <!-- Procedure Section -->
+          <div class="procedure-section">
+            <div class="section-title">🔬 Diagnostic Procedure</div>
+            <div class="procedure-content">
+              <div class="procedure-placeholder">
+                Space for doctor to describe the diagnostic procedure followed,<br>
+                examination methods, tests performed, and clinical findings
               </div>
             </div>
           </div>
 
-          <!-- Disclaimer -->
-          <div class="disclaimer-section">
-            <div class="disclaimer-icon">⚠️</div>
-            <strong>IMPORTANT:</strong> This prescription is valid only when signed by a registered medical practitioner.
-            Please take medications exactly as prescribed. Consult your doctor if you experience any adverse effects.
-            Keep this prescription for your records.
-          </div>
+         
 
           <!-- Footer Watermark -->
           <div class="footer-watermark">${clinicName} - Electronic Health Record System${showPreviewBanner ? " - PREVIEW MODE" : ""}</div>
+            </div>
+
+            <!-- Right Sidebar for Doctor's Notes -->
+            <div class="prescription-sidebar">
+              <div class="sidebar-title">Doctor's Notes</div>
+              <div class="sidebar-placeholder">
+                Space reserved for<br>
+                handwritten notes<br>
+                and additional<br>
+                instructions
+              </div>
+            </div>
+          </div>                   
+          <!-- Signature Section -->
+          <div class="signature-section">
+            <div style="display: flex; justify-content: flex-start; align-items: flex-end;">
+              <div style="flex: 1;">
+                <div class="signature-line"></div>
+                <div class="signature-text">Doctor's Signature</div>
+              </div>
+            </div>
+          </div>
+          <!-- Clinic Footer Section -->
+          <div class="clinic-footer">
+            <div class="clinic-footer-name">SOUNDARYA COSMETIC AND LASER SURGERY CLINIC</div>
+            <div class="clinic-footer-address">Address: A-15, Ruchika Market, Near Durga Mandap, Baramunda, Bhubaneswar - 751003</div>
+            <div class="clinic-footer-timing">Consultation Time: 5pm to 9pm | All Sundays: 9am to 1pm</div>
+          </div>
+        </div>
         </div>
       </body>
     </html>

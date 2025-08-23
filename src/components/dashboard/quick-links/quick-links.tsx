@@ -27,8 +27,8 @@ const quickLinks: Record<string, QuickLink[]> = {
       color: "text-emerald-500",
     },
     {
-      title: "Analytics",
-      href: "/admin/analytics",
+      title: "Manage Prescriptions",
+      href: "/admin/prescriptions",
       icon: ChartBar,
       color: "text-indigo-500",
     },

@@ -1060,7 +1060,7 @@ export const generatePrescriptionHTML = (
             <div class="header-left">
               <!-- Doctor Info Section -->
               <div class="doctor-header-section">
-                <div class="doctor-name-main">Dr. ${prescription.doctorName}</div>
+                <div class="doctor-name-main">${prescription.doctorName}</div>
                 <div class="doctor-qualifications">M.B.B.S., M.S.(Gen. Surgery), M.Ch. (Plastic Surgery) (Delhi University)</div>
                 <div class="doctor-designation">Senior Consultant - <strong>Cosmetic & Plastic Surgery</strong>, Apollo Hospital, BBSR</div>
                 <div class="doctor-contact">

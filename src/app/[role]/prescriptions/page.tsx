@@ -64,6 +64,10 @@ export default function PrescriptionsPage() {
     router.push(`/${role}/prescriptions/new`);
   };
 
+  const handleEdit = (prescription: Prescription) => {
+    router.push(`/${role}/prescriptions/${prescription.id}`);
+  };
+
   const handleRefresh = () => {
     refetch();
   };
@@ -111,6 +115,7 @@ export default function PrescriptionsPage() {
                 key={prescription.id}
                 prescription={prescription}
                 onPrint={handlePrint}
+                onEdit={handleEdit}
                 onDelete={handleDelete}
               />
             ))}

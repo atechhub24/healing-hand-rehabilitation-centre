@@ -1,6 +1,8 @@
 // Main Components
 export { PrescriptionCard } from "./PrescriptionCard";
 export { PrescriptionForm } from "./PrescriptionForm";
+export { MedicationCombobox } from "./MedicationCombobox";
+export { DosageCombobox } from "./DosageCombobox";
 
 // Section Components
 export { PatientInfoSection } from "./sections/PatientInfoSection";

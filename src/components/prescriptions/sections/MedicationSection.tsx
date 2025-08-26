@@ -12,6 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { Medication, MedicationSectionProps } from "../types";
+import { MedicationCombobox } from "../MedicationCombobox";
+import { DosageCombobox } from "../DosageCombobox";
 
 const FREQUENCY_OPTIONS = [
   "Once daily",
@@ -75,7 +77,7 @@ export const MedicationSection: React.FC<MedicationSectionProps> = ({
       <CardContent className="space-y-6">
         {medications.map((medication, index) => (
           <div
-            key={`medication-${index}`}
+            key={`medication-${medication.name}-${index}`}
             className="border rounded-lg p-4 space-y-4"
           >
             <div className="flex items-center justify-between">
@@ -95,23 +97,22 @@ export const MedicationSection: React.FC<MedicationSectionProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Medication Name *</Label>
-                <Input
+                <MedicationCombobox
                   value={medication.name}
-                  onChange={(e) =>
-                    updateMedication(index, "name", e.target.value)
+                  onValueChange={(value) =>
+                    updateMedication(index, "name", value)
                   }
-                  placeholder="e.g., Amoxicillin"
-                  required
+                  placeholder="Search and select medication..."
                 />
               </div>
               <div>
                 <Label>Dosage</Label>
-                <Input
-                  value={medication.dosage}
-                  onChange={(e) =>
-                    updateMedication(index, "dosage", e.target.value)
+                <DosageCombobox
+                  value={medication.dosage || ""}
+                  onValueChange={(value) =>
+                    updateMedication(index, "dosage", value)
                   }
-                  placeholder="e.g., 500mg"
+                  placeholder="Enter dosage..."
                 />
               </div>
             </div>

@@ -4,6 +4,8 @@ import {
   Scale,
   Settings,
   Users,
+  FileSpreadsheet,
+  Pill,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -13,6 +15,16 @@ export const roleConfig = {
     title: "Admin Dashboard",
     menuItems: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+      {
+        label: "Prescriptions",
+        icon: FileSpreadsheet,
+        href: "/admin/prescriptions",
+      },
+      {
+        label: "Medications",
+        icon: Pill,
+        href: "/admin/medications",
+      },
       { label: "Patients", icon: Users, href: "/admin/patients" },
       {
         label: "BMI Calculator",

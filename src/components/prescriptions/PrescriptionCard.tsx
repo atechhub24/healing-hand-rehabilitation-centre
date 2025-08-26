@@ -1,15 +1,14 @@
-import { User, Calendar, Clock, Download, ChevronDown } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { printPrescription, previewPrescription } from "./utils/printUtils";
-import { Prescription, PrescriptionCardProps } from "./types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, ChevronDown, Clock, Download, User } from "lucide-react";
+import { PrescriptionCardProps } from "./types";
+import { printPrescription } from "./utils/printUtils";
 
 export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
   prescription,
@@ -17,27 +16,10 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const handlePreview = () => {
-    previewPrescription(prescription);
-  };
-
   const handleDownload = () => {
     // For now, just trigger print - you can implement PDF download later
     printPrescription(prescription);
     onPrint(prescription);
-  };
-
-  const getStatusColor = (status: Prescription["status"]) => {
-    switch (status) {
-      case "active":
-        return "default";
-      case "completed":
-        return "secondary";
-      case "expired":
-        return "destructive";
-      default:
-        return "secondary";
-    }
   };
 
   return (
@@ -60,9 +42,15 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               </div>
             </div>
           </div>
-          <Badge variant={getStatusColor(prescription.status)}>
-            {prescription.status}
-          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log(prescription);
+            }}
+          >
+            Duplicate
+          </Button>
         </div>
       </CardHeader>
 
@@ -139,14 +127,7 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               Edit
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreview}
-            className="flex-1"
-          >
-            Preview
-          </Button>
+
           <Button
             variant="outline"
             size="sm"

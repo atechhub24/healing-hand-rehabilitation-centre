@@ -4,17 +4,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  Calendar,
-  ChevronDown,
-  Clock,
-  Download,
-  User,
-  Copy,
-} from "lucide-react";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Calendar, Clock, Copy, Download, Pencil, Trash } from "lucide-react";
 import { PrescriptionCardProps } from "./types";
 import { printPrescription } from "./utils/printUtils";
 
@@ -36,20 +35,16 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
-            </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <CardTitle className="text-lg">
-                  {prescription.patient.name}
+                  {prescription.patient.name}{" "}
+                  {prescription.isDuplicate && (
+                    <Badge variant="secondary" className="text-xs">
+                      Duplicated
+                    </Badge>
+                  )}
                 </CardTitle>
-                {prescription.isDuplicate && (
-                  <Badge variant="secondary" className="text-xs">
-                    <Copy className="h-3 w-3 mr-1" />
-                    Duplicate
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
@@ -59,15 +54,6 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               </div>
             </div>
           </div>
-          {onDuplicate && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDuplicate(prescription)}
-            >
-              Duplicate
-            </Button>
-          )}
         </div>
       </CardHeader>
 
@@ -90,7 +76,6 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
                   <span>
                     Click to view {prescription.medications.length} medications
                   </span>
-                  <ChevronDown className="h-4 w-4 transition-transform duration-200" />
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -125,47 +110,55 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
         </div>
 
         {prescription.notes && (
-          <div>
-            <h4 className="font-semibold text-sm mb-2">Doctor&apos;s Notes</h4>
-            <p className="text-sm text-muted-foreground">
-              {prescription.notes}
-            </p>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="notes" className="border-none">
+              <AccordionTrigger className="py-2 hover:no-underline">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Click to view doctor&apos;s notes</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground">
+                  {prescription.notes}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
-
-        <div className="flex gap-2 pt-2">
-          {onEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(prescription)}
-              className="flex-1"
-            >
-              Edit
-            </Button>
-          )}
-
+      </CardContent>
+      <CardFooter className="gap-2">
+        {onEdit && (
           <Button
             variant="outline"
-            size="sm"
-            onClick={handleDownload}
-            className="flex-1"
+            size="icon"
+            onClick={() => onEdit(prescription)}
           >
-            <Download className="h-4 w-4 mr-2" />
-            Download
+            <Pencil />
           </Button>
-          {onDelete && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(prescription)}
-              className="flex-1"
-            >
-              Delete
-            </Button>
-          )}
-        </div>
-      </CardContent>
+        )}
+
+        <Button variant="outline" size="icon" onClick={handleDownload}>
+          <Download />
+        </Button>
+        {onDelete && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(prescription)}
+          >
+            <Trash />
+          </Button>
+        )}
+        {onDuplicate && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDuplicate(prescription)}
+          >
+            <Copy />
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 };

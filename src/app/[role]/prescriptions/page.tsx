@@ -12,7 +12,7 @@ import useFetch from "@/lib/hooks/use-fetch";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useMemo } from "react";
 import mutate from "@/lib/firebase/mutate-data";
-
+import { toast } from "@/components/ui/use-toast";
 // PrescriptionCard is now imported from the prescriptions module
 
 export default function PrescriptionsPage() {
@@ -54,9 +54,9 @@ export default function PrescriptionsPage() {
       }
     } catch (error) {
       console.error("Error deleting prescription:", error);
-      alert(
-        `Failed to delete prescription: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      toast({
+        title: `Failed to delete prescription: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
     }
   };
 
@@ -66,6 +66,40 @@ export default function PrescriptionsPage() {
 
   const handleEdit = (prescription: Prescription) => {
     router.push(`/${role}/prescriptions/${prescription.id}`);
+  };
+
+  const handleDuplicate = async (prescription: Prescription) => {
+    if (!user) return;
+
+    try {
+      // Create a new prescription with the same data but new ID and isDuplicate flag
+      const duplicatedPrescription = {
+        ...prescription,
+        isDuplicate: true, // Mark as duplicate
+        date: new Date().toISOString().split("T")[0], // Update date to current date
+      };
+
+      const result = await mutate({
+        path: `prescriptions/${user.uid}`,
+        data: duplicatedPrescription as unknown as Record<string, unknown>,
+        action: "createWithId",
+      });
+
+      if (result.success) {
+        // Refresh the prescriptions list
+        refetch();
+        toast({
+          title: "Prescription duplicated successfully!",
+        });
+      } else {
+        throw new Error(result.error || "Failed to duplicate prescription");
+      }
+    } catch (error) {
+      console.error("Error duplicating prescription:", error);
+      toast({
+        title: `Failed to duplicate prescription: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
   };
 
   const handleRefresh = () => {
@@ -101,32 +135,39 @@ export default function PrescriptionsPage() {
             <p className="text-muted-foreground">Loading prescriptions...</p>
           </div>
         </div>
-      ) : safePrescriptions.length > 0 ? (
-        <div className="grid gap-6 lg:grid-cols-3">
-          {safePrescriptions
-            .filter(
-              (prescription) =>
-                prescription &&
-                typeof prescription === "object" &&
-                prescription.id
-            )
-            .map((prescription) => (
-              <PrescriptionCard
-                key={prescription.id}
-                prescription={prescription}
-                onPrint={handlePrint}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-        </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No prescriptions found</p>
-          <Button onClick={handleRefresh} variant="outline">
-            Refresh
-          </Button>
-        </div>
+        <>
+          {safePrescriptions.length > 0 ? (
+            <div className="grid gap-6 lg:grid-cols-3">
+              {safePrescriptions
+                .filter(
+                  (prescription) =>
+                    prescription &&
+                    typeof prescription === "object" &&
+                    prescription.id
+                )
+                .map((prescription) => (
+                  <PrescriptionCard
+                    key={prescription.id}
+                    prescription={prescription}
+                    onPrint={handlePrint}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onDuplicate={handleDuplicate}
+                  />
+                ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                No prescriptions found
+              </p>
+              <Button onClick={handleRefresh} variant="outline">
+                Refresh
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

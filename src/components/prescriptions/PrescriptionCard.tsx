@@ -6,7 +6,15 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ChevronDown, Clock, Download, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  ChevronDown,
+  Clock,
+  Download,
+  User,
+  Copy,
+} from "lucide-react";
 import { PrescriptionCardProps } from "./types";
 import { printPrescription } from "./utils/printUtils";
 
@@ -15,6 +23,7 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
   onPrint,
   onEdit,
   onDelete,
+  onDuplicate,
 }) => {
   const handleDownload = () => {
     // For now, just trigger print - you can implement PDF download later
@@ -31,9 +40,17 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">
-                {prescription.patient.name}
-              </CardTitle>
+              <div className="flex items-center gap-2 mb-1">
+                <CardTitle className="text-lg">
+                  {prescription.patient.name}
+                </CardTitle>
+                {prescription.isDuplicate && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Copy className="h-3 w-3 mr-1" />
+                    Duplicate
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>{prescription.date}</span>
@@ -42,15 +59,15 @@ export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              console.log(prescription);
-            }}
-          >
-            Duplicate
-          </Button>
+          {onDuplicate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDuplicate(prescription)}
+            >
+              Duplicate
+            </Button>
+          )}
         </div>
       </CardHeader>
 

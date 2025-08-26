@@ -23,6 +23,7 @@ export interface Prescription {
   procedure?: string;
   doctorName: string;
   status: "active" | "completed" | "expired";
+  isDuplicate?: boolean;
 }
 
 export interface PrescriptionFormData {
@@ -48,6 +49,7 @@ export interface PrescriptionCardProps {
   onPrint: (prescription: Prescription) => void;
   onEdit?: (prescription: Prescription) => void;
   onDelete?: (prescription: Prescription) => void;
+  onDuplicate?: (prescription: Prescription) => void;
 }
 
 export interface PrescriptionFormProps {

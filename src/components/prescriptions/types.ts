@@ -14,7 +14,7 @@ export interface Patient {
 }
 
 export interface Prescription {
-  id: number;
+  id: string;
   patient: Patient;
   date: string;
   medications: Medication[];

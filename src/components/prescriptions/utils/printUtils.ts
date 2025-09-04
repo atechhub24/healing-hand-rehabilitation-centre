@@ -163,7 +163,7 @@ export const generateCosmeticPrescriptionHTML = (
             }
 
             .section-title {
-                font-size: 16px;
+                font-size: 18pt;
                 font-weight: 600;
                 color: #2c3e50;
                 margin-bottom: 15px;
@@ -939,7 +939,7 @@ export const generatePrescriptionHTML = (
             margin-bottom: 5px;
           }
           .notes-content {
-            font-size: 8pt;
+            font-size: 12pt;
             line-height: 1.2;
             color: #856404;
           }

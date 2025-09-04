@@ -133,7 +133,7 @@ export const usePrescription = (
   }, [formData]);
 
   const convertToPrescription = useCallback(
-    (id: number): Prescription => {
+    (id: string): Prescription => {
       return {
         id,
         patient: formData.patient,

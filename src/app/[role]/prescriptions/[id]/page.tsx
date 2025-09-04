@@ -89,19 +89,18 @@ export default function EditPrescriptionPage() {
       return;
     }
 
-    if (!id || isNaN(Number(id))) {
-      toast({
+    if (!id) {
+      return toast({
         title: "Invalid ID",
         description: "Invalid prescription ID",
         variant: "destructive",
       });
-      return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const updatedPrescription = convertToPrescription(Number(id));
+      const updatedPrescription = convertToPrescription(id as string);
 
       // Update prescription in Firebase database
       const result = await mutate({
@@ -142,7 +141,7 @@ export default function EditPrescriptionPage() {
       return;
     }
 
-    if (!id || isNaN(Number(id))) {
+    if (!id) {
       toast({
         title: "Invalid ID",
         description: "Invalid prescription ID",
@@ -151,7 +150,7 @@ export default function EditPrescriptionPage() {
       return;
     }
 
-    const prescription = convertToPrescription(Number(id));
+    const prescription = convertToPrescription(id as string);
     previewPrescription(prescription);
   };
 

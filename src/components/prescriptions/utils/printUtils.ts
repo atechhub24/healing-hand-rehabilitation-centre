@@ -163,7 +163,7 @@ export const generateCosmeticPrescriptionHTML = (
             }
 
             .section-title {
-                font-size: 18pt;
+                font-size: 20pt;
                 font-weight: 600;
                 color: #2c3e50;
                 margin-bottom: 15px;
@@ -579,7 +579,7 @@ export const generatePrescriptionHTML = (
           .prescription-container {
             max-width: 210mm;
             margin: 0 auto;
-            padding: 10mm 10mm 5mm 10mm;
+            padding: 10mm 5mm 3mm 5mm;
             border: 2px solid #2c5530;
             border-radius: 8px;
             background: white;
@@ -587,7 +587,7 @@ export const generatePrescriptionHTML = (
           }
           .prescription-content {
             display: flex;
-            gap: 15mm;
+            gap: 5mm;
             margin-bottom: 0;
           }
           .prescription-main {
@@ -667,7 +667,7 @@ export const generatePrescriptionHTML = (
           }
           .header-right {
             flex-shrink: 0;
-            width: 120px;
+            width: 195px;
             text-align: center;
             margin-left: 10px;
           }
@@ -831,7 +831,7 @@ export const generatePrescriptionHTML = (
             border-left: 3px solid #2c5530;
           }
           .section-title {
-            font-size: 9pt;
+            font-size: 20pt;
             font-weight: 600;
             color: #2c5530;
             margin-bottom: 4px;
@@ -952,7 +952,7 @@ export const generatePrescriptionHTML = (
             min-height: 60px;
           }
           .procedure-content {
-            font-size: 8pt;
+            font-size: 12pt;
             line-height: 1.3;
             color: #0c5460;
           }
@@ -1051,6 +1051,15 @@ export const generatePrescriptionHTML = (
               opacity: 0.05;
             }
           }
+          .section-header {
+            font-size: 16pt;
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+          }
         </style>
       </head>
       <body>
@@ -1109,7 +1118,7 @@ export const generatePrescriptionHTML = (
 
           <!-- Patient Information -->
           <div class="patient-section">
-            <div class="section-title">Patient Information</div>
+            <div class="section-header">Patient Information</div>
             <div class="patient-info-grid">
               <div><span class="info-label">Name:</span> ${prescription.patient.name}</div>
               <div><span class="info-label">Age:</span> ${prescription.patient.age} years</div>
@@ -1138,7 +1147,7 @@ export const generatePrescriptionHTML = (
 
           <!-- Medications -->
           <div class="medications-section">
-            <div class="section-title">💊 Prescribed Medications</div>
+            <div class="section-header">💊 Prescribed Medications</div>
             <div class="medications-table">
               <div class="table-header">
                 <div class="col-med">Medication</div>

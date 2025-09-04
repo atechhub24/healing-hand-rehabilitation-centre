@@ -31,7 +31,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
       return;
     }
 
-    const prescription = convertToPrescription(Date.now());
+    const prescription = convertToPrescription(`${Date.now()}`);
     onSubmit(prescription);
   };
 
@@ -41,7 +41,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
       return;
     }
 
-    const prescription = convertToPrescription(Date.now());
+    const prescription = convertToPrescription(`${Date.now()}`);
     onPreview(prescription);
   };
 

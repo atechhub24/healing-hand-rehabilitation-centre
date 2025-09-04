@@ -50,7 +50,7 @@ export default function NewPrescriptionPage() {
     setIsSubmitting(true);
 
     try {
-      const prescription = convertToPrescription(Date.now());
+      const prescription = convertToPrescription(`${Date.now()}`);
 
       // Save prescription to Firebase database
       const result = await mutate({
@@ -86,7 +86,7 @@ export default function NewPrescriptionPage() {
       return;
     }
 
-    const prescription = convertToPrescription(Date.now());
+    const prescription = convertToPrescription(`${Date.now()}`);
     previewPrescription(prescription);
   };
 

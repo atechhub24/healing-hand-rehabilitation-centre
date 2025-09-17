@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { BranchSelector } from "./branch-selector";
+import { MegaMenu } from "./mega-menu";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,8 +75,8 @@ export function NavBar() {
               >
                 Contact
               </Link>
-              {/* Branch Selector - shows when active branches exist */}
-              <BranchSelector />
+              {/* Mega Menu - shows when active branches exist */}
+              <MegaMenu />
               {user ? (
                 <div className="flex items-center gap-2">
                   <Link href={`/${role}`}>
@@ -202,9 +202,9 @@ export function NavBar() {
               >
                 Contact
               </Link>
-              {/* Branch Selector for Mobile */}
+              {/* Mega Menu for Mobile */}
               <div className="px-3 py-2">
-                <BranchSelector />
+                <MegaMenu />
               </div>
               {user ? (
                 <>

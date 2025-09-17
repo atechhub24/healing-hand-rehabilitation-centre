@@ -54,6 +54,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.49.1",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

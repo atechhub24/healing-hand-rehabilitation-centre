@@ -170,3 +170,22 @@ export interface Branch {
   creatorInfo: CreatorInfo;
   updaterInfo?: UpdaterInfo;
 }
+
+export interface Service {
+  id: string;
+  title: string;
+  description: string;
+  shortDescription?: string;
+  icon: string; // Lucide icon name
+  category: "consultation" | "diagnostic" | "emergency" | "support" | "wellness" | "specialty";
+  price?: number;
+  duration?: number; // in minutes
+  isActive: boolean;
+  isFeatured: boolean;
+  features?: string[];
+  requirements?: string[];
+  imageUrl?: string;
+  createdAt: string;
+  creatorInfo: CreatorInfo;
+  updaterInfo?: UpdaterInfo;
+}

@@ -6,6 +6,7 @@ import {
   Users,
   FileSpreadsheet,
   Pill,
+  Building2,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -15,6 +16,11 @@ export const roleConfig = {
     title: "Admin Dashboard",
     menuItems: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+      {
+        label: "Branches",
+        icon: Building2,
+        href: "/admin/branches",
+      },
       {
         label: "Prescriptions",
         icon: FileSpreadsheet,

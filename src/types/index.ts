@@ -148,3 +148,25 @@ export interface PatientDocument {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phoneNumber: string;
+  email?: string;
+  managerName?: string;
+  managerPhone?: string;
+  timings: {
+    startTime: string;
+    endTime: string;
+    days: string[];
+  };
+  isActive: boolean;
+  createdAt: string;
+  creatorInfo: CreatorInfo;
+  updaterInfo?: UpdaterInfo;
+}

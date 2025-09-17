@@ -323,68 +323,197 @@ export default function BranchForm({ branch, onSubmit, onClose }: BranchFormProp
 
             {/* Operating Hours */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Operating Hours</h3>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Operating Hours
+              </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime">Start Time</Label>
-                  <Select
-                    value={formData.timings.startTime}
-                    onValueChange={(value) => handleTimingChange("startTime", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select start time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeOptions.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <Tabs defaultValue="schedule" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                  <TabsTrigger value="days">Operating Days</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="schedule" className="space-y-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Time Schedule</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="startTime" className="text-sm font-medium">
+                            Opening Time
+                          </Label>
+                          <Select
+                            value={formData.timings.startTime}
+                            onValueChange={(value) => handleTimingChange("startTime", value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select opening time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeOptions.map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {time}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="endTime">End Time</Label>
-                  <Select
-                    value={formData.timings.endTime}
-                    onValueChange={(value) => handleTimingChange("endTime", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select end time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeOptions.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="endTime" className="text-sm font-medium">
+                            Closing Time
+                          </Label>
+                          <Select
+                            value={formData.timings.endTime}
+                            onValueChange={(value) => handleTimingChange("endTime", value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select closing time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeOptions.map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {time}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                          <strong>Current Schedule:</strong> {formData.timings.startTime} - {formData.timings.endTime}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="days" className="space-y-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Operating Days *
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Quick Selection Buttons */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Quick Selection</Label>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+                              setFormData(prev => ({
+                                ...prev,
+                                timings: {
+                                  ...prev.timings,
+                                  days: weekdays
+                                }
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Weekdays Only
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                timings: {
+                                  ...prev.timings,
+                                  days: availableDays
+                                }
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            All Days
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                timings: {
+                                  ...prev.timings,
+                                  days: []
+                                }
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Clear All
+                          </Button>
+                        </div>
+                      </div>
 
-              <div className="space-y-2">
-                <Label>Operating Days *</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {availableDays.map((day) => (
-                    <div key={day} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={day}
-                        checked={formData.timings.days.includes(day)}
-                        onCheckedChange={() => handleDayToggle(day)}
-                      />
-                      <Label htmlFor={day} className="text-sm">
-                        {day}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                {errors.days && (
-                  <p className="text-sm text-red-500">{errors.days}</p>
-                )}
-              </div>
+                      {/* Individual Day Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Select Individual Days</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                          {availableDays.map((day) => {
+                            const isSelected = formData.timings.days.includes(day);
+                            return (
+                              <Button
+                                key={day}
+                                type="button"
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleDayToggle(day)}
+                                className={`text-xs h-8 ${
+                                  isSelected 
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                                    : "hover:bg-gray-50"
+                                }`}
+                              >
+                                {day.slice(0, 3)}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Selected Days Display */}
+                      {formData.timings.days.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Selected Days</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.timings.days.map((day) => (
+                              <Badge 
+                                key={day} 
+                                variant="secondary" 
+                                className="bg-blue-100 text-blue-800 hover:bg-blue-200"
+                              >
+                                {day}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {errors.days && (
+                        <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                          <p className="text-sm text-red-600">{errors.days}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Status */}

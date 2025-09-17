@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { BranchSelector } from "./branch-selector";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,6 +75,8 @@ export function NavBar() {
               >
                 Contact
               </Link>
+              {/* Branch Selector - shows when active branches exist */}
+              <BranchSelector />
               {user ? (
                 <div className="flex items-center gap-2">
                   <Link href={`/${role}`}>
@@ -199,6 +202,10 @@ export function NavBar() {
               >
                 Contact
               </Link>
+              {/* Branch Selector for Mobile */}
+              <div className="px-3 py-2">
+                <BranchSelector />
+              </div>
               {user ? (
                 <>
                   <Link

@@ -36,7 +36,8 @@ import * as LucideIcons from "lucide-react";
 const fallbackServices = [
   {
     title: "Online Consultations",
-    description: "Connect with healthcare providers from the comfort of your home.",
+    description:
+      "Connect with healthcare providers from the comfort of your home.",
     icon: <Stethoscope className="h-6 w-6" />,
   },
   {
@@ -56,7 +57,8 @@ const fallbackServices = [
   },
   {
     title: "Health Records",
-    description: "Secure digital storage and management of your health records.",
+    description:
+      "Secure digital storage and management of your health records.",
     icon: <ClipboardList className="h-6 w-6" />,
   },
   {
@@ -66,12 +68,14 @@ const fallbackServices = [
   },
   {
     title: "Appointment Booking",
-    description: "Schedule appointments with healthcare providers quickly and easily.",
+    description:
+      "Schedule appointments with healthcare providers quickly and easily.",
     icon: <CalendarCheck className="h-6 w-6" />,
   },
   {
     title: "24/7 Support",
-    description: "Round-the-clock access to healthcare professionals for emergencies.",
+    description:
+      "Round-the-clock access to healthcare professionals for emergencies.",
     icon: <Clock className="h-6 w-6" />,
   },
 ];
@@ -146,23 +150,23 @@ const Feature = ({
         index < 4 && "lg:border-b dark:border-neutral-800"
       )}
     >
-      {index < 4 && (
+      {index < 4 ? (
         <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-t from-neutral-100 dark:from-neutral-800 to-transparent pointer-events-none" />
-      )}
-      {index >= 4 && (
+      ) : null}
+      {index >= 4 ? (
         <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-neutral-100 dark:from-neutral-800 to-transparent pointer-events-none" />
-      )}
-      
+      ) : null}
+
       {/* Featured Badge */}
-      {isFeatured && (
+      {isFeatured ? (
         <div className="absolute top-4 right-4 z-20">
           <Badge variant="default" className="bg-yellow-500 text-white">
             <Star className="h-3 w-3 mr-1" />
             Featured
           </Badge>
         </div>
-      )}
-      
+      ) : null}
+
       <div className="mb-4 relative z-10 px-10 text-neutral-600 dark:text-neutral-400">
         {icon}
       </div>
@@ -175,24 +179,24 @@ const Feature = ({
       <p className="text-sm text-neutral-600 dark:text-neutral-300 max-w-xs relative z-10 px-10 mb-4">
         {description}
       </p>
-      
+
       {/* Service Details */}
-      {(price || duration) && (
+      {price || duration ? (
         <div className="relative z-10 px-10 space-y-1">
-          {price && price > 0 && (
+          {price && price > 0 ? (
             <div className="flex items-center gap-1 text-sm text-neutral-600 dark:text-neutral-400">
               <DollarSign className="h-3 w-3" />
               <span>₹{price}</span>
             </div>
-          )}
-          {duration && (
+          ) : null}
+          {duration ? (
             <div className="flex items-center gap-1 text-sm text-neutral-600 dark:text-neutral-400">
               <Clock className="h-3 w-3" />
               <span>{duration} minutes</span>
             </div>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
@@ -208,24 +212,28 @@ export default function ServicesPage() {
   );
 
   // Convert services data to array and filter active services
-  const activeServices = servicesData 
+  const activeServices = servicesData
     ? Object.entries(servicesData)
-        .map(([id, service]) => ({ id, ...service }))
-        .filter(service => service.isActive)
+        .map(([serviceId, service]) => ({ ...service, id: serviceId }))
+        .filter((service) => service.isActive)
     : [];
 
   // Get unique categories for filter
-  const categories = ["All", ...new Set(activeServices.map(service => service.category))];
+  const categories = [
+    "All",
+    ...new Set(activeServices.map((service) => service.category)),
+  ];
 
   // Filter services based on search and category
-  const filteredServices = activeServices.filter(service => {
-    const matchesSearch = 
+  const filteredServices = activeServices.filter((service) => {
+    const matchesSearch =
       service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       service.category.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "All" || service.category === selectedCategory;
-    
+
+    const matchesCategory =
+      selectedCategory === "All" || service.category === selectedCategory;
+
     return matchesSearch && matchesCategory;
   });
 
@@ -236,7 +244,8 @@ export default function ServicesPage() {
   };
 
   // Use filtered services or fallback to static services
-  const displayServices = filteredServices.length > 0 ? filteredServices : fallbackServices;
+  const displayServices =
+    filteredServices.length > 0 ? filteredServices : fallbackServices;
 
   // Loading state
   if (isLoading) {
@@ -269,13 +278,28 @@ export default function ServicesPage() {
       <div className="bg-white py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-center mb-6">Our Services</h1>
-          <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-4">
             Comprehensive healthcare solutions designed to provide you with the
             best medical care and support, anytime and anywhere.
           </p>
-          
+
+          {/* Data Source Indicator */}
+          <div className="text-center mb-8">
+            {activeServices.length > 0 ? (
+              <Badge variant="default" className="bg-green-500 text-white">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Live Data ({activeServices.length} services)
+              </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <Clock className="h-3 w-3 mr-1" />
+                Sample Data (8 services)
+              </Badge>
+            )}
+          </div>
+
           {/* Search and Filter Section */}
-          {activeServices.length > 0 && (
+          {activeServices.length > 0 ? (
             <div className="max-w-2xl mx-auto">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
@@ -290,28 +314,35 @@ export default function ServicesPage() {
                   </div>
                 </div>
                 <div className="md:w-48">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
                         <SelectItem key={category} value={category}>
-                          {category === "All" ? "All Categories" : category.charAt(0).toUpperCase() + category.slice(1)}
+                          {category === "All"
+                            ? "All Categories"
+                            : category.charAt(0).toUpperCase() +
+                              category.slice(1)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
-              {filteredServices.length !== activeServices.length && (
+
+              {filteredServices.length !== activeServices.length ? (
                 <div className="mt-4 text-sm text-gray-600 text-center">
-                  Showing {filteredServices.length} of {activeServices.length} services
+                  Showing {filteredServices.length} of {activeServices.length}{" "}
+                  services
                 </div>
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -320,21 +351,28 @@ export default function ServicesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 py-10 max-w-7xl mx-auto">
           {displayServices.map((service, index) => {
             // Handle both dynamic and fallback services
-            const serviceData = 'id' in service ? service : {
-              title: service.title,
-              description: service.description,
-              icon: service.icon,
-              price: undefined,
-              duration: undefined,
-              isFeatured: false,
-            };
+            const serviceData =
+              "id" in service
+                ? service
+                : {
+                    title: service.title,
+                    description: service.description,
+                    icon: service.icon,
+                    price: undefined,
+                    duration: undefined,
+                    isFeatured: false,
+                  };
+
+            // Get the appropriate icon component
+            const iconComponent =
+              "id" in service ? getIconComponent(service.icon) : service.icon;
 
             return (
-              <Feature 
-                key={serviceData.title} 
+              <Feature
+                key={serviceData.title}
                 title={serviceData.title}
                 description={serviceData.description}
-                icon={serviceData.icon}
+                icon={iconComponent}
                 index={index}
                 price={serviceData.price}
                 duration={serviceData.duration}
@@ -346,7 +384,7 @@ export default function ServicesPage() {
       </div>
 
       {/* No Results */}
-      {activeServices.length > 0 && filteredServices.length === 0 && (
+      {activeServices.length > 0 && filteredServices.length === 0 ? (
         <div className="bg-white py-20">
           <div className="container mx-auto px-4 text-center">
             <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -356,8 +394,8 @@ export default function ServicesPage() {
             <p className="text-gray-600 mb-4">
               Try adjusting your search criteria or category filter.
             </p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("All");
@@ -367,7 +405,34 @@ export default function ServicesPage() {
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
+
+      {/* Admin Call-to-Action */}
+      {activeServices.length === 0 ? (
+        <div className="bg-white py-20">
+          <div className="container mx-auto px-4 text-center">
+            <Stethoscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No Services Available
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Services haven't been added yet. Admin users can add services
+              through the dashboard.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild>
+                <a href="/admin/services">
+                  <LucideIcons.Plus className="h-4 w-4 mr-2" />
+                  Manage Services (Admin)
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/">Return to Home</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Testimonials Section */}
       <div className="bg-gray-50 py-20">

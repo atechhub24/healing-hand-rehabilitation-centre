@@ -6,12 +6,13 @@ import { Branch } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, MapPin, Phone, Mail, Clock, User } from "lucide-react";
+import { Building2, Plus, MapPin, Phone, Mail, Clock, User, Star, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BranchForm from "./branch-form";
 import BranchList from "./branch-list";
 import useFetch from "@/lib/hooks/use-fetch";
 import mutate from "@/lib/firebase/mutate-data";
+import { seedDatabase, clearDatabase } from "@/lib/seed-database";
 
 /**
  * Branch Management Page Component
@@ -25,6 +26,7 @@ export default function BranchesPage() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Fetch branches from Firebase using useFetch hook
   const [branchesData, isLoading, refetch] = useFetch<Record<string, Branch>>(
@@ -130,6 +132,72 @@ export default function BranchesPage() {
     setEditingBranch(null);
   };
 
+  // Handle seed database
+  const handleSeedDatabase = async () => {
+    setIsSeeding(true);
+    try {
+      const result = await seedDatabase();
+      
+      if (result.success) {
+        toast({
+          title: "Database Seeded Successfully! 🎉",
+          description: `Created ${result.servicesCreated} services and ${result.branchesCreated} branches`,
+        });
+        refetch(); // Refresh the list
+      } else {
+        toast({
+          title: "Seeding Completed with Errors",
+          description: `Created ${result.servicesCreated} services and ${result.branchesCreated} branches. ${result.errors.length} errors occurred.`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error seeding database:", error);
+      toast({
+        title: "Error",
+        description: "Failed to seed database",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  // Handle clear database
+  const handleClearDatabase = async () => {
+    if (!confirm("Are you sure you want to clear all services and branches? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsSeeding(true);
+    try {
+      const result = await clearDatabase();
+      
+      if (result.success) {
+        toast({
+          title: "Database Cleared Successfully! 🗑️",
+          description: "All services and branches have been removed",
+        });
+        refetch(); // Refresh the list
+      } else {
+        toast({
+          title: "Error Clearing Database",
+          description: result.errors.join(", "),
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error clearing database:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear database",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   // Check if user is admin
   if (user?.role !== "admin") {
     return (
@@ -163,13 +231,33 @@ export default function BranchesPage() {
             Manage your clinic branches and locations
           </p>
         </div>
-        <Button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Branch
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleSeedDatabase}
+            disabled={isSeeding}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Star className="h-4 w-4" />
+            {isSeeding ? "Seeding..." : "Seed Data"}
+          </Button>
+          <Button
+            onClick={handleClearDatabase}
+            disabled={isSeeding}
+            variant="destructive"
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All
+          </Button>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Branch
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}

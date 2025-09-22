@@ -27,21 +27,10 @@ interface Staff {
   email: string;
   password?: string;
   title?: string; // Job title/position
-  qualification: string;
-  specialization: string;
-  experience: number;
+  phoneNumber?: string;
   role: string;
-  clinicAddresses: {
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    timings: {
-      startTime: string;
-      endTime: string;
-      days: string[];
-    };
-  }[];
+  createdAt?: string;
+  lastLogin?: string;
 }
 
 export default function StaffPage() {

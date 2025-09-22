@@ -53,7 +53,8 @@ export default function StaffPage() {
     return (
       staff.name?.toLowerCase().includes(searchLower) ||
       staff.email?.toLowerCase().includes(searchLower) ||
-      staff.title?.toLowerCase().includes(searchLower)
+      staff.title?.toLowerCase().includes(searchLower) ||
+      staff.phoneNumber?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -89,9 +90,6 @@ export default function StaffPage() {
         title: "Success",
         description: "Staff deleted successfully",
       });
-
-      // Refresh the page to update the list
-      window.location.reload();
     } catch (error) {
       console.error("Error deleting staff:", error);
       toast({
@@ -148,7 +146,7 @@ export default function StaffPage() {
         <div className="mb-4">
           <Input
             type="search"
-            placeholder="Search by name, title, or email..."
+            placeholder="Search by name, title, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -163,6 +161,7 @@ export default function StaffPage() {
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Title</th>
                   <th className="px-6 py-3">Email</th>
+                  <th className="px-6 py-3">Phone</th>
                   <th className="px-6 py-3">Actions</th>
                 </tr>
               </thead>
@@ -170,7 +169,7 @@ export default function StaffPage() {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
                       Loading staff...
@@ -181,7 +180,7 @@ export default function StaffPage() {
                     filteredStaff.length === 0) ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
                       {searchTerm
@@ -200,6 +199,9 @@ export default function StaffPage() {
                       </td>
                       <td className="px-6 py-4 text-foreground">
                         {staff.email}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {staff.phoneNumber || "Not provided"}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

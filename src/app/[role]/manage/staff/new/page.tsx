@@ -55,6 +55,7 @@ export default function NewStaffPage() {
         name: formData.name,
         title: formData.title,
         phoneNumber: formData.phoneNumber,
+        password: formData.password, // Store password for deletion purposes
         role: "staff",
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),

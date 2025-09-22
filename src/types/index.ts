@@ -196,3 +196,28 @@ export interface Service {
   creatorInfo: CreatorInfo;
   updaterInfo?: UpdaterInfo;
 }
+
+export interface AttendanceRecord {
+  id: string;
+  staffId: string;
+  staffName: string;
+  date: string; // YYYY-MM-DD format
+  punchIn?: string; // ISO timestamp
+  punchOut?: string; // ISO timestamp
+  totalHours?: number;
+  status: "present" | "absent" | "partial" | "late";
+  notes?: string;
+  location?: string; // Optional: GPS or manual location
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttendanceStats {
+  totalDays: number;
+  presentDays: number;
+  absentDays: number;
+  lateDays: number;
+  totalHours: number;
+  averageHours: number;
+  attendancePercentage: number;
+}

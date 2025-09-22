@@ -20,6 +20,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Users,
   Calendar as CalendarIcon,
   Clock,
@@ -31,17 +38,32 @@ import {
   AlertCircle,
   Timer,
   Eye,
+  Edit,
 } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
 import { AttendanceRecord, Staff } from "@/types";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { cn } from "@/lib/utils";
+import mutateData from "@/lib/firebase/mutate-data";
 
 export default function AttendanceManagementPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("today");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTarget, setEditTarget] = useState<{
+    staff: Staff;
+    date: string;
+    attendance?: AttendanceRecord;
+  } | null>(null);
+  const [editForm, setEditForm] = useState({
+    punchIn: "",
+    punchOut: "",
+    status: "present" as AttendanceRecord["status"],
+    location: "",
+    notes: "",
+  });
 
   // Fetch staff members
   const [staffMembers] = useFetch<Staff[]>("users", {
@@ -140,6 +162,69 @@ export default function AttendanceManagementPage() {
 
   const stats = getAttendanceStats();
   const filteredData = getFilteredAttendance();
+
+  const openEdit = (
+    staff: Staff,
+    date: string,
+    attendance?: AttendanceRecord
+  ) => {
+    setEditTarget({ staff, date, attendance });
+    setEditForm({
+      punchIn: attendance?.punchIn
+        ? format(new Date(attendance.punchIn), "yyyy-MM-dd'T'HH:mm")
+        : "",
+      punchOut: attendance?.punchOut
+        ? format(new Date(attendance.punchOut), "yyyy-MM-dd'T'HH:mm")
+        : "",
+      status: attendance?.status || "present",
+      location: attendance?.location || "",
+      notes: attendance?.notes || "",
+    });
+    setIsEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    const { staff, date, attendance } = editTarget;
+    const punchInISO = editForm.punchIn
+      ? new Date(editForm.punchIn).toISOString()
+      : undefined;
+    const punchOutISO = editForm.punchOut
+      ? new Date(editForm.punchOut).toISOString()
+      : undefined;
+    let totalHours: number | undefined = undefined;
+    if (punchInISO && punchOutISO) {
+      totalHours =
+        Math.round(
+          ((new Date(punchOutISO).getTime() - new Date(punchInISO).getTime()) /
+            (1000 * 60 * 60)) *
+            100
+        ) / 100;
+    }
+
+    const payload: AttendanceRecord = {
+      id: `${staff.uid}_${date}`,
+      staffId: staff.uid,
+      staffName: staff.name || "",
+      date,
+      punchIn: punchInISO,
+      punchOut: punchOutISO,
+      totalHours,
+      status: editForm.status,
+      location: editForm.location || undefined,
+      notes: editForm.notes || undefined,
+      createdAt: attendance?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await mutateData({
+      path: `attendance/${staff.uid}/${date}`,
+      data: payload,
+      action: attendance ? "update" : "create",
+    });
+    setIsEditing(false);
+    setEditTarget(null);
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -360,9 +445,21 @@ export default function AttendanceManagementPage() {
                         {attendance?.location || "-"}
                       </td>
                       <td className="px-6 py-4">
-                        <Button variant="ghost" size="sm" className="gap-2">
-                          <Eye className="h-4 w-4" />
-                          View Details
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() =>
+                            openEdit(
+                              staff,
+                              (attendance?.date as string) ||
+                                format(selectedDate, "yyyy-MM-dd"),
+                              attendance
+                            )
+                          }
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit
                         </Button>
                       </td>
                     </tr>
@@ -372,6 +469,86 @@ export default function AttendanceManagementPage() {
             </table>
           </div>
         </Card>
+        {/* Edit Attendance Dialog */}
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Attendance</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="punchIn">Punch In</Label>
+                <Input
+                  id="punchIn"
+                  type="datetime-local"
+                  value={editForm.punchIn}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, punchIn: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="punchOut">Punch Out</Label>
+                <Input
+                  id="punchOut"
+                  type="datetime-local"
+                  value={editForm.punchOut}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, punchOut: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Status</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(v) =>
+                    setEditForm({
+                      ...editForm,
+                      status: v as AttendanceRecord["status"],
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="present">Present</SelectItem>
+                    <SelectItem value="late">Late</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                    <SelectItem value="absent">Absent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, location: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Input
+                  id="notes"
+                  value={editForm.notes}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, notes: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEdit}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

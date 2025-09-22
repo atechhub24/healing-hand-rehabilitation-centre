@@ -30,6 +30,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Check, Plus } from "lucide-react";
+import { formatCurrency } from "@ashirbad/js-core";
 import { cn } from "@/lib/utils";
 
 /**
@@ -427,7 +428,9 @@ export default function PatientDetailPage() {
             {patient?.isAdmitted ? (
               <span>
                 Currently admitted since {patient.admitDate}. Per-day charge:{" "}
-                {patient.admissionChargePerDay}
+                {typeof patient.admissionChargePerDay === "number"
+                  ? formatCurrency(patient.admissionChargePerDay)
+                  : patient.admissionChargePerDay}
               </span>
             ) : patient?.dischargeDate ? (
               <span>
@@ -444,7 +447,10 @@ export default function PatientDetailPage() {
             <div className="mt-4 flex items-center justify-between rounded-md border p-3">
               <div className="text-sm">
                 Last admission: {patient.admitDate} → {patient.dischargeDate}.
-                Per-day: {patient.admissionChargePerDay}
+                Per-day:{" "}
+                {typeof patient.admissionChargePerDay === "number"
+                  ? formatCurrency(patient.admissionChargePerDay)
+                  : patient.admissionChargePerDay}
               </div>
               <Button
                 size="sm"

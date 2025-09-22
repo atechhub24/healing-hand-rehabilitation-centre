@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatCurrency } from "@ashirbad/js-core";
 
 interface Staff {
   uid: string;
@@ -152,7 +153,7 @@ export default function StaffPage() {
               <div className="text-muted-foreground">Salary</div>
               <div className="font-medium">
                 {typeof viewStaff?.salary === "number"
-                  ? viewStaff!.salary.toLocaleString()
+                  ? formatCurrency(viewStaff!.salary)
                   : "-"}
               </div>
             </div>

@@ -20,6 +20,9 @@ interface Staff {
   role: string;
   createdAt: string;
   lastLogin: string;
+  // Optional fields
+  joiningDate?: string;
+  salary?: number;
 }
 
 interface PageParams {
@@ -50,6 +53,8 @@ export default function EditStaffPage() {
     name: "",
     title: "",
     phoneNumber: "",
+    joiningDate: "",
+    salary: "",
   });
 
   useEffect(() => {
@@ -59,6 +64,8 @@ export default function EditStaffPage() {
         name: staff.name || "",
         title: staff.title || "",
         phoneNumber: staff.phoneNumber || "",
+        joiningDate: staff.joiningDate || "",
+        salary: typeof staff.salary === "number" ? String(staff.salary) : "",
       });
       setIsFormInitialized(true);
     }
@@ -75,6 +82,8 @@ export default function EditStaffPage() {
         name: formData.name,
         title: formData.title,
         phoneNumber: formData.phoneNumber,
+        joiningDate: formData.joiningDate || undefined,
+        salary: formData.salary ? Number(formData.salary) : undefined,
         role: "staff",
         lastLogin: new Date().toISOString(),
       };
@@ -207,6 +216,37 @@ export default function EditStaffPage() {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="joiningDate">Joining Date (optional)</Label>
+                  <Input
+                    id="joiningDate"
+                    type="date"
+                    name="joiningDate"
+                    value={formData.joiningDate}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="salary">Salary (optional)</Label>
+                  <Input
+                    id="salary"
+                    type="number"
+                    inputMode="numeric"
+                    name="salary"
+                    placeholder="e.g. 30000"
+                    value={formData.salary}
+                    onChange={(e) =>
+                      handleChange({
+                        target: {
+                          name: "salary",
+                          value: e.target.value.replace(/[^0-9.]/g, ""),
+                        },
+                      })
+                    }
                   />
                 </div>
               </div>

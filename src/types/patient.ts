@@ -41,6 +41,10 @@ export interface Patient {
   admitDate?: string; // ISO date string of when the patient was admitted
   dischargeDate?: string | null; // ISO date string of when the patient was discharged
   admissionChargePerDay?: number; // Dynamic per-day admission charge
+  /**
+   * Staff assignment fields
+   */
+  assignedStaffIds?: string[]; // List of staff user IDs assigned to the patient
 }
 
 /**

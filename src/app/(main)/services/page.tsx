@@ -18,6 +18,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Testimonials } from "@/components/ui/testimonials";
+import { formatCurrency } from "@ashirbad/js-core";
 import { Service } from "@/types";
 import useFetch from "@/lib/hooks/use-fetch";
 import { Input } from "@/components/ui/input";
@@ -133,6 +134,7 @@ const Feature = ({
   price,
   duration,
   isFeatured,
+  isActive,
 }: {
   title: string;
   description: string;
@@ -141,11 +143,13 @@ const Feature = ({
   price?: number;
   duration?: number;
   isFeatured?: boolean;
+  isActive?: boolean;
 }) => {
   return (
     <div
       className={cn(
-        "flex flex-col lg:border-r py-10 relative group/feature dark:border-neutral-800",
+        "flex flex-col relative group/feature bg-white rounded-2xl border overflow-hidden py-10 shadow-sm hover:shadow-md transition-shadow",
+        "dark:border-neutral-800 dark:bg-neutral-900",
         (index === 0 || index === 4) && "lg:border-l dark:border-neutral-800",
         index < 4 && "lg:border-b dark:border-neutral-800"
       )}
@@ -157,26 +161,34 @@ const Feature = ({
         <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-gradient-to-b from-neutral-100 dark:from-neutral-800 to-transparent pointer-events-none" />
       ) : null}
 
-      {/* Featured Badge */}
-      {isFeatured ? (
-        <div className="absolute top-4 right-4 z-20">
-          <Badge variant="default" className="bg-yellow-500 text-white">
-            <Star className="h-3 w-3 mr-1" />
-            Featured
-          </Badge>
+      {/* Featured/Active Badges inside card */}
+      {isFeatured || isActive ? (
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          {isFeatured ? (
+            <span className="inline-flex items-center rounded-full bg-yellow-500/90 text-white text-xs font-medium px-3 py-1 shadow ring-1 ring-yellow-400/50">
+              <Star className="h-3 w-3 mr-1" /> Featured
+            </span>
+          ) : null}
+          {isActive ? (
+            <span className="inline-flex items-center rounded-full bg-emerald-500/90 text-white text-xs font-medium px-3 py-1 shadow ring-1 ring-emerald-400/50">
+              Active
+            </span>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="mb-4 relative z-10 px-10 text-neutral-600 dark:text-neutral-400">
-        {icon}
+      <div className="mb-4 relative z-0 px-10 text-neutral-600 dark:text-neutral-400">
+        <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-neutral-800 grid place-items-center">
+          {icon}
+        </div>
       </div>
-      <div className="text-lg font-bold mb-2 relative z-10 px-10">
+      <div className="text-xl font-semibold mb-2 relative z-10 px-10">
         <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-neutral-300 dark:bg-neutral-700 group-hover/feature:bg-blue-500 transition-all duration-200 origin-center" />
         <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block text-neutral-800 dark:text-neutral-100">
           {title}
         </span>
       </div>
-      <p className="text-sm text-neutral-600 dark:text-neutral-300 max-w-xs relative z-10 px-10 mb-4">
+      <p className="text-sm leading-6 text-neutral-600 dark:text-neutral-300 max-w-xs relative z-10 px-10 mb-4">
         {description}
       </p>
 
@@ -186,7 +198,7 @@ const Feature = ({
           {price && price > 0 ? (
             <div className="flex items-center gap-1 text-sm text-neutral-600 dark:text-neutral-400">
               <DollarSign className="h-3 w-3" />
-              <span>₹{price}</span>
+              <span>{formatCurrency(price)}</span>
             </div>
           ) : null}
           {duration ? (
@@ -377,6 +389,9 @@ export default function ServicesPage() {
                 price={serviceData.price}
                 duration={serviceData.duration}
                 isFeatured={serviceData.isFeatured}
+                isActive={
+                  "id" in service ? (service as any).isActive : undefined
+                }
               />
             );
           })}

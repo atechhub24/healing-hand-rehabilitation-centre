@@ -86,6 +86,7 @@ export interface Doctor extends UserData {
   qualification?: string;
   specialization?: string;
   experience?: number;
+  title?: string; // Job title/position
 }
 
 // Staff is an alias for Doctor type
@@ -177,7 +178,13 @@ export interface Service {
   description: string;
   shortDescription?: string;
   icon: string; // Lucide icon name
-  category: "consultation" | "diagnostic" | "emergency" | "support" | "wellness" | "specialty";
+  category:
+    | "consultation"
+    | "diagnostic"
+    | "emergency"
+    | "support"
+    | "wellness"
+    | "specialty";
   price?: number;
   duration?: number; // in minutes
   isActive: boolean;

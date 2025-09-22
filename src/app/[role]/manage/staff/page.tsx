@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteUser } from "@/lib/firebase/delete-user";
 import mutateData from "@/lib/firebase/mutate-data";
 import useFetch from "@/lib/hooks/use-fetch";
-import { Plus, Trash } from "lucide-react";
+import { Plus, Trash, Edit } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -26,6 +26,7 @@ interface Staff {
   name: string;
   email: string;
   password?: string;
+  title?: string; // Job title/position
   qualification: string;
   specialization: string;
   experience: number;
@@ -55,6 +56,16 @@ export default function StaffPage() {
       const staff = item as Staff;
       return staff.role === "staff";
     },
+  });
+
+  // Filter staff members based on search term
+  const filteredStaff = staffMembers?.filter((staff) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      staff.name?.toLowerCase().includes(searchLower) ||
+      staff.email?.toLowerCase().includes(searchLower) ||
+      staff.title?.toLowerCase().includes(searchLower)
+    );
   });
 
   const handleDelete = async (staff: Staff) => {
@@ -148,7 +159,7 @@ export default function StaffPage() {
         <div className="mb-4">
           <Input
             type="search"
-            placeholder="Search staff..."
+            placeholder="Search by name, title, or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -161,6 +172,7 @@ export default function StaffPage() {
               <thead className="bg-muted text-muted-foreground uppercase">
                 <tr>
                   <th className="px-6 py-3">Name</th>
+                  <th className="px-6 py-3">Title</th>
                   <th className="px-6 py-3">Email</th>
                   <th className="px-6 py-3">Actions</th>
                 </tr>
@@ -169,33 +181,50 @@ export default function StaffPage() {
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={4}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
                       Loading staff...
                     </td>
                   </tr>
-                ) : !staffMembers ||
-                  (Array.isArray(staffMembers) && staffMembers.length === 0) ? (
+                ) : !filteredStaff ||
+                  (Array.isArray(filteredStaff) &&
+                    filteredStaff.length === 0) ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={4}
                       className="px-6 py-4 text-center text-muted-foreground"
                     >
-                      No staff found
+                      {searchTerm
+                        ? "No staff found matching your search"
+                        : "No staff found"}
                     </td>
                   </tr>
                 ) : (
-                  staffMembers?.map((staff) => (
+                  filteredStaff?.map((staff) => (
                     <tr key={staff.uid} className="hover:bg-muted/50">
                       <td className="px-6 py-4 text-foreground">
                         {staff.name}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {staff.title || "Not specified"}
                       </td>
                       <td className="px-6 py-4 text-foreground">
                         {staff.email}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          <Link
+                            href={`/${role}/manage/staff/${staff.uid}/edit`}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button
                             variant="ghost"
                             size="sm"

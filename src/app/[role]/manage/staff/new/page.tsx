@@ -6,7 +6,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUser } from "@/lib/firebase/create-user";
 import mutateData from "@/lib/firebase/mutate-data";
-import { ArrowLeft, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  User,
+  Briefcase,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,6 +31,7 @@ export default function NewStaffPage() {
     email: "",
     password: "",
     name: "",
+    title: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -42,6 +51,7 @@ export default function NewStaffPage() {
       const staffData = {
         email: formData.email,
         name: formData.name,
+        title: formData.title,
         role: "staff",
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
@@ -167,6 +177,21 @@ export default function NewStaffPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Job Title</Label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="title"
+                    type="text"
+                    name="title"
+                    placeholder="e.g. Nurse, Receptionist, Assistant"
+                    value={formData.title}
+                    onChange={handleChange}
                     className="pl-10"
                   />
                 </div>

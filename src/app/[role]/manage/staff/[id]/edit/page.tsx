@@ -42,6 +42,7 @@ interface Staff {
   uid: string;
   email: string;
   name: string;
+  title?: string; // Job title/position
   qualification: string;
   specialization: string;
   experience: number;
@@ -77,6 +78,7 @@ export default function EditStaffPage() {
   const [formData, setFormData] = useState({
     email: "",
     name: "",
+    title: "",
     qualification: "",
     specialization: "",
     experience: "",
@@ -100,6 +102,7 @@ export default function EditStaffPage() {
       setFormData({
         email: staff.email || "",
         name: staff.name || "",
+        title: staff.title || "",
         qualification: staff.qualification || "",
         specialization: staff.specialization || "",
         experience: staff.experience?.toString() || "",
@@ -130,6 +133,7 @@ export default function EditStaffPage() {
       // Prepare the staff data - remove email from update data
       const staffData = {
         name: formData.name,
+        title: formData.title,
         qualification: formData.qualification,
         specialization: formData.specialization,
         experience: parseInt(formData.experience),
@@ -288,6 +292,21 @@ export default function EditStaffPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Job Title</Label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="title"
+                    type="text"
+                    name="title"
+                    placeholder="e.g. Senior Doctor, Nurse, Receptionist"
+                    value={formData.title}
+                    onChange={handleChange}
                     className="pl-10"
                   />
                 </div>

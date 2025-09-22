@@ -225,7 +225,7 @@ export default function StaffDetailsPage() {
                 {staffData.name}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {staffData.specialization}
+                {staffData.title || staffData.specialization}
               </p>
             </div>
           </div>
@@ -237,6 +237,13 @@ export default function StaffDetailsPage() {
                 label="Email"
                 value={staffData.email}
               />
+              {staffData.title && (
+                <InfoItem
+                  icon={<Briefcase className="h-4 w-4" />}
+                  label="Job Title"
+                  value={staffData.title}
+                />
+              )}
               <InfoItem
                 icon={<GraduationCap className="h-4 w-4" />}
                 label="Qualification"

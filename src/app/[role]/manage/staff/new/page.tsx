@@ -14,6 +14,7 @@ import {
   Mail,
   User,
   Briefcase,
+  Phone,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -32,6 +33,7 @@ export default function NewStaffPage() {
     password: "",
     name: "",
     title: "",
+    phoneNumber: "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -52,6 +54,7 @@ export default function NewStaffPage() {
         email: formData.email,
         name: formData.name,
         title: formData.title,
+        phoneNumber: formData.phoneNumber,
         role: "staff",
         createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString(),
@@ -191,6 +194,21 @@ export default function NewStaffPage() {
                     name="title"
                     placeholder="e.g. Nurse, Receptionist, Assistant"
                     value={formData.title}
+                    onChange={handleChange}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    name="phoneNumber"
+                    placeholder="Enter phone number"
+                    value={formData.phoneNumber}
                     onChange={handleChange}
                     className="pl-10"
                   />

@@ -34,6 +34,8 @@ export default function NewStaffPage() {
     name: "",
     title: "",
     phoneNumber: "",
+    joiningDate: "", // Optional joining date (yyyy-mm-dd)
+    salary: "", // Optional salary as string for controlled input
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -55,6 +57,9 @@ export default function NewStaffPage() {
         name: formData.name,
         title: formData.title,
         phoneNumber: formData.phoneNumber,
+        // Persist optional fields when provided
+        joiningDate: formData.joiningDate || undefined,
+        salary: formData.salary ? Number(formData.salary) : undefined,
         password: formData.password, // Store password for deletion purposes
         role: "staff",
         createdAt: new Date().toISOString(),
@@ -212,6 +217,37 @@ export default function NewStaffPage() {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="joiningDate">Joining Date (optional)</Label>
+                  <Input
+                    id="joiningDate"
+                    type="date"
+                    name="joiningDate"
+                    value={formData.joiningDate}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="salary">Salary (optional)</Label>
+                  <Input
+                    id="salary"
+                    type="number"
+                    inputMode="numeric"
+                    name="salary"
+                    placeholder="e.g. 30000"
+                    value={formData.salary}
+                    onChange={(e) =>
+                      handleChange({
+                        target: {
+                          name: "salary",
+                          value: e.target.value.replace(/[^0-9.]/g, ""),
+                        },
+                      })
+                    }
                   />
                 </div>
               </div>

@@ -16,10 +16,17 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteUser } from "@/lib/firebase/delete-user";
 import mutateData from "@/lib/firebase/mutate-data";
 import useFetch from "@/lib/hooks/use-fetch";
-import { Plus, Trash, Edit } from "lucide-react";
+import { Plus, Trash, Edit, Eye } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Staff {
   uid: string;
@@ -31,6 +38,9 @@ interface Staff {
   role: string;
   createdAt?: string;
   lastLogin?: string;
+  // Optional fields
+  joiningDate?: string; // ISO date (yyyy-mm-dd)
+  salary?: number; // monthly salary
 }
 
 export default function StaffPage() {
@@ -39,6 +49,8 @@ export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [viewStaff, setViewStaff] = useState<Staff | null>(null);
 
   const [staffMembers, isLoading] = useFetch<Staff[]>("users", {
     filter: (item: unknown) => {
@@ -104,6 +116,59 @@ export default function StaffPage() {
 
   return (
     <>
+      {/* View Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Staff Details</DialogTitle>
+            <DialogDescription>
+              Full information about the staff member.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2 text-sm">
+            <div>
+              <div className="text-muted-foreground">Name</div>
+              <div className="font-medium">{viewStaff?.name ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Email</div>
+              <div className="font-medium break-all">
+                {viewStaff?.email ?? "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Title</div>
+              <div className="font-medium">{viewStaff?.title ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Phone</div>
+              <div className="font-medium">{viewStaff?.phoneNumber ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Joining Date</div>
+              <div className="font-medium">{viewStaff?.joiningDate ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Salary</div>
+              <div className="font-medium">
+                {typeof viewStaff?.salary === "number"
+                  ? viewStaff!.salary.toLocaleString()
+                  : "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Created At</div>
+              <div className="font-medium">{viewStaff?.createdAt ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Last Login</div>
+              <div className="font-medium">{viewStaff?.lastLogin ?? "-"}</div>
+            </div>
+            {/* Removed User ID from details per request */}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog
         open={!!staffToDelete}
         onOpenChange={() => setStaffToDelete(null)}
@@ -205,6 +270,17 @@ export default function StaffPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setViewStaff(staff);
+                              setDetailsOpen(true);
+                            }}
+                            className="text-foreground hover:bg-muted"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           <Link
                             href={`/${role}/manage/staff/${staff.uid}/edit`}
                           >

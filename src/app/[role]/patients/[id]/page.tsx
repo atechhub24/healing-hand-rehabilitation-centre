@@ -21,6 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
  * PatientDetailPage displays comprehensive information about a specific patient
@@ -51,6 +61,21 @@ export default function PatientDetailPage() {
   } | null>(null);
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
+
+  // Fetch staff list
+  type Staff = {
+    uid: string;
+    name: string;
+    email?: string;
+    role: string;
+    joiningDate?: string; // optional fields used for display
+    salary?: number;
+  };
+  const [staffMembers] = useFetch<Staff[]>("users", {
+    filter: (item: unknown) => (item as Staff).role === "staff",
+  });
 
   // Prefill local state from patient when available
   useEffect(() => {
@@ -63,6 +88,15 @@ export default function PatientDetailPage() {
       );
     }
   }, [patient?.isAdmitted, patient?.admitDate, patient?.admissionChargePerDay]);
+
+  // Prefill selected staff from patient
+  useEffect(() => {
+    if (Array.isArray(patient?.assignedStaffIds)) {
+      setSelectedStaff(patient.assignedStaffIds);
+    } else {
+      setSelectedStaff([]);
+    }
+  }, [patient?.assignedStaffIds]);
 
   // Compute whether admit should be disabled based on requirement after discharge
   const isAdmitDisabled = useMemo(() => {
@@ -82,6 +116,40 @@ export default function PatientDetailPage() {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     // Inclusive of admit day
     return diffDays >= 0 ? diffDays + 1 : 0;
+  };
+
+  // Save assigned staff
+  const handleSaveAssignedStaff = async () => {
+    try {
+      if (!patientId) return;
+      const res = await mutate({
+        path: `/patients/${patientId}`,
+        action: "update",
+        data: {
+          assignedStaffIds: selectedStaff,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      if (res.success) {
+        toast({
+          title: "Assigned staff updated",
+          description: "Changes saved.",
+        });
+        setIsAssignOpen(false);
+        await refetch();
+      } else {
+        toast({
+          title: "Update failed",
+          description: res.error ?? "Unknown error",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description:
+          err instanceof Error ? err.message : "Something went wrong",
+      });
+    }
   };
 
   // Handle Admit action
@@ -410,9 +478,62 @@ export default function PatientDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Assigned Staff inside Admission section */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-semibold">Assigned Staff</div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsAssignOpen(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" /> Manage
+            </Button>
+          </div>
+          {Array.isArray(patient.assignedStaffIds) &&
+          patient.assignedStaffIds.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-2 text-left">Name</th>
+                    <th className="py-2 px-2 text-left">Joining Date</th>
+                    <th className="py-2 px-2 text-left">Salary</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {patient.assignedStaffIds.map((uid) => {
+                    const staff = staffMembers?.find((s) => s.uid === uid);
+                    return (
+                      <tr key={uid}>
+                        <td className="py-2 pr-2">{staff?.name ?? uid}</td>
+                        <td className="py-2 px-2">
+                          {staff?.joiningDate ?? "-"}
+                        </td>
+                        <td className="py-2 px-2">
+                          {typeof (staff as any)?.salary === "number"
+                            ? (staff as any).salary.toLocaleString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No staff assigned yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {!isLoading && (
         <PatientOverview patient={{ ...patient, id: patientId }} />
       )}
+
       <Tabs defaultValue="medical-history" className="w-full">
         <TabsList className="grid grid-cols-7 h-auto">
           <TabsTrigger value="medical-history">Medical History</TabsTrigger>
@@ -520,6 +641,90 @@ export default function PatientDetailPage() {
           </div>
           <div className="pt-2 flex justify-end">
             <Button onClick={() => setIsSummaryOpen(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Staff Dialog */}
+      <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg p-0">
+          <div className="flex max-h-[85vh] flex-col">
+            <div className="px-6 pt-6">
+              <DialogHeader>
+                <DialogTitle>Assign Staff</DialogTitle>
+                <DialogDescription>
+                  Select one or more staff to assign to this patient.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 pb-4 pt-2">
+              <Command>
+                <CommandInput placeholder="Search staff..." />
+                <CommandList className="max-h-full">
+                  <CommandEmpty>No staff found.</CommandEmpty>
+                  <CommandGroup heading="Staff">
+                    {staffMembers?.map((s) => {
+                      const checked = selectedStaff.includes(s.uid);
+                      return (
+                        <CommandItem
+                          key={s.uid}
+                          onSelect={() => {
+                            setSelectedStaff((prev) =>
+                              prev.includes(s.uid)
+                                ? prev.filter((id) => id !== s.uid)
+                                : [...prev, s.uid]
+                            );
+                          }}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm">{s.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {s.email}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {s.joiningDate
+                                ? `Joined: ${s.joiningDate}`
+                                : "Joined: -"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {typeof (s as any).salary === "number"
+                                ? `Salary: ${(
+                                    s as any
+                                  ).salary.toLocaleString()}`
+                                : "Salary: -"}
+                            </span>
+                          </div>
+                          <Check
+                            className={cn(
+                              "h-4 w-4",
+                              checked ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+            <div className="border-t px-6 py-4">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  className="w-full sm:w-auto"
+                  variant="secondary"
+                  onClick={() => setIsAssignOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="w-full sm:w-auto"
+                  onClick={handleSaveAssignedStaff}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

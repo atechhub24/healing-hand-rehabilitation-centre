@@ -8,6 +8,7 @@ import {
   Pill,
   Building2,
   Stethoscope,
+  UserCog,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -38,6 +39,11 @@ export const roleConfig = {
         href: "/admin/medications",
       },
       { label: "Patients", icon: Users, href: "/admin/patients" },
+      {
+        label: "Staff Management",
+        icon: UserCog,
+        href: "/admin/manage/staff",
+      },
       {
         label: "BMI Calculator",
         icon: Scale,

@@ -33,6 +33,14 @@ export interface Patient {
   photoUrl?: string;
   chronicConditions?: string;
   registrationDate?: string;
+  /**
+   * Admission related fields. These are optional and only present
+   * when a patient has been admitted at least once.
+   */
+  isAdmitted?: boolean; // Indicates if the patient is currently admitted
+  admitDate?: string; // ISO date string of when the patient was admitted
+  dischargeDate?: string | null; // ISO date string of when the patient was discharged
+  admissionChargePerDay?: number; // Dynamic per-day admission charge
 }
 
 /**

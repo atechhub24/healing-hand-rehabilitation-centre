@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/lib/hooks/use-auth";
 import { Package, AlertTriangle, ArrowDown, ArrowUp } from "lucide-react";
 
 const inventory: InventoryItem[] = [

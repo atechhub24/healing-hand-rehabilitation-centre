@@ -10,15 +10,11 @@ import {
   Clock,
   ArrowLeft,
   Briefcase,
-  ArrowRight,
   Phone,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import useFetch from "@/lib/hooks/use-fetch";
-import { useAuth } from "@/lib/hooks/use-auth";
-import Link from "next/link";
 import { Staff } from "@/types";
 
 interface InfoItemProps {

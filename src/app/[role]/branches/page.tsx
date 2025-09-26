@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Branch } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, MapPin, Phone, Mail, Clock, User, Star, Trash2 } from "lucide-react";
+import { Building2, Plus, Star, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import BranchForm from "./branch-form";
 import BranchList from "./branch-list";
@@ -35,8 +35,7 @@ export default function BranchesPage() {
   );
 
   // Convert branches data to array format
-  const branches = branchesData ? Object.entries(branchesData).map(([id, branch]) => ({
-    id,
+  const branches = branchesData ? Object.entries(branchesData).map(([, branch]) => ({
     ...branch,
   })) : [];
 

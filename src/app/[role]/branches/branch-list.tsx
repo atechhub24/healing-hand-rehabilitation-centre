@@ -244,7 +244,7 @@ export default function BranchList({ branches, isLoading, onEdit, onDelete }: Br
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Branch</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{branchToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{branchToDelete?.name}&quot;? This action cannot be undone.
               All data associated with this branch will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>

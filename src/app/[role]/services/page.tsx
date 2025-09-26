@@ -54,7 +54,7 @@ export default function ServicesPage() {
 
   // Convert services data to array format
   const services = servicesData 
-    ? Object.entries(servicesData).map(([id, service]) => ({ ...service }))
+    ? Object.entries(servicesData).map(([, service]) => ({ ...service }))
     : [];
 
   // Filter services based on search, category, and status

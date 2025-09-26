@@ -12,7 +12,6 @@ import {
   Calendar,
   MapPin,
   CheckCircle,
-  XCircle,
   Timer,
   User,
   LogIn,
@@ -70,7 +69,7 @@ export default function AttendancePage() {
 
       await mutateData({
         path: `attendance/${user.uid}/${today}`,
-        data: attendanceData,
+        data: { ...attendanceData },
         action: "create",
       });
 
@@ -357,7 +356,7 @@ export default function AttendancePage() {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Today's Summary
+              Today&apos;s Summary
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">

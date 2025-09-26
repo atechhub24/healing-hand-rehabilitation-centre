@@ -518,8 +518,8 @@ export default function PatientDetailPage() {
                           {staff?.joiningDate ?? "-"}
                         </td>
                         <td className="py-2 px-2">
-                          {typeof (staff as any)?.salary === "number"
-                            ? (staff as any).salary.toLocaleString()
+                          {(staff as Staff & { salary?: number })?.salary
+                            ? (staff as Staff & { salary?: number }).salary!.toLocaleString()
                             : "-"}
                         </td>
                       </tr>
@@ -694,10 +694,10 @@ export default function PatientDetailPage() {
                                 : "Joined: -"}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {typeof (s as any).salary === "number"
+                              {(s as Staff & { salary?: number }).salary
                                 ? `Salary: ${(
-                                    s as any
-                                  ).salary.toLocaleString()}`
+                                    s as Staff & { salary?: number }
+                                  ).salary!.toLocaleString()}`
                                 : "Salary: -"}
                             </span>
                           </div>

@@ -38,10 +38,7 @@ export default function BranchesPage() {
   // Convert branches data to array and filter active branches
   const activeBranches = branchesData 
     ? Object.entries(branchesData)
-        .map(([id, branch]) => {
-          const { id: _, ...branchWithoutId } = branch;
-          return { id, ...branchWithoutId };
-        })
+        .map(([, branch]) => ({ ...branch }))
         .filter(branch => branch.isActive)
     : [];
 

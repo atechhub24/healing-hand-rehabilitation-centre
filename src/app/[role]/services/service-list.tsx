@@ -67,7 +67,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
 
   // Get icon component dynamically
   const getIconComponent = (iconName: string) => {
-    const IconComponent = (LucideIcons as any)[iconName] || Stethoscope;
+    const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[iconName] || Stethoscope;
     return <IconComponent className="h-5 w-5" />;
   };
 

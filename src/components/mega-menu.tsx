@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Branch } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,11 +35,13 @@ export function MegaMenu() {
   );
 
   // Convert branches data to array and filter active branches
-  const activeBranches = branchesData
-    ? Object.entries(branchesData)
-        .map(([serviceId, branch]) => ({ ...branch, id: serviceId }))
-        .filter((branch) => branch.isActive)
-    : [];
+  const activeBranches = useMemo(() => {
+    return branchesData
+      ? Object.entries(branchesData)
+          .map(([serviceId, branch]) => ({ ...branch, id: serviceId }))
+          .filter((branch) => branch.isActive)
+      : [];
+  }, [branchesData]);
 
   // Limit to first 3 branches for mega menu display
   const displayBranches = activeBranches.slice(0, 3);
@@ -237,10 +239,10 @@ export function MegaMenu() {
                       </div>
 
                       {/* Phone (if available) */}
-                      {branch.phone ? (
+                      {branch.phoneNumber ? (
                         <div className="flex items-center gap-2 text-gray-600">
                           <Phone className="h-4 w-4 flex-shrink-0 text-gray-400" />
-                          <span className="text-sm">{branch.phone}</span>
+                          <span className="text-sm">{branch.phoneNumber}</span>
                         </div>
                       ) : null}
                     </div>

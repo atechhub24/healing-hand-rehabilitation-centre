@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   Ambulance,
@@ -12,7 +13,6 @@ import {
   TestTube,
   Users,
   Search,
-  Filter,
   Star,
   DollarSign,
   CheckCircle,
@@ -251,7 +251,7 @@ export default function ServicesPage() {
 
   // Get icon component dynamically
   const getIconComponent = (iconName: string) => {
-    const IconComponent = (LucideIcons as any)[iconName] || Stethoscope;
+    const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[iconName] || Stethoscope;
     return <IconComponent className="h-6 w-6" />;
   };
 
@@ -390,7 +390,7 @@ export default function ServicesPage() {
                 duration={serviceData.duration}
                 isFeatured={serviceData.isFeatured}
                 isActive={
-                  "id" in service ? (service as any).isActive : undefined
+                  "id" in service ? (service as Service & { isActive: boolean }).isActive : undefined
                 }
               />
             );
@@ -431,18 +431,18 @@ export default function ServicesPage() {
               No Services Available
             </h3>
             <p className="text-gray-600 mb-6">
-              Services haven't been added yet. Admin users can add services
+              Services haven&apos;t been added yet. Admin users can add services
               through the dashboard.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild>
-                <a href="/admin/services">
+                <Link href="/admin/services">
                   <LucideIcons.Plus className="h-4 w-4 mr-2" />
                   Manage Services (Admin)
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" asChild>
-                <a href="/">Return to Home</a>
+                <Link href="/">Return to Home</Link>
               </Button>
             </div>
           </div>

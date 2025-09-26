@@ -29,21 +29,16 @@ import {
 import {
   Users,
   Calendar as CalendarIcon,
-  Clock,
   Download,
-  Filter,
   Search,
   CheckCircle,
   XCircle,
   AlertCircle,
-  Timer,
-  Eye,
   Edit,
 } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
 import { AttendanceRecord, Staff } from "@/types";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { cn } from "@/lib/utils";
 import mutateData from "@/lib/firebase/mutate-data";
 
 export default function AttendanceManagementPage() {
@@ -99,7 +94,7 @@ export default function AttendanceManagementPage() {
   const getFilteredAttendance = () => {
     if (!staffMembers || !attendanceData) return [];
 
-    const { start, end } = getDateRangeFilter();
+    const { start } = getDateRangeFilter();
     const targetDate = format(
       dateRange === "custom" ? selectedDate : start,
       "yyyy-MM-dd"
@@ -219,7 +214,7 @@ export default function AttendanceManagementPage() {
 
     await mutateData({
       path: `attendance/${staff.uid}/${date}`,
-      data: payload,
+      data: { ...payload },
       action: attendance ? "update" : "create",
     });
     setIsEditing(false);

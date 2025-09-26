@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Branch } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,11 +31,13 @@ export function BranchSelector() {
   );
 
   // Convert branches data to array and filter active branches
-  const activeBranches = branchesData 
-    ? Object.entries(branchesData)
-        .map(([id, branch]) => ({ id, ...branch }))
-        .filter(branch => branch.isActive)
-    : [];
+  const activeBranches = useMemo(() => {
+    return branchesData 
+      ? Object.entries(branchesData)
+          .map(([, branch]) => ({ ...branch }))
+          .filter(branch => branch.isActive)
+      : [];
+  }, [branchesData]);
 
   // Set default selected branch (first active branch)
   useEffect(() => {

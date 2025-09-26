@@ -16,7 +16,7 @@ import {
 // This helps in maintaining role-based UI elements in one place
 export const roleConfig = {
   admin: {
-    title: "Admin Dashboard",
+    title: "Healing Hand Rehabilitation Center",
     menuItems: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
       {

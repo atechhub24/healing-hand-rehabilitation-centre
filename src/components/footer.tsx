@@ -13,10 +13,12 @@ import {
 
 const footerLinks = {
   services: [
-    { name: "Find a Doctor", href: "/services/doctors" },
-    { name: "Book Appointment", href: "/services/appointments" },
-    { name: "Lab Tests", href: "/services/lab-tests" },
-    { name: "Emergency Care", href: "/services/emergency" },
+    { name: "Physical Therapy", href: "/services/physical-therapy" },
+    { name: "Occupational Therapy", href: "/services/occupational-therapy" },
+    { name: "Speech Therapy", href: "/services/speech-therapy" },
+    { name: "Neurological Rehabilitation", href: "/services/neurological-rehabilitation" },
+    { name: "Cardiac Rehabilitation", href: "/services/cardiac-rehabilitation" },
+    { name: "Pain Management", href: "/services/pain-management" },
   ],
   company: [
     { name: "About Us", href: "/about" },
@@ -47,19 +49,19 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-white text-lg font-bold mb-4">Healthcare+</h3>
+            <h3 className="text-white text-lg font-bold mb-4">Healing Hand Rehabilitation Centre</h3>
             <div className="space-y-3">
               <p className="flex items-center">
                 <MapPin className="h-5 w-5 mr-2" />
-                123 Healthcare Ave, City
+                123 Rehabilitation Blvd, Bhubaneswar
               </p>
               <p className="flex items-center">
                 <Phone className="h-5 w-5 mr-2" />
-                +1 (555) 123-4567
+                +91 (674) 123-4567
               </p>
               <p className="flex items-center">
                 <Mail className="h-5 w-5 mr-2" />
-                contact@healthcare.plus
+                contact@healinghandrehab.com
               </p>
             </div>
           </div>
@@ -132,7 +134,7 @@ export function Footer() {
               ))}
             </div>
             <p className="text-sm">
-              © {new Date().getFullYear()} Healthcare+. All rights reserved.
+              © {new Date().getFullYear()} Healing Hand Rehabilitation Centre. All rights reserved.
             </p>
           </div>
         </div>

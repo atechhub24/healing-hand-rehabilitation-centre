@@ -44,8 +44,8 @@ interface ServiceListProps {
 /**
  * Service List Component
  * 
- * This component displays a list of clinic services in a card layout.
- * It provides options to edit and delete services.
+ * This component displays a list of rehabilitation services in a card layout.
+ * It provides options to edit and delete services for the rehabilitation centre.
  */
 export default function ServiceList({ services, isLoading, onEdit, onDelete }: ServiceListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -79,14 +79,20 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
   // Get category color
   const getCategoryColor = (category: string) => {
     const colors = {
-      consultation: "bg-blue-100 text-blue-800",
+      "physical-therapy": "bg-green-100 text-green-800",
+      "occupational-therapy": "bg-blue-100 text-blue-800",
+      "speech-therapy": "bg-purple-100 text-purple-800",
+      "neurological-rehabilitation": "bg-red-100 text-red-800",
+      "cardiac-rehabilitation": "bg-orange-100 text-orange-800",
+      "pain-management": "bg-yellow-100 text-yellow-800",
+      consultation: "bg-green-100 text-green-800",
       diagnostic: "bg-green-100 text-green-800",
       emergency: "bg-red-100 text-red-800",
-      support: "bg-purple-100 text-purple-800",
-      wellness: "bg-yellow-100 text-yellow-800",
-      specialty: "bg-indigo-100 text-indigo-800",
+      support: "bg-green-100 text-green-800",
+      wellness: "bg-green-100 text-green-800",
+      specialty: "bg-green-100 text-green-800",
     };
-    return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[category as keyof typeof colors] || "bg-green-100 text-green-800";
   };
 
   // Loading state
@@ -94,7 +100,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Services</CardTitle>
+          <CardTitle>Rehabilitation Services</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -114,16 +120,16 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Services</CardTitle>
+          <CardTitle>Rehabilitation Services</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
             <Stethoscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No services found
+              No rehabilitation services found
             </h3>
             <p className="text-gray-600 mb-4">
-              Get started by adding your first clinic service.
+              Get started by adding your first rehabilitation service to help patients on their recovery journey.
             </p>
           </div>
         </CardContent>
@@ -135,7 +141,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
     <>
       <Card>
         <CardHeader>
-          <CardTitle>All Services</CardTitle>
+          <CardTitle>All Rehabilitation Services</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -144,7 +150,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 bg-blue-100 rounded-lg">
+                      <div className="p-2 bg-green-100 rounded-lg">
                         {getIconComponent(service.icon)}
                       </div>
                       <div>
@@ -156,7 +162,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
                     </div>
                     <div className="flex items-center gap-2">
                       {service.isFeatured && (
-                        <Badge variant="default" className="bg-yellow-500 text-white">
+                        <Badge variant="default" className="bg-green-500 text-white">
                           <Star className="h-3 w-3 mr-1" />
                           Featured
                         </Badge>
@@ -285,10 +291,10 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogTitle>Delete Rehabilitation Service</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete {serviceToDelete?.title}? This action cannot be undone.
-              All data associated with this service will be permanently removed.
+              All patient data and treatment history associated with this rehabilitation service will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -297,7 +303,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete Service
+              Delete Rehabilitation Service
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

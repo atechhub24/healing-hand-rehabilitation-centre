@@ -287,7 +287,7 @@ export default function ServiceList({ services, isLoading, onEdit, onDelete }: S
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Service</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{serviceToDelete?.title}"? This action cannot be undone.
+              Are you sure you want to delete {serviceToDelete?.title}? This action cannot be undone.
               All data associated with this service will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>

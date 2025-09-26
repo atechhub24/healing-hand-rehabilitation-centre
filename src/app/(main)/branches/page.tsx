@@ -1,25 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Branch } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { 
-  Building2, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Clock, 
-  User, 
-  Search,
-  Navigation,
-  Calendar,
-  Star
-} from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
+import { Branch } from "@/types";
+import {
+  Building2,
+  Clock,
+  Mail,
+  MapPin,
+  Navigation,
+  Phone,
+  Search,
+  User
+} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 /**
  * Public Branches Page
@@ -40,7 +38,10 @@ export default function BranchesPage() {
   // Convert branches data to array and filter active branches
   const activeBranches = branchesData 
     ? Object.entries(branchesData)
-        .map(([id, branch]) => ({ id, ...branch }))
+        .map(([id, branch]) => {
+          const { id: _, ...branchWithoutId } = branch;
+          return { id, ...branchWithoutId };
+        })
         .filter(branch => branch.isActive)
     : [];
 
@@ -108,7 +109,9 @@ export default function BranchesPage() {
               No Branches Available
             </h1>
             <p className="text-gray-600 mb-8">
-              We're currently setting up our branch locations. Please check back soon!
+             {
+              "We're sorry, but there are currently no active branches available."
+}
             </p>
             <Link href="/">
               <Button>Return to Home</Button>

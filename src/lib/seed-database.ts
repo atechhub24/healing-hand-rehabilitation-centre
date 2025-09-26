@@ -1,6 +1,5 @@
 import mutate from "@/lib/firebase/mutate-data";
-import { seedServices, seedBranches } from "./seed-data";
-import { Service, Branch } from "@/types";
+import { seedBranches, seedServices } from "./seed-data";
 
 /**
  * Seed Database Function

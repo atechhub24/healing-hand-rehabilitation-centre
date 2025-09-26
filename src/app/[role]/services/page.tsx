@@ -1,29 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { Service } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Stethoscope, 
-  Plus, 
-  Search, 
-  Star,
-  Clock,
-  DollarSign,
-  Filter,
-  MoreHorizontal,
-  Trash2
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import ServiceForm from "./service-form";
-import ServiceList from "./service-list";
-import useFetch from "@/lib/hooks/use-fetch";
-import mutate from "@/lib/firebase/mutate-data";
-import { seedDatabase, clearDatabase } from "@/lib/seed-database";
 import {
   Select,
   SelectContent,
@@ -31,6 +11,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import mutate from "@/lib/firebase/mutate-data";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import { clearDatabase, seedDatabase } from "@/lib/seed-database";
+import { Service } from "@/types";
+import {
+  Filter,
+  Plus,
+  Search,
+  Star,
+  Stethoscope,
+  Trash2
+} from "lucide-react";
+import { useState } from "react";
+import ServiceForm from "./service-form";
+import ServiceList from "./service-list";
 
 /**
  * Services Management Page Component
@@ -57,7 +54,7 @@ export default function ServicesPage() {
 
   // Convert services data to array format
   const services = servicesData 
-    ? Object.entries(servicesData).map(([id, service]) => ({ id, ...service }))
+    ? Object.entries(servicesData).map(([id, service]) => ({ ...service }))
     : [];
 
   // Filter services based on search, category, and status

@@ -257,7 +257,7 @@ export default function BranchDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-lg font-semibold text-green-900">>
+                  <p className="text-lg font-semibold text-green-900">
                     {formatTime(branchData.timings.startTime)} - {formatTime(branchData.timings.endTime)}
                   </p>
                   <p className="text-sm text-green-700 mt-1">

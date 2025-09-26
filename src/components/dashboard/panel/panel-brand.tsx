@@ -25,7 +25,7 @@ export function Brand({ isOpen }: BrandProps) {
           isOpen ? "ml-2" : "w-0 ml-0"
         )}
       >
-        Soundarya Cosmetic
+        Healing Hand Rehabilitation Centre
       </motion.span>
     </Link>
   );

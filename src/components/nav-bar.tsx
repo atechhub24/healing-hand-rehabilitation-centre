@@ -44,7 +44,7 @@ export function NavBar() {
           {/* Logo and brand */}
           <div className="flex-shrink-0">
             <Link href="/" className="text-xl font-bold">
-              Soundarya Cosmetic
+              Healing Hand Rehabilitation Centre
             </Link>
           </div>
 

@@ -9,7 +9,7 @@ export const generateCosmeticPrescriptionHTML = (
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Soundarya Cosmetic & Laser Surgery Clinic - Prescription</title>
+        <title>Healing Hand Rehabilitation Centre - Prescription</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -414,7 +414,7 @@ export const generateCosmeticPrescriptionHTML = (
                 <div class="doctor-section">
                     <div class="doctor-name">Dr. Laxmi Kanta Mishra</div>
                     <div class="doctor-qualifications">M.B.B.S., M.S.(Gen. Surgery), M.Ch. (Plastic Surgery) (Delhi University)</div>
-                    <div class="doctor-title">Senior Consultant - Cosmetic & Plastic Surgery, Apollo Hospital, BBSR</div>
+                    <div class="doctor-title">Senior Consultant - Rehabilitation Medicine, Apollo Hospital, BBSR</div>
                     <div class="doctor-contact">
                         <div class="contact-item">
                             <span>📱</span>
@@ -426,13 +426,13 @@ export const generateCosmeticPrescriptionHTML = (
                         </div>
                         <div class="contact-item">
                             <span>🌐</span>
-                            www.cosmeticsurgeonbbsr.com
+                            www.healinghandrehab.com
                         </div>
                     </div>
                 </div>
                 <div class="clinic-logo">
-                    <div class="clinic-name">SOUNDARYA</div>
-                    <div class="clinic-subtitle">COSMETIC & LASER SURGERY CLINIC</div>
+                    <div class="clinic-name">HEALING HAND</div>
+                    <div class="clinic-subtitle">REHABILITATION CENTRE</div>
                 </div>
             </div>
 
@@ -472,18 +472,18 @@ export const generateCosmeticPrescriptionHTML = (
             <div class="services-section">
                 <div class="services-title">✨ Services Available</div>
                 <div class="services-grid">
-                    <div class="service-item">• Gynaecomastia Surgery</div>
-                    <div class="service-item">• Hair Transplantation</div>
-                    <div class="service-item">• Rhinoplasty</div>
-                    <div class="service-item">• Facial Rejuvenation & Fillers</div>
-                    <div class="service-item">• Chemical Peel & Microdermabrasion</div>
-                    <div class="service-item">• Botox & Dermal Fillers</div>
-                    <div class="service-item">• Face Lift Surgery</div>
-                    <div class="service-item">• Laser Hair Removal</div>
-                    <div class="service-item">• Breast Augmentation</div>
-                    <div class="service-item">• Liposuction & Body Contouring</div>
-                    <div class="service-item">• Tummy Tuck Surgery</div>
-                    <div class="service-item">• Dimple Creation Surgery</div>
+                    <div class="service-item">• Physical Therapy & Rehabilitation</div>
+                    <div class="service-item">• Occupational Therapy</div>
+                    <div class="service-item">• Speech & Language Therapy</div>
+                    <div class="service-item">• Neurological Rehabilitation</div>
+                    <div class="service-item">• Orthopedic Rehabilitation</div>
+                    <div class="service-item">• Cardiac Rehabilitation</div>
+                    <div class="service-item">• Pediatric Rehabilitation</div>
+                    <div class="service-item">• Pain Management</div>
+                    <div class="service-item">• Post-Surgical Rehabilitation</div>
+                    <div class="service-item">• Sports Injury Rehabilitation</div>
+                    <div class="service-item">• Stroke Recovery Programs</div>
+                    <div class="service-item">• Mobility & Gait Training</div>
                 </div>
             </div>
 
@@ -517,8 +517,8 @@ export const generateCosmeticPrescriptionHTML = (
 
             <!-- Footer Section -->
             <div class="footer-section">
-                <div class="clinic-footer-name">SOUNDARYA COSMETIC AND LASER SURGERY CLINIC</div>
-                <div class="clinic-hours">Consultation Time: 5pm to 9pm | All Sundays: 9am to 1pm</div>
+                <div class="clinic-footer-name">HEALING HAND REHABILITATION CENTRE</div>
+                <div class="clinic-hours">Consultation Time: 9am to 7pm | Sundays: 10am to 2pm</div>
                 <div class="clinic-address">A-15, Ruchika Market, Near Durga Mandap, Baramunda, Bhubaneswar - 751003</div>
             </div>
 
@@ -541,7 +541,7 @@ export const generatePrescriptionHTML = (
   const {
     showWatermark = true,
     showPreviewBanner = false,
-    clinicName = "🏥 Soundarya Cosmetic & Laser Surgery Clinic",
+    clinicName = "🏥 Healing Hand Rehabilitation Centre",
     template = "medical",
   } = options;
 
@@ -1071,13 +1071,13 @@ export const generatePrescriptionHTML = (
               <div class="doctor-header-section">
                 <div class="doctor-name-main">${prescription.doctorName}</div>
                 <div class="doctor-qualifications">M.B.B.S., M.S.(Gen. Surgery), M.Ch. (Plastic Surgery) (Delhi University)</div>
-                <div class="doctor-designation">Senior Consultant - <strong>Cosmetic & Plastic Surgery</strong>, Apollo Hospital, BBSR</div>
+                <div class="doctor-designation">Senior Consultant - <strong>Rehabilitation Medicine</strong>, Apollo Hospital, BBSR</div>
                 <div class="doctor-contact">
                   <span class="contact-label">Mob.:</span> 
                   <span class="contact-numbers">9437920023, 8093060023</span>
                 </div>
                 <div class="doctor-email-web">
-                  Email: drlkmishra@gmail.com | www.cosmeticsurgeonbbsr.com
+                  Email: drlkmishra@gmail.com | www.healinghandrehab.com
                 </div>
               </div>
             </div>
@@ -1087,7 +1087,7 @@ export const generatePrescriptionHTML = (
             
             <div class="header-right">
               <div class="clinic-logo-section">
-                <img src="/clinic-logo.png" alt="Soundarya Clinic Logo" class="clinic-logo" />
+                <img src="/clinic-logo.png" alt="Healing Hand Rehabilitation Centre Logo" class="clinic-logo" />
               </div>
             </div>
             ${
@@ -1229,9 +1229,9 @@ export const generatePrescriptionHTML = (
           </div>
           <!-- Clinic Footer Section -->
           <div class="clinic-footer">
-            <div class="clinic-footer-name">SOUNDARYA COSMETIC AND LASER SURGERY CLINIC</div>
+            <div class="clinic-footer-name">HEALING HAND REHABILITATION CENTRE</div>
             <div class="clinic-footer-address">Address: A-15, Ruchika Market, Near Durga Mandap, Baramunda, Bhubaneswar - 751003</div>
-            <div class="clinic-footer-timing">Consultation Time: 5pm to 9pm | All Sundays: 9am to 1pm</div>
+            <div class="clinic-footer-timing">Consultation Time: 9am to 7pm | Sundays: 10am to 2pm</div>
           </div>
         </div>
         </div>

@@ -91,9 +91,9 @@ export default function AboutPage() {
               their independence and return to meaningful, productive lives.
             </p>
             <p className="text-lg text-gray-600">
-              Our team of experienced therapists and rehabilitation specialists work together
+             {` Our team of experienced therapists and rehabilitation specialists work together
               to create personalized treatment plans that address each patient's unique needs,
-              ensuring the best possible outcomes for recovery and long-term wellness.
+              ensuring the best possible outcomes for recovery and long-term wellness.`}
             </p>
           </div>
         </div>

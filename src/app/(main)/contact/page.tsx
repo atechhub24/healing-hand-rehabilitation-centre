@@ -10,26 +10,26 @@ import { useToast } from "@/hooks/use-toast";
 const contactInfo = [
   {
     title: "Email",
-    value: "support@healthcareplus.com",
-    icon: <Mail className="h-6 w-6 text-blue-600" />,
+    value: "contact@healinghandrehab.com",
+    icon: <Mail className="h-6 w-6 text-green-600" />,
     description: "Our support team is here to help",
   },
   {
     title: "Phone",
-    value: "+1 (555) 123-4567",
-    icon: <Phone className="h-6 w-6 text-blue-600" />,
+    value: "+91 (674) 123-4567",
+    icon: <Phone className="h-6 w-6 text-green-600" />,
     description: "Mon-Fri from 8am to 6pm",
   },
   {
     title: "Address",
-    value: "123 Healthcare Street, Medical District",
-    icon: <MapPin className="h-6 w-6 text-blue-600" />,
-    description: "City, State 12345",
+    value: "123 Rehabilitation Blvd, Medical District",
+    icon: <MapPin className="h-6 w-6 text-green-600" />,
+    description: "Bhubaneswar, Odisha 751001",
   },
   {
     title: "Working Hours",
     value: "24/7 Emergency Support",
-    icon: <Clock className="h-6 w-6 text-blue-600" />,
+    icon: <Clock className="h-6 w-6 text-green-600" />,
     description: "Regular hours: 8am - 6pm",
   },
 ];
@@ -77,15 +77,15 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-blue-50 to-white py-20">
+      <div className="bg-gradient-to-b from-green-50 to-white py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
               Contact Us
             </h1>
             <p className="text-xl text-gray-600">
-              We&apos;d love to hear from you. Please fill out this form and
-              we&apos;ll get back to you as soon as possible.
+              We&apos;d love to hear from you. Please reach out to us for any rehabilitation services
+              or to schedule a consultation with our expert therapy team.
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function ContactPage() {
             >
               <div className="mb-4">{info.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{info.title}</h3>
-              <p className="text-blue-600 font-medium mb-1">{info.value}</p>
+              <p className="text-green-600 font-medium mb-1">{info.value}</p>
               <p className="text-gray-600 text-sm">{info.description}</p>
             </div>
           ))}
@@ -123,7 +123,7 @@ export default function ContactPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   required
-                  placeholder="John Doe"
+                  placeholder="Rajesh Kumar"
                 />
               </div>
               <div className="space-y-2">
@@ -138,7 +138,7 @@ export default function ContactPage() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   required
-                  placeholder="john@example.com"
+                  placeholder="rajesh@example.com"
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function ContactPage() {
                   setFormData({ ...formData, subject: e.target.value })
                 }
                 required
-                placeholder="How can we help?"
+                placeholder="How can we help with your rehabilitation needs?"
               />
             </div>
             <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function ContactPage() {
                   setFormData({ ...formData, message: e.target.value })
                 }
                 required
-                placeholder="Your message here..."
+                placeholder="Tell us about your rehabilitation needs or any questions you have..."
                 className="h-32"
               />
             </div>

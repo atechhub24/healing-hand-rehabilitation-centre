@@ -36,47 +36,47 @@ import * as LucideIcons from "lucide-react";
 // Fallback services if no data from Firebase
 const fallbackServices = [
   {
-    title: "Online Consultations",
+    title: "Physical Therapy",
     description:
-      "Connect with healthcare providers from the comfort of your home.",
+      "Restore movement and function with personalized physical therapy programs designed for your recovery.",
     icon: <Stethoscope className="h-6 w-6" />,
   },
   {
-    title: "Lab Tests",
-    description: "Book and manage your lab tests with trusted laboratories.",
+    title: "Occupational Therapy",
+    description: "Learn daily living skills and regain independence through specialized occupational therapy.",
     icon: <TestTube className="h-6 w-6" />,
   },
   {
-    title: "Emergency Services",
-    description: "24/7 emergency medical assistance and ambulance services.",
+    title: "Speech Therapy",
+    description: "Improve communication skills and swallowing abilities with expert speech therapy services.",
     icon: <Ambulance className="h-6 w-6" />,
   },
   {
-    title: "Hospital Network",
-    description: "Access to a wide network of hospitals and clinics.",
+    title: "Neurological Rehabilitation",
+    description: "Specialized rehabilitation for stroke, brain injury, and neurological conditions.",
     icon: <Building2 className="h-6 w-6" />,
   },
   {
-    title: "Health Records",
+    title: "Pain Management",
     description:
-      "Secure digital storage and management of your health records.",
+      "Comprehensive pain relief strategies to improve your quality of life and mobility.",
     icon: <ClipboardList className="h-6 w-6" />,
   },
   {
-    title: "Family Care",
-    description: "Comprehensive healthcare solutions for your entire family.",
+    title: "Cardiac Rehabilitation",
+    description: "Heart-healthy recovery programs to strengthen your cardiovascular system.",
     icon: <Users className="h-6 w-6" />,
   },
   {
-    title: "Appointment Booking",
+    title: "Assessment & Consultation",
     description:
-      "Schedule appointments with healthcare providers quickly and easily.",
+      "Comprehensive evaluation and personalized treatment planning for your rehabilitation journey.",
     icon: <CalendarCheck className="h-6 w-6" />,
   },
   {
-    title: "24/7 Support",
+    title: "Home Therapy Support",
     description:
-      "Round-the-clock access to healthcare professionals for emergencies.",
+      "Convenient home-based therapy services for continued rehabilitation in your comfort zone.",
     icon: <Clock className="h-6 w-6" />,
   },
 ];
@@ -84,44 +84,44 @@ const fallbackServices = [
 const testimonials = [
   {
     image: "/testimonials/patient1.jpg",
-    name: "Sarah Johnson",
-    username: "@sarah_j",
-    text: "Healthcare+ has made managing my family's health so much easier. The online consultations are incredibly convenient, and the doctors are very professional.",
+    name: "Priya Sharma",
+    username: "@priya_s",
+    text: "Healing Hand Rehabilitation Centre helped me recover completely after my knee surgery. The physiotherapy team was excellent and very supportive throughout my recovery journey.",
     social: "https://twitter.com",
   },
   {
     image: "/testimonials/patient2.jpg",
-    name: "Michael Chen",
-    username: "@mike_chen",
-    text: "The lab test booking feature is fantastic! Got my results quickly and the whole process was seamless. Highly recommend this platform.",
+    name: "Rajesh Kumar",
+    username: "@rajesh_k",
+    text: "After my father's stroke, the speech therapy and occupational therapy services here were incredible. The therapists are very knowledgeable and caring.",
     social: "https://twitter.com",
   },
   {
     image: "/testimonials/patient3.jpg",
-    name: "Emily Rodriguez",
-    username: "@em_rod",
-    text: "I needed urgent care while traveling, and Healthcare+ connected me with a local doctor within minutes. This service is a lifesaver!",
+    name: "Anita Patel",
+    username: "@anita_p",
+    text: "I needed urgent rehabilitation services after my accident, and Healing Hand Rehabilitation Centre connected me with a specialist within hours. This service is a lifesaver!",
     social: "https://twitter.com",
   },
   {
     image: "/testimonials/patient4.jpg",
-    name: "David Wilson",
-    username: "@dave_wil",
-    text: "The digital health records feature helps me keep track of all my medical history in one place. No more carrying papers around!",
+    name: "Suresh Reddy",
+    username: "@suresh_r",
+    text: "The pain management program here helped me get back to my normal life. No more chronic back pain thanks to their expert treatment and care.",
     social: "https://twitter.com",
   },
   {
     image: "/testimonials/patient5.jpg",
-    name: "Priya Patel",
-    username: "@priya_p",
-    text: "As a busy professional, the 24/7 support and quick appointment booking have been invaluable. The platform is user-friendly and efficient.",
+    name: "Kavita Singh",
+    username: "@kavita_s",
+    text: "As a working mother, the home therapy support was invaluable during my recovery. The therapists came to my home and provided excellent care.",
     social: "https://twitter.com",
   },
   {
     image: "/testimonials/patient6.jpg",
-    name: "James Thompson",
-    username: "@james_t",
-    text: "The emergency services response time is impressive. When my son had an accident, we got immediate assistance. Thank you Healthcare+!",
+    name: "Arjun Mehta",
+    username: "@arjun_m",
+    text: "The cardiac rehabilitation program helped me regain my strength after heart surgery. The team's dedication and expertise made all the difference. Thank you Healing Hand Rehabilitation Centre!",
     social: "https://twitter.com",
   },
 ];
@@ -165,7 +165,7 @@ const Feature = ({
       {isFeatured || isActive ? (
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
           {isFeatured ? (
-            <span className="inline-flex items-center rounded-full bg-yellow-500/90 text-white text-xs font-medium px-3 py-1 shadow ring-1 ring-yellow-400/50">
+            <span className="inline-flex items-center rounded-full bg-green-500/90 text-white text-xs font-medium px-3 py-1 shadow ring-1 ring-green-400/50">
               <Star className="h-3 w-3 mr-1" /> Featured
             </span>
           ) : null}
@@ -178,12 +178,12 @@ const Feature = ({
       ) : null}
 
       <div className="mb-4 relative z-0 px-10 text-neutral-600 dark:text-neutral-400">
-        <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-neutral-800 grid place-items-center">
+        <div className="h-10 w-10 rounded-xl bg-green-50 dark:bg-neutral-800 grid place-items-center">
           {icon}
         </div>
       </div>
       <div className="text-xl font-semibold mb-2 relative z-10 px-10">
-        <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-neutral-300 dark:bg-neutral-700 group-hover/feature:bg-blue-500 transition-all duration-200 origin-center" />
+        <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-neutral-300 dark:bg-neutral-700 group-hover/feature:bg-green-500 transition-all duration-200 origin-center" />
         <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block text-neutral-800 dark:text-neutral-100">
           {title}
         </span>
@@ -289,10 +289,10 @@ export default function ServicesPage() {
       {/* Hero Section */}
       <div className="bg-white py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center mb-6">Our Services</h1>
+          <h1 className="text-4xl font-bold text-center mb-6">Our Rehabilitation Services</h1>
           <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto mb-4">
-            Comprehensive healthcare solutions designed to provide you with the
-            best medical care and support, anytime and anywhere.
+            Comprehensive rehabilitation solutions designed to help you recover, rebuild strength,
+            and regain independence through personalized therapy programs.
           </p>
 
           {/* Data Source Indicator */}
@@ -300,12 +300,12 @@ export default function ServicesPage() {
             {activeServices.length > 0 ? (
               <Badge variant="default" className="bg-green-500 text-white">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Live Data ({activeServices.length} services)
+                Live Data ({activeServices.length} rehabilitation services)
               </Badge>
             ) : (
               <Badge variant="secondary">
                 <Clock className="h-3 w-3 mr-1" />
-                Sample Data (8 services)
+                Sample Data (8 rehabilitation services)
               </Badge>
             )}
           </div>
@@ -318,7 +318,7 @@ export default function ServicesPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search services..."
+                      placeholder="Search rehabilitation services..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -350,7 +350,7 @@ export default function ServicesPage() {
               {filteredServices.length !== activeServices.length ? (
                 <div className="mt-4 text-sm text-gray-600 text-center">
                   Showing {filteredServices.length} of {activeServices.length}{" "}
-                  services
+                  rehabilitation services
                 </div>
               ) : null}
             </div>
@@ -404,10 +404,10 @@ export default function ServicesPage() {
           <div className="container mx-auto px-4 text-center">
             <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No services found
+              No rehabilitation services found
             </h3>
             <p className="text-gray-600 mb-4">
-              Try adjusting your search criteria or category filter.
+              Try adjusting your search criteria or category filter to find the rehabilitation service you need.
             </p>
             <Button
               variant="outline"
@@ -428,17 +428,17 @@ export default function ServicesPage() {
           <div className="container mx-auto px-4 text-center">
             <Stethoscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Services Available
+              No Rehabilitation Services Available
             </h3>
             <p className="text-gray-600 mb-6">
-              Services haven&apos;t been added yet. Admin users can add services
-              through the dashboard.
+              Rehabilitation services haven&apos;t been added yet. Admin users can add services
+              through the dashboard to help patients with their recovery journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild>
                 <Link href="/admin/services">
                   <LucideIcons.Plus className="h-4 w-4 mr-2" />
-                  Manage Services (Admin)
+                  Manage Rehabilitation Services (Admin)
                 </Link>
               </Button>
               <Button variant="outline" asChild>
@@ -453,8 +453,8 @@ export default function ServicesPage() {
       <div className="bg-gray-50 py-20">
         <Testimonials
           testimonials={testimonials}
-          title="What Our Users Say"
-          description="Real experiences from people who have transformed their healthcare journey with our platform."
+          title="What Our Patients Say"
+          description="Real recovery stories from patients who have transformed their lives through our rehabilitation programs."
           maxDisplayed={6}
           className="container mx-auto px-4"
         />

@@ -6,24 +6,24 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 
 export function CTASection() {
   return (
-    <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700">
+    <section className="py-20 bg-gradient-to-r from-green-600 to-green-700">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4 text-white">
-            Ready to Take Control of Your Health?
+            Start Your Recovery Journey Today
           </h2>
           <p className="text-xl mb-8 text-white/90">
-            Join thousands of users who trust Healthcare+ for their healthcare
-            needs. Start your journey to better health today.
+            Take the first step towards regaining your strength, mobility, and independence.
+            Our expert rehabilitation team is here to guide you every step of the way.
           </p>
           <div className="flex justify-center gap-4">
-            <Link href="/auth/register">
+            <Link href="/auth/register/customer">
               <Button
                 size="lg"
                 variant="secondary"
                 className="font-semibold hover:bg-white/90"
               >
-                Get Started Now
+                Schedule Assessment
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>

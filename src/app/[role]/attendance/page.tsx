@@ -182,9 +182,9 @@ export default function AttendancePage() {
         </div>
 
         {/* Current Time Card */}
-        <Card className="p-6 text-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+        <Card className="p-6 text-center bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
           <div className="space-y-2">
-            <Clock className="h-12 w-12 mx-auto text-blue-600" />
+            <Clock className="h-12 w-12 mx-auto text-green-600" />
             <div className="text-4xl font-bold text-foreground">
               {format(currentTime, "HH:mm:ss")}
             </div>
@@ -245,7 +245,7 @@ export default function AttendancePage() {
           {/* Working Hours */}
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
+              <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
                 <Timer className="h-5 w-5" />
               </div>
               <div>

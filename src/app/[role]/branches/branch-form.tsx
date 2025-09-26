@@ -383,8 +383,8 @@ export default function BranchForm({ branch, onSubmit, onClose }: BranchFormProp
                         </div>
                       </div>
                       
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-sm text-blue-800">
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-sm text-green-800">
                           <strong>Current Schedule:</strong> {formData.timings.startTime} - {formData.timings.endTime}
                         </p>
                       </div>
@@ -475,7 +475,7 @@ export default function BranchForm({ branch, onSubmit, onClose }: BranchFormProp
                                 onClick={() => handleDayToggle(day)}
                                 className={`text-xs h-8 ${
                                   isSelected 
-                                    ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                                    ? "bg-green-600 hover:bg-green-700 text-white" 
                                     : "hover:bg-gray-50"
                                 }`}
                               >
@@ -495,7 +495,7 @@ export default function BranchForm({ branch, onSubmit, onClose }: BranchFormProp
                               <Badge 
                                 key={day} 
                                 variant="secondary" 
-                                className="bg-blue-100 text-blue-800 hover:bg-blue-200"
+                                className="bg-green-100 text-green-800 hover:bg-green-200"
                               >
                                 {day}
                               </Badge>

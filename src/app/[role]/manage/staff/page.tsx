@@ -288,7 +288,7 @@ export default function StaffPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>

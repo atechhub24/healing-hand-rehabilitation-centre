@@ -138,7 +138,7 @@ export default function BranchList({ branches, isLoading, onEdit, onDelete }: Br
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-blue-600" />
+                      <Building2 className="h-5 w-5 text-green-600" />
                       <CardTitle className="text-lg">{branch.name}</CardTitle>
                     </div>
                     <div className="flex items-center gap-2">

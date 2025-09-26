@@ -109,7 +109,7 @@ export function MegaMenu() {
         variant="outline"
         className={cn(
           "flex items-center gap-2 min-w-[180px] justify-between transition-all duration-200",
-          isOpen && "ring-2 ring-blue-500 ring-offset-2"
+          isOpen && "ring-2 ring-green-500 ring-offset-2"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -181,7 +181,7 @@ export function MegaMenu() {
                   <Link
                     key={branch.id}
                     href={`/branches/${branch.id}`}
-                    className="group block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white hover:bg-blue-50"
+                    className="group block p-4 rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200 bg-white hover:bg-green-50"
                     onClick={() => {
                       setSelectedBranch(branch);
                       setIsOpen(false);
@@ -191,7 +191,7 @@ export function MegaMenu() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                          <h4 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">
                             {branch.name}
                           </h4>
                           {index === 0 ? (
@@ -248,7 +248,7 @@ export function MegaMenu() {
                     </div>
 
                     {/* Hover Effect */}
-                    <div className="mt-3 text-xs text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="mt-3 text-xs text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">
                       Click to view details →
                     </div>
                   </Link>
@@ -258,18 +258,18 @@ export function MegaMenu() {
                 {hasMoreBranches && (
                   <Link
                     href="/branches"
-                    className="group block p-4 rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 bg-blue-50/30"
+                    className="group block p-4 rounded-lg border-2 border-dashed border-green-300 hover:border-green-500 hover:bg-green-50 transition-all duration-200 bg-green-50/30"
                     onClick={() => setIsOpen(false)}
                   >
                     <div className="flex flex-col items-center justify-center text-center h-full min-h-[120px]">
-                      <div className="p-3 bg-blue-100 rounded-full mb-3 group-hover:bg-blue-200 transition-colors">
-                        <Building2 className="h-6 w-6 text-blue-600" />
+                      <div className="p-3 bg-green-100 rounded-full mb-3 group-hover:bg-green-200 transition-colors">
+                        <Building2 className="h-6 w-6 text-green-600" />
                       </div>
-                      <h4 className="font-semibold text-blue-700 mb-1">
+                      <h4 className="font-semibold text-green-700 mb-1">
                         +{activeBranches.length - displayBranches.length} More
                         Locations
                       </h4>
-                      <p className="text-sm text-blue-600">
+                      <p className="text-sm text-green-600">
                         Click to view all branches
                       </p>
                     </div>
@@ -290,7 +290,7 @@ export function MegaMenu() {
                   {hasMoreBranches ? (
                     <Link
                       href="/branches"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
                       <Building2 className="h-4 w-4" />
@@ -300,7 +300,7 @@ export function MegaMenu() {
                     <>
                       <Link
                         href="/branches"
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
                         onClick={() => setIsOpen(false)}
                       >
                         View All Branches
@@ -308,7 +308,7 @@ export function MegaMenu() {
                       <span className="text-gray-300">|</span>
                       <Link
                         href="/contact"
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
                         onClick={() => setIsOpen(false)}
                       >
                         Contact Us

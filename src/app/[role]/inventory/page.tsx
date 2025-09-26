@@ -92,7 +92,7 @@ function InventoryCard({ item }: { item: InventoryItem }) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+        <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2">
           <ArrowUp className="h-4 w-4" />
           Add Stock
         </button>
@@ -116,13 +116,13 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
             <option value="all">All Categories</option>
             <option value="collection">Collection Supplies</option>
             <option value="reagents">Reagents</option>
             <option value="equipment">Lab Equipment</option>
           </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
             Add New Item
           </button>
         </div>

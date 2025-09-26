@@ -244,7 +244,7 @@ export default function AttendanceManagementPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
+              <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
                 <Users className="h-5 w-5" />
               </div>
               <div>

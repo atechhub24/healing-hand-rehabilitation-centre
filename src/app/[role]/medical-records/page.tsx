@@ -80,7 +80,7 @@ function MedicalRecordCard({ record }: MedicalRecordCardProps) {
       </div>
 
       <div className="mt-4">
-        <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
           View Full Record
         </button>
       </div>
@@ -124,13 +124,13 @@ export default function MedicalRecordsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
             <option value="all">All Records</option>
             <option value="general">General Checkup</option>
             <option value="dental">Dental</option>
             <option value="specialist">Specialist Visit</option>
           </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
             <Download className="h-4 w-4" />
             Download All
           </button>

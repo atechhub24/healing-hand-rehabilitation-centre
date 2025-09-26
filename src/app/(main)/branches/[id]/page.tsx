@@ -108,7 +108,7 @@ export default function BranchDetailPage() {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <Building2 className="h-8 w-8 text-blue-600" />
+                <Building2 className="h-8 w-8 text-green-600" />
                 <h1 className="text-3xl font-bold text-gray-900">{branchData.name}</h1>
                 <Badge 
                   variant="default" 
@@ -256,11 +256,11 @@ export default function BranchDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-lg font-semibold text-blue-900">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-lg font-semibold text-green-900">>
                     {formatTime(branchData.timings.startTime)} - {formatTime(branchData.timings.endTime)}
                   </p>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p className="text-sm text-green-700 mt-1">
                     {formatDays(branchData.timings.days)}
                   </p>
                 </div>

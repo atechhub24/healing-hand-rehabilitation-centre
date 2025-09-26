@@ -102,11 +102,11 @@ function TestOrderCard({ order }: TestOrderCardProps) {
 
       <div className="mt-4 flex gap-2">
         {isPending ? (
-          <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
             Start Test
           </button>
         ) : (
-          <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
             View Results
           </button>
         )}
@@ -136,13 +136,13 @@ export default function TestOrdersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="in-progress">In Progress</option>
             <option value="completed">Completed</option>
           </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
             Add Test Order
           </button>
         </div>

@@ -122,16 +122,16 @@ export default function BranchesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+      <div className="bg-gradient-to-r from-green-600 to-green-800 text-white">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Our Clinic Locations
             </h1>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
               Find the nearest branch to you and discover our comprehensive healthcare services
             </p>
-            <div className="flex items-center justify-center gap-2 text-blue-200">
+            <div className="flex items-center justify-center gap-2 text-green-200">
               <Building2 className="h-5 w-5" />
               <span>{activeBranches.length} Active Location{activeBranches.length !== 1 ? 's' : ''}</span>
             </div>
@@ -158,7 +158,7 @@ export default function BranchesPage() {
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {cities.map((city) => (
                   <option key={city} value={city}>
@@ -183,7 +183,7 @@ export default function BranchesPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
+                    <Building2 className="h-5 w-5 text-green-600" />
                     <CardTitle className="text-lg">{branch.name}</CardTitle>
                   </div>
                   <Badge 

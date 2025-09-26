@@ -119,7 +119,7 @@ const calculateBMI = (
 
 // Get BMI category and color
 const getBMICategory = (bmi: number) => {
-  if (bmi < 18.5) return { category: "Underweight", color: "text-blue-500" };
+  if (bmi < 18.5) return { category: "Underweight", color: "text-green-500" };
   if (bmi < 25) return { category: "Normal weight", color: "text-green-500" };
   if (bmi < 30) return { category: "Overweight", color: "text-yellow-500" };
   return { category: "Obese", color: "text-red-500" };
@@ -319,7 +319,7 @@ export default function BMICalculator() {
                     <h3 className="text-sm font-medium mb-2">BMI Categories</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-500" />
+                        <div className="w-3 h-3 rounded-full bg-green-500" />
                         <span>Underweight: &lt; 18.5</span>
                       </div>
                       <div className="flex items-center space-x-2">

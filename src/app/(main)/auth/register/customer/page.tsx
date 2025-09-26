@@ -218,7 +218,7 @@ export default function CustomerRegisterPage() {
         <p className="text-sm text-center text-muted-foreground">
           Already have an account?{" "}
           <Link href="/auth/login">
-            <a className="text-blue-500 hover:underline">Sign in</a>
+            <a className="text-green-500 hover:underline">Sign in</a>
           </Link>
         </p>
       </div>

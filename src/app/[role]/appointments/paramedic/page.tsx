@@ -57,7 +57,7 @@ function BookingCard({ booking, bookingId, onStatusUpdate }: BookingCardProps) {
       case "CANCELLED":
         return "bg-red-500";
       case "COMPLETED":
-        return "bg-blue-500";
+        return "bg-green-500";
       default:
         return "bg-gray-500";
     }

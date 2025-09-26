@@ -9,9 +9,9 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Soundarya Cosmetic Laser Surgery Clinic ",
+  title: "Healing Hand Rehabilitation Centre",
   description:
-    "Modern Healthcare Management System for Soundarya Cosmetic Laser Surgery Clinic",
+    "Modern Healthcare Management System for Healing Hand Rehabilitation Centre",
 };
 
 export default function RootLayout({

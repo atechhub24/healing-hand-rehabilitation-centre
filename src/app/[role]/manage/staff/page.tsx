@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteUser } from "@/lib/firebase/delete-user";
 import mutateData from "@/lib/firebase/mutate-data";
 import useFetch from "@/lib/hooks/use-fetch";
-import { Plus, Trash, Edit, Eye } from "lucide-react";
+import { Plus, Trash, Edit, Eye, Copy } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -264,7 +264,23 @@ export default function StaffPage() {
                         {staff.title || "Not specified"}
                       </td>
                       <td className="px-6 py-4 text-foreground">
-                        {staff.email}
+                        <div className="flex items-center gap-2">
+                          <span>{staff.email}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(staff.email);
+                              toast({
+                                title: "Email Copied",
+                                description: "Email address has been copied to clipboard",
+                              });
+                            }}
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {staff.phoneNumber || "Not provided"}

@@ -10,6 +10,8 @@ import {
   Stethoscope,
   UserCog,
   Clock,
+  DollarSign,
+  Truck,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -51,6 +53,11 @@ export const roleConfig = {
         href: "/admin/manage/attendance",
       },
       {
+        label: "Expense Tracker",
+        icon: DollarSign,
+        href: "/admin/expenses",
+      },
+      {
         label: "BMI Calculator",
         icon: Scale,
         href: "/admin/bmi-calculator",
@@ -69,6 +76,11 @@ export const roleConfig = {
       { label: "Dashboard", icon: LayoutDashboard, href: "/staff" },
       { label: "Attendance", icon: Clock, href: "/staff/attendance" },
       { label: "Patients", icon: Users, href: "/staff/patients" },
+      {
+        label: "Ambulance Service",
+        icon: Truck,
+        href: "/staff/ambulance-service",
+      },
       {
         label: "BMI Calculator",
         icon: Scale,

@@ -1,22 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Plus,
-  PieChart,
+import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/types/expense";
+import {
   BarChart3,
   Calendar,
-  Filter
+  DollarSign,
+  Filter,
+  PieChart,
+  Plus,
+  TrendingUp
 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/types/expense";
 
 // Mock data - In real implementation, this would come from your database
 const mockExpenseData = {
@@ -52,7 +50,6 @@ const mockExpenseData = {
 
 export default function ExpensesPage() {
   const { role } = useParams();
-  const [selectedPeriod, setSelectedPeriod] = useState("current-month");
 
   // Only allow admin access
   if (role !== "admin") {

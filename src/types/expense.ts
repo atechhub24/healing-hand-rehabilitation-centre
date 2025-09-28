@@ -219,3 +219,40 @@ export const PAYMENT_METHODS: Array<{
   { value: "upi", label: "UPI Payment" },
   { value: "other", label: "Other Payment Method" }
 ];
+
+// Driver Expense Interface for Ambulance Service
+export interface DriverExpense {
+  id: string;
+  driverName: string;
+  vehicleNumber: string;
+  date: string; // ISO date string
+  expenses: {
+    petrol: {
+      amount: number;
+      liters?: number;
+    };
+    meals: {
+      amount: number;
+      description?: string;
+    };
+    travel: {
+      amount: number;
+      fromLocation?: string;
+      toLocation?: string;
+      distance?: number;
+      purpose?: string;
+    };
+  };
+  collections: {
+    patientName: string;
+    amount: number;
+    paymentMethod: PaymentMethod;
+  }[];
+  totalExpenses: number;
+  totalCollections: number;
+  netAmount: number; // collections - expenses
+  notes?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}

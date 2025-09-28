@@ -258,23 +258,6 @@ export default function AmbulanceBookingForm({
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="medicalCondition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Medical Condition (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the medical condition or reason for transport..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             {/* Pickup Location */}

@@ -1,9 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import React from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -15,40 +12,28 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
-import { cn } from "@/lib/utils";
 import { type AmbulanceBooking, type BookingType } from "@/types/ambulance";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { Calculator, CalendarIcon, Clock, MapPin, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CalendarIcon, MapPin, User } from "lucide-react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 const bookingFormSchema = z.object({
   patientName: z.string().min(2, "Patient name must be at least 2 characters"),
-  patientAge: z.number().min(1, "Age must be at least 1").max(120, "Age must be less than 120"),
+  patientAge: z
+    .number()
+    .min(1, "Age must be at least 1")
+    .max(120, "Age must be less than 120"),
   patientPhone: z.string().min(10, "Phone number must be at least 10 digits"),
   medicalCondition: z.string().optional(),
   pickupAddress: z.string().min(5, "Pickup address is required"),
@@ -56,7 +41,6 @@ const bookingFormSchema = z.object({
   pickupContactPhone: z.string().min(10, "Contact phone is required"),
   destinationAddress: z.string().min(5, "Destination address is required"),
   destinationFacility: z.string().optional(),
-  estimatedDuration: z.number().min(15, "Duration must be at least 15 minutes"),
 });
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
@@ -76,14 +60,6 @@ export default function AmbulanceBookingForm({
 }: AmbulanceBookingFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [costEstimate, setCostEstimate] = useState<{
-    baseCost: number;
-    costPerKm: number;
-    estimatedDistance: number;
-    durationCost: number;
-    emergencySurcharge: number;
-    totalCost: number;
-  } | null>(null);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
@@ -97,7 +73,6 @@ export default function AmbulanceBookingForm({
       pickupContactPhone: booking?.pickupLocation?.contactPhone || "",
       destinationAddress: booking?.destination?.address || "",
       destinationFacility: booking?.destination?.facilityName || "",
-      estimatedDuration: booking?.estimatedDuration || 30,
     },
   });
 
@@ -114,7 +89,7 @@ export default function AmbulanceBookingForm({
 
     if (!data.pickupAddress.trim()) {
       toast({
-        title: "Validation Error", 
+        title: "Validation Error",
         description: "Pickup address is required",
         variant: "destructive",
       });
@@ -124,7 +99,7 @@ export default function AmbulanceBookingForm({
     if (!data.destinationAddress.trim()) {
       toast({
         title: "Validation Error",
-        description: "Destination address is required", 
+        description: "Destination address is required",
         variant: "destructive",
       });
       return;
@@ -134,33 +109,9 @@ export default function AmbulanceBookingForm({
     try {
       const scheduledDateTime = new Date();
 
-      // Calculate estimated cost based on duration
-      const baseCost = 2000;
-      const costPerKm = 35;
-      
-      // Estimate distance based on duration (rough calculation: avg speed 30 km/h in city)
-      const estimatedDistance = Math.max(5, (data.estimatedDuration / 60) * 30); // minimum 5km
-      
-      const durationCost = Math.ceil(data.estimatedDuration / 30) * 500;
-      const distanceCost = estimatedDistance * costPerKm;
-      const emergencySurcharge = 0;
-      
-      const totalCost = baseCost + distanceCost + durationCost + emergencySurcharge;
-      
-      // Create detailed pricing breakdown
-      const pricingDetails = {
-        baseCost,
-        costPerKm,
-        estimatedDistance: Math.round(estimatedDistance * 10) / 10, // round to 1 decimal
-        durationCost,
-        emergencySurcharge,
-        specialRequirementsCost: 0,
-        totalCost
-      };
-
       // Prepare booking data
       const bookingData: Omit<AmbulanceBooking, "id"> = {
-        bookingType: "scheduled" as BookingType,
+        bookingType: "scheduled",
         patientName: data.patientName,
         patientAge: data.patientAge,
         patientPhone: data.patientPhone,
@@ -176,18 +127,16 @@ export default function AmbulanceBookingForm({
         },
         scheduledTime: scheduledDateTime.toISOString(),
         status: "pending",
-        estimatedDuration: data.estimatedDuration,
-        cost: totalCost,
         paymentStatus: "pending",
+        cost: 0,
         specialRequirements: [],
-        pricingDetails,
         createdBy: "current_user", // TODO: Get from auth context
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       // Save to database
-      const result = booking 
+      const result = booking
         ? await mutateData({
             path: `ambulance-bookings/${booking.id}`,
             data: bookingData as Record<string, unknown>,
@@ -211,7 +160,9 @@ export default function AmbulanceBookingForm({
 
       toast({
         title: "Success",
-        description: `Ambulance booking ${booking ? "updated" : "created"} successfully. Booking ID: ${finalBookingData.id}`,
+        description: `Ambulance booking ${
+          booking ? "updated" : "created"
+        } successfully. Booking ID: ${finalBookingData.id}`,
       });
 
       form.reset();
@@ -219,44 +170,19 @@ export default function AmbulanceBookingForm({
       onOpenChange(false);
     } catch (error) {
       console.error("Error submitting booking:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         title: "Error",
-        description: `Failed to ${booking ? "update" : "create"} booking: ${errorMessage}`,
+        description: `Failed to ${
+          booking ? "update" : "create"
+        } booking: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Calculate cost estimate based on current form values
-  const calculateCostEstimate = React.useCallback(() => {
-    const duration = form.watch("estimatedDuration") || 30;
-    
-    const baseCost = 2000;
-    const costPerKm = 35;
-    const estimatedDistance = Math.max(5, (duration / 60) * 30);
-    const durationCost = Math.ceil(duration / 30) * 500;
-    const distanceCost = estimatedDistance * costPerKm;
-    const emergencySurcharge = 0;
-    const totalCost = baseCost + distanceCost + durationCost + emergencySurcharge;
-
-    setCostEstimate({
-      baseCost,
-      costPerKm,
-      estimatedDistance: Math.round(estimatedDistance * 10) / 10,
-      durationCost,
-      emergencySurcharge,
-      totalCost
-    });
-  }, [form]);
-
-  // Update cost estimate when relevant values change
-  const duration = form.watch("estimatedDuration");
-  useEffect(() => {
-    calculateCostEstimate();
-  }, [duration, calculateCostEstimate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -267,10 +193,9 @@ export default function AmbulanceBookingForm({
             {booking ? "Edit Ambulance Booking" : "Book Ambulance Service"}
           </DialogTitle>
           <DialogDescription>
-            {booking 
+            {booking
               ? "Update the ambulance booking details below"
-              : "Fill in the details to book an ambulance service"
-            }
+              : "Fill in the details to book an ambulance service"}
           </DialogDescription>
         </DialogHeader>
 
@@ -282,7 +207,7 @@ export default function AmbulanceBookingForm({
                 <User className="h-5 w-5" />
                 Patient Information
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -309,7 +234,9 @@ export default function AmbulanceBookingForm({
                           type="number"
                           placeholder="Age"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -356,7 +283,7 @@ export default function AmbulanceBookingForm({
                 <MapPin className="h-5 w-5" />
                 Pickup Location
               </h3>
-              
+
               <FormField
                 control={form.control}
                 name="pickupAddress"
@@ -411,7 +338,7 @@ export default function AmbulanceBookingForm({
                 <MapPin className="h-5 w-5" />
                 Destination
               </h3>
-              
+
               <FormField
                 control={form.control}
                 name="destinationAddress"
@@ -436,91 +363,16 @@ export default function AmbulanceBookingForm({
                   <FormItem>
                     <FormLabel>Facility Name (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Apollo Hospital, AIIMS" {...field} />
+                      <Input
+                        placeholder="e.g., Apollo Hospital, AIIMS"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Schedule
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="estimatedDuration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Duration (minutes)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="30"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 30)}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Estimated duration for the trip
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Cost Estimation */}
-            {costEstimate && (
-              <div className="space-y-4 border rounded-lg p-4 bg-blue-50">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700">
-                  <Calculator className="h-5 w-5" />
-                  Cost Estimation
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Base Cost:</span>
-                      <span className="font-medium">₹{costEstimate.baseCost.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Distance ({costEstimate.estimatedDistance}km):</span>
-                      <span className="font-medium">₹{(costEstimate.estimatedDistance * costEstimate.costPerKm).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-blue-600">
-                      <span>Rate per km:</span>
-                      <span className="font-semibold">₹{costEstimate.costPerKm}/km</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Duration Cost:</span>
-                      <span className="font-medium">₹{costEstimate.durationCost.toLocaleString()}</span>
-                    </div>
-                    {costEstimate.emergencySurcharge > 0 && (
-                      <div className="flex justify-between text-red-600">
-                        <span>Emergency Surcharge:</span>
-                        <span className="font-medium">₹{costEstimate.emergencySurcharge.toLocaleString()}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="border-t pt-3 mt-3">
-                  <div className="flex justify-between text-lg font-bold text-blue-700">
-                    <span>Estimated Total:</span>
-                    <span>₹{costEstimate.totalCost.toLocaleString()}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    *Final cost may vary based on actual distance and additional services
-                  </p>
-                </div>
-              </div>
-            )}
 
             <DialogFooter>
               <Button
@@ -535,8 +387,7 @@ export default function AmbulanceBookingForm({
                   ? "Processing..."
                   : booking
                   ? "Update Booking"
-                  : "Book Ambulance"
-                }
+                  : "Book Ambulance"}
               </Button>
             </DialogFooter>
           </form>

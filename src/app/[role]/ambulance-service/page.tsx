@@ -6,6 +6,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { 
   Truck, 
   Phone, 
@@ -23,7 +47,9 @@ import {
   FileText,
   CheckCircle,
   XCircle,
-  Timer
+  Timer,
+  Calculator,
+  Receipt
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { 
@@ -33,6 +59,30 @@ import {
   type EmergencyCall,
   type AmbulanceBooking 
 } from "@/types/ambulance";
+import AmbulanceBookingForm from "@/components/ambulance/ambulance-booking-form";
+import useFetch from "@/lib/hooks/use-fetch";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
+import mutateData from "@/lib/firebase/mutate-data";
+
+// Emergency call form schema
+const emergencyCallSchema = z.object({
+  patientName: z.string().min(2, "Patient name is required"),
+  patientPhone: z.string().min(10, "Valid phone number is required"),
+  emergencyType: z.string().min(1, "Emergency type is required"),
+  severity: z.string().min(1, "Severity level is required"),
+  location: z.string().min(5, "Location is required"),
+  landmarks: z.string().optional(),
+  description: z.string().min(10, "Description is required"),
+  callerName: z.string().min(2, "Caller name is required"),
+  callerPhone: z.string().min(10, "Caller phone is required"),
+  callerRelation: z.string().min(1, "Caller relation is required"),
+});
+
+type EmergencyCallFormData = z.infer<typeof emergencyCallSchema>;
 
 // Mock data - In real implementation, this would come from your database
 const mockVehicles: AmbulanceVehicle[] = [
@@ -166,6 +216,41 @@ export default function AmbulanceServicePage() {
   const { role } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
+  const [isSubmittingEmergency, setIsSubmittingEmergency] = useState(false);
+  const { toast } = useToast();
+
+  // Emergency call form
+  const emergencyForm = useForm<EmergencyCallFormData>({
+    resolver: zodResolver(emergencyCallSchema),
+    defaultValues: {
+      patientName: "",
+      patientPhone: "",
+      emergencyType: "",
+      severity: "",
+      location: "",
+      landmarks: "",
+      description: "",
+      callerName: "",
+      callerPhone: "",
+      callerRelation: "",
+    },
+  });
+
+  // Fetch real booking data from Firebase
+  const [bookingsData, isLoadingBookings, refetchBookings] = useFetch<Record<string, AmbulanceBooking>>(
+    "ambulance-bookings",
+    { needRaw: true }
+  );
+
+  // Convert bookings data to array
+  const realBookings = React.useMemo(() => {
+    if (!bookingsData) return [];
+    return Object.entries(bookingsData)
+      .map(([id, booking]) => ({ ...booking, id }))
+      .sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
+  }, [bookingsData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -195,6 +280,69 @@ export default function AmbulanceServicePage() {
     return SEVERITY_LEVELS.find(s => s.value === severity) || SEVERITY_LEVELS[0];
   };
 
+  const handleEmergencyCall = () => {
+    // Set active tab to emergency calls and show emergency dialog
+    setActiveTab("emergency");
+    setShowEmergencyDialog(true);
+  };
+
+  const handleEmergencySubmit = async (data: EmergencyCallFormData) => {
+    setIsSubmittingEmergency(true);
+    try {
+      // Create emergency call data
+      const emergencyCallData = {
+        patientName: data.patientName,
+        patientPhone: data.patientPhone,
+        emergencyType: data.emergencyType,
+        severity: data.severity,
+        location: {
+          address: data.location,
+          landmarks: data.landmarks || "",
+        },
+        description: data.description,
+        callerName: data.callerName,
+        callerPhone: data.callerPhone,
+        callerRelation: data.callerRelation,
+        status: "received",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Save to database
+      const result = await mutateData({
+        path: "emergency-calls",
+        data: emergencyCallData,
+        action: "createWithId",
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create emergency call");
+      }
+
+      toast({
+        title: "Emergency Call Registered",
+        description: `Emergency call has been registered with ID: ${result.id}. Dispatching nearest ambulance...`,
+      });
+
+      // Reset form and close dialog
+      emergencyForm.reset();
+      setShowEmergencyDialog(false);
+      
+      // Switch to emergency tab to show the new call
+      setActiveTab("emergency");
+    } catch (error) {
+      console.error("Error creating emergency call:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast({
+        title: "Error",
+        description: `Failed to register emergency call: ${errorMessage}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingEmergency(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -206,11 +354,18 @@ export default function AmbulanceServicePage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => setShowBookingForm(true)}
+          >
             <Plus className="h-4 w-4" />
             New Booking
           </Button>
-          <Button className="gap-2 bg-red-600 hover:bg-red-700">
+          <Button 
+            className="gap-2 bg-red-600 hover:bg-red-700"
+            onClick={handleEmergencyCall}
+          >
             <Phone className="h-4 w-4" />
             Emergency Call
           </Button>
@@ -255,7 +410,7 @@ export default function AmbulanceServicePage() {
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBookings.length}</div>
+            <div className="text-2xl font-bold">{realBookings.length}</div>
             <p className="text-xs text-muted-foreground">
               Scheduled for today
             </p>
@@ -440,50 +595,100 @@ export default function AmbulanceServicePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockBookings.map((booking) => (
-                  <Card key={booking.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{booking.patientName}</h3>
-                            <span className="text-sm text-muted-foreground">Age: {booking.patientAge}</span>
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status}
+                {realBookings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No ambulance bookings yet</p>
+                    <p className="text-sm">Create your first booking to get started</p>
+                  </div>
+                ) : (
+                  realBookings.map((booking) => (
+                    <Card key={booking.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">{booking.patientName}</h3>
+                              <span className="text-sm text-muted-foreground">Age: {booking.patientAge}</span>
+                              <Badge className={getStatusColor(booking.status)}>
+                                {booking.status}
+                              </Badge>
+                            </div>
+                            <div className="text-sm">
+                              <strong>From:</strong> {booking.pickupLocation.address}
+                            </div>
+                            <div className="text-sm">
+                              <strong>To:</strong> {booking.destination.address}
+                            </div>
+                            <div className="text-sm">
+                              <strong>Scheduled:</strong> {new Date(booking.scheduledTime).toLocaleString()}
+                            </div>
+                            {booking.medicalCondition && (
+                              <div className="text-sm">
+                                <strong>Condition:</strong> {booking.medicalCondition}
+                              </div>
+                            )}
+                            {booking.specialRequirements && (
+                              <div className="flex gap-1 mt-2">
+                                {booking.specialRequirements.map((req, index) => (
+                                  <Badge key={index} variant="outline">{req}</Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right space-y-3">
+                            <div className="font-semibold text-lg">₹{booking.cost?.toLocaleString()}</div>
+                            
+                            {booking.pricingDetails && (
+                              <div className="text-xs text-muted-foreground space-y-1 border-l-2 border-blue-200 pl-3">
+                                <div className="font-medium text-blue-700 flex items-center gap-1">
+                                  <Receipt className="h-3 w-3" />
+                                  Price Breakdown
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Base Cost:</span>
+                                  <span>₹{booking.pricingDetails.baseCost.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Distance ({booking.pricingDetails.estimatedDistance}km):</span>
+                                  <span>₹{(booking.pricingDetails.estimatedDistance * booking.pricingDetails.costPerKm).toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Rate per km:</span>
+                                  <span className="font-medium text-blue-600">₹{booking.pricingDetails.costPerKm}/km</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Duration Cost:</span>
+                                  <span>₹{booking.pricingDetails.durationCost.toLocaleString()}</span>
+                                </div>
+                                {(booking.pricingDetails.emergencySurcharge ?? 0) > 0 && (
+                                  <div className="flex justify-between text-red-600">
+                                    <span>Emergency Surcharge:</span>
+                                    <span>₹{(booking.pricingDetails.emergencySurcharge ?? 0).toLocaleString()}</span>
+                                  </div>
+                                )}
+                                {(booking.pricingDetails.specialRequirementsCost ?? 0) > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Special Requirements:</span>
+                                    <span>₹{(booking.pricingDetails.specialRequirementsCost ?? 0).toLocaleString()}</span>
+                                  </div>
+                                )}
+                                <div className="border-t pt-1 mt-1 flex justify-between font-semibold">
+                                  <span>Total:</span>
+                                  <span>₹{booking.pricingDetails.totalCost.toLocaleString()}</span>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <Badge className={getStatusColor(booking.paymentStatus)}>
+                              {booking.paymentStatus.replace('_', ' ')}
                             </Badge>
                           </div>
-                          <div className="text-sm">
-                            <strong>From:</strong> {booking.pickupLocation.address}
-                          </div>
-                          <div className="text-sm">
-                            <strong>To:</strong> {booking.destination.address}
-                          </div>
-                          <div className="text-sm">
-                            <strong>Scheduled:</strong> {new Date(booking.scheduledTime).toLocaleString()}
-                          </div>
-                          {booking.medicalCondition && (
-                            <div className="text-sm">
-                              <strong>Condition:</strong> {booking.medicalCondition}
-                            </div>
-                          )}
-                          {booking.specialRequirements && (
-                            <div className="flex gap-1 mt-2">
-                              {booking.specialRequirements.map((req, index) => (
-                                <Badge key={index} variant="outline">{req}</Badge>
-                              ))}
-                            </div>
-                          )}
                         </div>
-                        <div className="text-right">
-                          <div className="font-semibold">₹{booking.cost?.toLocaleString()}</div>
-                          <Badge className={getStatusColor(booking.paymentStatus)}>
-                            {booking.paymentStatus.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -631,6 +836,249 @@ export default function AmbulanceServicePage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Ambulance Booking Form */}
+      <AmbulanceBookingForm 
+        open={showBookingForm}
+        onOpenChange={setShowBookingForm}
+        onSuccess={(booking) => {
+          console.log('New booking created:', booking);
+          // Refresh the bookings list to show the new booking
+          refetchBookings();
+        }}
+      />
+
+      {/* Emergency Call Dialog */}
+      <Dialog open={showEmergencyDialog} onOpenChange={setShowEmergencyDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Phone className="h-5 w-5" />
+              Emergency Call Registration
+            </DialogTitle>
+            <DialogDescription>
+              Register an emergency call for immediate ambulance dispatch
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...emergencyForm}>
+            <form onSubmit={emergencyForm.handleSubmit(handleEmergencySubmit)} className="space-y-4">
+              {/* Patient Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={emergencyForm.control}
+                  name="patientName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patient Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter patient name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={emergencyForm.control}
+                  name="patientPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patient Phone *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+91-XXXXXXXXXX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Emergency Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={emergencyForm.control}
+                  name="emergencyType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Emergency Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select emergency type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EMERGENCY_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={emergencyForm.control}
+                  name="severity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Severity Level *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select severity" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SEVERITY_LEVELS.map((level) => (
+                            <SelectItem key={level.value} value={level.value}>
+                              {level.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Location */}
+              <FormField
+                control={emergencyForm.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter complete address with area, city, landmarks..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={emergencyForm.control}
+                name="landmarks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Landmarks (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Near hospital, metro station, mall, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={emergencyForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Emergency Description *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe the emergency situation in detail..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Caller Information */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-4">Caller Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={emergencyForm.control}
+                    name="callerName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Caller Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Person calling for help" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={emergencyForm.control}
+                    name="callerPhone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Caller Phone *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+91-XXXXXXXXXX" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={emergencyForm.control}
+                  name="callerRelation"
+                  render={({ field }) => (
+                    <FormItem className="mt-4">
+                      <FormLabel>Relation to Patient *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select relation" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="self">Self</SelectItem>
+                          <SelectItem value="family">Family Member</SelectItem>
+                          <SelectItem value="friend">Friend</SelectItem>
+                          <SelectItem value="colleague">Colleague</SelectItem>
+                          <SelectItem value="neighbor">Neighbor</SelectItem>
+                          <SelectItem value="authority">Authority/Official</SelectItem>
+                          <SelectItem value="witness">Witness</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowEmergencyDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmittingEmergency}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {isSubmittingEmergency ? "Registering..." : "Register Emergency Call"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

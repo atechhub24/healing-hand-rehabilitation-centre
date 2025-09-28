@@ -79,6 +79,16 @@ export interface AmbulanceBooking {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  // Enhanced pricing details
+  pricingDetails?: {
+    baseCost: number;
+    costPerKm: number;
+    estimatedDistance: number;
+    durationCost: number;
+    emergencySurcharge?: number;
+    specialRequirementsCost?: number;
+    totalCost: number;
+  };
 }
 
 export type VehicleStatus = 

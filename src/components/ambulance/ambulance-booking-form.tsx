@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import React from "react";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -23,7 +22,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -31,19 +34,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarIcon, Clock, MapPin, User, Phone, Calculator } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { type AmbulanceBooking, type BookingType } from "@/types/ambulance";
 import mutateData from "@/lib/firebase/mutate-data";
+import { cn } from "@/lib/utils";
+import { type AmbulanceBooking, type BookingType } from "@/types/ambulance";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { Calculator, CalendarIcon, Clock, MapPin, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const bookingFormSchema = z.object({
   bookingType: z.string().min(1, "Booking type is required"),
@@ -284,7 +285,7 @@ export default function AmbulanceBookingForm({
   };
 
   // Calculate cost estimate based on current form values
-  const calculateCostEstimate = () => {
+  const calculateCostEstimate = React.useCallback(() => {
     const bookingType = form.watch("bookingType");
     const duration = form.watch("estimatedDuration") || 30;
     
@@ -311,12 +312,14 @@ export default function AmbulanceBookingForm({
       specialRequirementsCost,
       totalCost
     });
-  };
+  }, [form, selectedRequirements]);
 
   // Update cost estimate when relevant values change
+  const bookingType = form.watch("bookingType");
+  const duration = form.watch("estimatedDuration");
   useEffect(() => {
     calculateCostEstimate();
-  }, [form.watch("bookingType"), form.watch("estimatedDuration"), selectedRequirements]);
+  }, [bookingType, duration, selectedRequirements, calculateCostEstimate]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

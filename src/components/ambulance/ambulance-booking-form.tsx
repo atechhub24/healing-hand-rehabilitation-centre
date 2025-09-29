@@ -18,13 +18,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import mutateData from "@/lib/firebase/mutate-data";
-import { type AmbulanceBooking, type BookingType } from "@/types/ambulance";
+import { type AmbulanceBooking } from "@/types/ambulance";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, MapPin, User } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -54,7 +53,7 @@ interface AmbulanceBookingFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: (booking: AmbulanceBooking) => void;
-  booking?: AmbulanceBooking; // For editing existing bookings
+  booking?: AmbulanceBooking | null; // For editing existing bookings
 }
 
 export default function AmbulanceBookingForm({

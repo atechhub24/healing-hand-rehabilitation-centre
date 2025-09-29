@@ -218,6 +218,9 @@ export default function AmbulanceServicePage() {
     role === "staff" ? "bookings" : "dashboard"
   );
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState<AmbulanceBooking | null>(
+    null
+  );
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [isSubmittingEmergency, setIsSubmittingEmergency] = useState(false);
@@ -537,6 +540,11 @@ export default function AmbulanceServicePage() {
     }
   };
 
+  const handleEditBooking = (booking: AmbulanceBooking) => {
+    setCurrentBooking(booking);
+    setShowBookingForm(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -679,290 +687,10 @@ export default function AmbulanceServicePage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        {role === "staff" ? (
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="expenses">My Expenses</TabsTrigger>
-          </TabsList>
-        ) : (
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="emergency">Emergency Calls</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="vehicles">Vehicle Status</TabsTrigger>
-            <TabsTrigger value="routes">Route Management</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-            <TabsTrigger value="expenses">Driver Expenses</TabsTrigger>
-          </TabsList>
-        )}
-
-        {role === "admin" && (
-          <>
-            <TabsContent value="dashboard" className="space-y-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Recent Emergency Calls */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Phone className="h-5 w-5 text-red-600" />
-                      Recent Emergency Calls
-                    </CardTitle>
-                    <CardDescription>
-                      Latest emergency response calls
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {mockEmergencyCalls.slice(0, 3).map((call) => {
-                        const emergencyType = getEmergencyTypeInfo(
-                          call.emergencyType
-                        );
-                        const severity = getSeverityInfo(call.severity);
-                        return (
-                          <div
-                            key={call.id}
-                            className="flex items-center justify-between p-3 border rounded"
-                          >
-                            <div>
-                              <div className="font-medium">
-                                {call.patientName}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {call.location.address}
-                              </div>
-                              <div className="flex gap-2 mt-1">
-                                <Badge className={emergencyType.color}>
-                                  {emergencyType.label}
-                                </Badge>
-                                <Badge className={severity.color}>
-                                  {severity.label}
-                                </Badge>
-                              </div>
-                            </div>
-                            <Badge className={getStatusColor(call.status)}>
-                              {call.status.replace("_", " ")}
-                            </Badge>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Vehicle Status Overview */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Truck className="h-5 w-5 text-blue-600" />
-                      Vehicle Status Overview
-                    </CardTitle>
-                    <CardDescription>
-                      Current status of ambulance fleet
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {mockVehicles.map((vehicle) => (
-                        <div
-                          key={vehicle.id}
-                          className="flex items-center justify-between p-3 border rounded"
-                        >
-                          <div>
-                            <div className="font-medium">
-                              {vehicle.vehicleNumber}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {vehicle.model}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Fuel className="h-3 w-3" />
-                              <span className="text-xs">
-                                {vehicle.fuelLevel}%
-                              </span>
-                              {vehicle.driver && (
-                                <>
-                                  <Users className="h-3 w-3 ml-2" />
-                                  <span className="text-xs">
-                                    {vehicle.driver.name}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <Badge className={getStatusColor(vehicle.status)}>
-                            {vehicle.status.replace("_", " ")}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="emergency" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                    Emergency Call Management
-                  </CardTitle>
-                  <CardDescription>
-                    Handle incoming emergency calls and dispatch ambulances
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4 mb-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search calls..." className="pl-10" />
-                    </div>
-                    <Button variant="outline" className="gap-2">
-                      <Filter className="h-4 w-4" />
-                      Filter
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {mockEmergencyCalls.map((call) => {
-                      const emergencyType = getEmergencyTypeInfo(
-                        call.emergencyType
-                      );
-                      const severity = getSeverityInfo(call.severity);
-                      return (
-                        <Card
-                          key={call.id}
-                          className="hover:shadow-md transition-shadow"
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <h3 className="font-semibold">
-                                    {call.patientName}
-                                  </h3>
-                                  <Badge className={severity.color}>
-                                    {severity.label}
-                                  </Badge>
-                                  <Badge className={emergencyType.color}>
-                                    {emergencyType.label}
-                                  </Badge>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Phone className="h-4 w-4" />
-                                  {call.patientPhone || "N/A"}
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <MapPin className="h-4 w-4" />
-                                  {call.location.address}
-                                </div>
-                                <p className="text-sm">{call.description}</p>
-                                <div className="text-xs text-muted-foreground">
-                                  Caller: {call.callerName} (
-                                  {call.callerRelation}) - {call.callerPhone}
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <Badge className={getStatusColor(call.status)}>
-                                  {call.status.replace("_", " ")}
-                                </Badge>
-                                {call.status === "received" && (
-                                  <Button
-                                    size="sm"
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Dispatch
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="routes" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Navigation className="h-5 w-5 text-purple-600" />
-                    Route Management
-                  </CardTitle>
-                  <CardDescription>
-                    Track ambulance routes and optimize paths
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Navigation className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      Route Tracking System
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      Real-time GPS tracking and route optimization for
-                      ambulances
-                    </p>
-                    <Button className="gap-2">
-                      <MapPin className="h-4 w-4" />
-                      View Live Map
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="reports" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-indigo-600" />
-                    Service Reports
-                  </CardTitle>
-                  <CardDescription>
-                    Generate and view ambulance service reports
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4 text-center">
-                        <Activity className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <h3 className="font-semibold">Response Time Report</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Average response times and trends
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4 text-center">
-                        <Truck className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                        <h3 className="font-semibold">Vehicle Utilization</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Fleet usage and efficiency metrics
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4 text-center">
-                        <Wrench className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                        <h3 className="font-semibold">Maintenance Report</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Vehicle maintenance schedules and costs
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </>
-        )}
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="expenses">My Expenses</TabsTrigger>
+        </TabsList>
 
         {/* Bookings Tab - Available for both admin and staff */}
         <TabsContent value="bookings" className="space-y-4">
@@ -999,8 +727,6 @@ export default function AmbulanceServicePage() {
                               <h3 className="font-semibold">
                                 {booking.patientName}
                               </h3>
-                              
-                              
                             </div>
                             <div className="text-sm">
                               <strong>From:</strong>{" "}
@@ -1010,133 +736,38 @@ export default function AmbulanceServicePage() {
                               <strong>To:</strong> {booking.destination.address}
                             </div>
                             <div className="text-sm">
-                              <strong>Start Time:</strong>{" "}
+                              <strong>Start Date:</strong>{" "}
                               {new Date(booking.scheduledTime).toLocaleString()}
                             </div>
                             <div className="text-sm">
-                              <strong>End Time:</strong>{" "}
-                              {booking.rideEndDateTime ? new Date(booking.rideEndDateTime).toLocaleString() : 'N/A'}
+                              <strong>End Date:</strong>{" "}
+                              {booking.rideEndDateTime
+                                ? new Date(
+                                    booking.rideEndDateTime
+                                  ).toLocaleString()
+                                : "N/A"}
                             </div>
-                           <div className="text-sm">
+
+                            <div className="text-sm">
                               <strong>Collected Amount:</strong>{" "}
-                               {formatCurrency(booking.cost || 0)}
+                              {formatCurrency(booking.cost || 0)}
                             </div>
                           </div>
-                         
+                          <div className="text-right space-y-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditBooking(booking)}
+                              className="mt-2"
+                            >
+                              Edit
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   ))
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Vehicle Status Tab - Available for both admin and staff */}
-        <TabsContent value="vehicles" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-green-600" />
-                Vehicle Status Tracking
-              </CardTitle>
-              <CardDescription>
-                Monitor ambulance fleet status and maintenance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                {mockVehicles.map((vehicle) => (
-                  <Card
-                    key={vehicle.id}
-                    className="hover:shadow-md transition-shadow"
-                  >
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">
-                            {vehicle.vehicleNumber}
-                          </h3>
-                          <Badge className={getStatusColor(vehicle.status)}>
-                            {vehicle.status.replace("_", " ")}
-                          </Badge>
-                        </div>
-
-                        <div className="text-sm text-muted-foreground">
-                          {vehicle.model} ({vehicle.year})
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <Fuel className="h-4 w-4" />
-                            <span className="text-sm">
-                              {vehicle.fuelLevel}%
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            <span className="text-xs">
-                              {vehicle.currentLocation?.address}
-                            </span>
-                          </div>
-                        </div>
-
-                        {vehicle.driver && (
-                          <div className="space-y-1">
-                            <div className="text-sm font-medium">
-                              Driver: {vehicle.driver.name}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {vehicle.driver.phone}
-                            </div>
-                          </div>
-                        )}
-
-                        {vehicle.medicalStaff && (
-                          <div className="space-y-1">
-                            <div className="text-sm font-medium">
-                              Medical Staff: {vehicle.medicalStaff.name}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {vehicle.medicalStaff.qualification}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium">
-                            Equipment Status:
-                          </div>
-                          {vehicle.equipmentStatus.map((equipment, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between text-sm"
-                            >
-                              <span>{equipment.name}</span>
-                              <div className="flex items-center gap-1">
-                                {equipment.status === "working" ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 text-red-600" />
-                                )}
-                                <span
-                                  className={
-                                    equipment.status === "working"
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }
-                                >
-                                  {equipment.status}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -1293,274 +924,20 @@ export default function AmbulanceServicePage() {
       {/* Ambulance Booking Form */}
       <AmbulanceBookingForm
         open={showBookingForm}
-        onOpenChange={setShowBookingForm}
+        onOpenChange={(open) => {
+          setShowBookingForm(open);
+          if (!open) {
+            setCurrentBooking(null); // Reset current booking when dialog is closed
+          }
+        }}
+        booking={currentBooking}
         onSuccess={(booking) => {
-          console.log("New booking created:", booking);
-          // Refresh the bookings list to show the new booking
+          console.log("Booking created/updated:", booking);
+          // Refresh the bookings list to show the updated booking
           refetchBookings();
+          setCurrentBooking(null); // Reset current booking after successful update
         }}
       />
-
-      {/* Emergency Call Dialog - Admin Only */}
-      {role === "admin" && (
-        <Dialog
-          open={showEmergencyDialog}
-          onOpenChange={setShowEmergencyDialog}
-        >
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-red-600">
-                <Phone className="h-5 w-5" />
-                Emergency Call Registration
-              </DialogTitle>
-              <DialogDescription>
-                Register an emergency call for immediate ambulance dispatch
-              </DialogDescription>
-            </DialogHeader>
-
-            <Form {...emergencyForm}>
-              <form
-                onSubmit={emergencyForm.handleSubmit(handleEmergencySubmit)}
-                className="space-y-4"
-              >
-                {/* Patient Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={emergencyForm.control}
-                    name="patientName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Patient Name *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter patient name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={emergencyForm.control}
-                    name="patientPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Patient Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+91-XXXXXXXXXX" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Emergency Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={emergencyForm.control}
-                    name="emergencyType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Emergency Type *</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select emergency type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {EMERGENCY_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={emergencyForm.control}
-                    name="severity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Severity Level *</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select severity" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {SEVERITY_LEVELS.map((level) => (
-                              <SelectItem key={level.value} value={level.value}>
-                                {level.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Location */}
-                <FormField
-                  control={emergencyForm.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location *</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Enter complete address with area, city, landmarks..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={emergencyForm.control}
-                  name="landmarks"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Landmarks (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Near hospital, metro station, mall, etc."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Description */}
-                <FormField
-                  control={emergencyForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Emergency Description *</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe the emergency situation in detail..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Caller Information */}
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-4">Caller Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={emergencyForm.control}
-                      name="callerName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Caller Name *</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Person calling for help"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={emergencyForm.control}
-                      name="callerPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Caller Phone *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="+91-XXXXXXXXXX" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={emergencyForm.control}
-                    name="callerRelation"
-                    render={({ field }) => (
-                      <FormItem className="mt-4">
-                        <FormLabel>Relation to Patient *</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select relation" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="self">Self</SelectItem>
-                            <SelectItem value="family">
-                              Family Member
-                            </SelectItem>
-                            <SelectItem value="friend">Friend</SelectItem>
-                            <SelectItem value="colleague">Colleague</SelectItem>
-                            <SelectItem value="neighbor">Neighbor</SelectItem>
-                            <SelectItem value="authority">
-                              Authority/Official
-                            </SelectItem>
-                            <SelectItem value="witness">Witness</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowEmergencyDialog(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmittingEmergency}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {isSubmittingEmergency
-                      ? "Registering..."
-                      : "Register Emergency Call"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Driver Expense Form Dialog */}
       <Dialog open={showExpenseForm} onOpenChange={setShowExpenseForm}>

@@ -273,9 +273,10 @@ export default function AmbulanceBookingForm({
                           type="number"
                           placeholder="Age"
                           {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value) || 0)
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value === "" ? undefined : parseInt(value));
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

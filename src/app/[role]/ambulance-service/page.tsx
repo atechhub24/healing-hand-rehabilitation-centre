@@ -545,6 +545,43 @@ export default function AmbulanceServicePage() {
     setShowBookingForm(true);
   };
 
+  const handleDeleteBooking = async (bookingId: string) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this ambulance booking? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await mutateData({
+        path: `ambulance-bookings/${bookingId}`,
+        action: "delete",
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete booking");
+      }
+
+      toast({
+        title: "Booking Deleted",
+        description: "Ambulance booking has been successfully deleted.",
+      });
+
+      refetchBookings();
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast({
+        title: "Error",
+        description: `Failed to delete booking: ${errorMessage}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -596,91 +633,18 @@ export default function AmbulanceServicePage() {
         </div>
       </div>
 
-      {/* Quick Stats - Simplified for Staff */}
-      {role === "staff" ? (
-        <div className="grid gap-4 md:grid-cols-1">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{`Today's Bookings`}</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realBookings.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Scheduled for today
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Available Vehicles
-              </CardTitle>
-              <Truck className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {mockVehicles.filter((v) => v.status === "available").length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Out of {mockVehicles.length} total vehicles
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Emergencies
-              </CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {
-                  mockEmergencyCalls.filter((c) => c.status !== "completed")
-                    .length
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Pending emergency calls
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{`Today's Bookings`}</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{realBookings.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Scheduled for today
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Response Time
-              </CardTitle>
-              <Timer className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">8 min</div>
-              <p className="text-xs text-muted-foreground">
-                Average response time
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
+      <div className="grid gap-4 md:grid-cols-1">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{`Today's Bookings`}</CardTitle>
+            <Clock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{realBookings.length}</div>
+            <p className="text-xs text-muted-foreground">Scheduled for today</p>
+          </CardContent>
+        </Card>
+      </div>
       {/* Main Content */}
       <Tabs
         value={activeTab}
@@ -761,6 +725,14 @@ export default function AmbulanceServicePage() {
                               className="mt-2"
                             >
                               Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteBooking(booking.id)}
+                              className="mt-2 ml-2"
+                            >
+                              <Trash className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
@@ -920,7 +892,6 @@ export default function AmbulanceServicePage() {
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Ambulance Booking Form */}
       <AmbulanceBookingForm
         open={showBookingForm}

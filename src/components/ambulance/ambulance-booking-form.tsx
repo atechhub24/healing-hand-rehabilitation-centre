@@ -41,7 +41,7 @@ const bookingFormSchema = z.object({
   medicalCondition: z.string().optional(),
   pickupLocation: z.string().min(5, "Pickup location is required"),
   pickupDateTime: z.string(),
-  destinationLocation: z.string().min(5, "Destination location is required"),
+  destinationLocation: z.string().optional(),
   rideEndDateTime: z.string().optional(),
   tripCost: z.number().min(0, "Cost must be a positive number"),
   destinationFacility: z.string().optional(),
@@ -86,6 +86,27 @@ export default function AmbulanceBookingForm({
     },
   });
 
+  // Reset form when booking prop changes
+  React.useEffect(() => {
+    form.reset({
+      patientName: booking?.patientName || "",
+      patientAge: booking?.patientAge,
+      patientPhone: booking?.patientPhone,
+      medicalCondition: booking?.medicalCondition || "",
+      pickupLocation: booking?.pickupLocation?.address || "",
+      pickupDateTime: booking?.scheduledTime || new Date().toISOString().slice(0, 16),
+      destinationLocation: booking?.destination?.address || "",
+      rideEndDateTime: booking?.scheduledTime || (() => {
+        // Default ride end time to be 1 hour after pickup time
+        const now = new Date();
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+        return oneHourLater.toISOString().slice(0, 16);
+      })(),
+      tripCost: booking?.cost || 0,
+      destinationFacility: booking?.destination?.facilityName || "",
+    });
+  }, [booking, form]);
+
   // Log form state changes for debugging
   React.useEffect(() => {
     console.log("Form state changed:", {
@@ -115,7 +136,7 @@ export default function AmbulanceBookingForm({
           address: data.pickupLocation,
         },
         destination: {
-          address: data.destinationLocation,
+          address: data.destinationLocation || "",
           facilityName: data.destinationFacility,
         },
         scheduledTime: new Date(data.pickupDateTime).toISOString(),
@@ -319,10 +340,10 @@ export default function AmbulanceBookingForm({
                   name="destinationLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Destination Location</FormLabel>
+                      <FormLabel>Destination Location (Optional)</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Enter destination location"
+                          placeholder="Enter destination location (optional)"
                           {...field}
                         />
                       </FormControl>

@@ -30,7 +30,7 @@ export interface AmbulanceVehicle {
 export interface EmergencyCall {
   id: string;
   patientName: string;
-  patientPhone: string;
+  patientPhone?: string;
   emergencyType: EmergencyType;
   severity: SeverityLevel;
   location: {
@@ -62,8 +62,8 @@ export interface AmbulanceBooking {
   medicalCondition?: string;
   pickupLocation: {
     address: string;
-    contactPerson: string;
-    contactPhone: string;
+    contactPerson?: string;
+    contactPhone?: string;
   };
   destination: {
     address: string;
@@ -73,6 +73,7 @@ export interface AmbulanceBooking {
   status: BookingStatus;
   assignedVehicle?: string;
   estimatedDuration?: number;
+  rideEndDateTime?: string;
   cost?: number;
   paymentStatus: PaymentStatus;
   specialRequirements?: string[];

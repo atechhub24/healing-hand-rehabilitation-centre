@@ -60,9 +60,13 @@ export default async function mutate({
   data?: Record<string, unknown>;
   action: "create" | "update" | "delete" | "createWithId";
 }): Promise<MutateResult> {
+  console.log("mutateData called with:", { path, data, action });
   try {
     const systemInfo = generateSystemInfo();
     const dbRef = ref(database, path);
+
+    console.log("Generated system info:", systemInfo);
+    console.log("Database reference created:", dbRef);
 
     // Clean up the data to remove undefined and null values
     const cleanData = data
@@ -75,27 +79,42 @@ export default async function mutate({
         }, {} as Record<string, unknown>)
       : {};
 
+    console.log("Clean data:", cleanData);
+
     switch (action) {
       case "create":
+        console.log("Executing create action");
         await set(dbRef, { ...cleanData, creatorInfo: systemInfo });
+        console.log("Create action completed");
         return { success: true, path };
       case "createWithId":
+        console.log("Executing createWithId action");
         const newRef = await push(dbRef, {
           ...cleanData,
           creatorInfo: systemInfo,
         });
+        console.log("createWithId action completed with new ref key:", newRef.key);
         return { success: true, id: newRef.key, path };
       case "update":
+        console.log("Executing update action");
         await update(dbRef, { ...cleanData, updaterInfo: systemInfo });
+        console.log("Update action completed");
         return { success: true, path };
       case "delete":
+        console.log("Executing delete action");
         await remove(dbRef);
+        console.log("Delete action completed");
         return { success: true, path };
       default:
         throw new Error("Invalid action type");
     }
   } catch (error) {
     console.error(`Database operation failed:`, error);
+    console.error("Error details:", error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",

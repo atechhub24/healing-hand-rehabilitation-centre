@@ -24,22 +24,27 @@ import mutateData from "@/lib/firebase/mutate-data";
 import { type AmbulanceBooking, type BookingType } from "@/types/ambulance";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, MapPin, User } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 const bookingFormSchema = z.object({
-  patientName: z.string().min(2, "Patient name must be at least 2 characters"),
-  patientAge: z
-    .number()
-    .min(1, "Age must be at least 1")
-    .max(120, "Age must be less than 120"),
-  patientPhone: z.string().min(10, "Phone number must be at least 10 digits"),
+  patientName: z.string().optional(),
+  patientAge: z.union([
+    z.number().min(1, "Age must be at least 1").max(120, "Age must be less than 120"),
+    z.undefined()
+  ]),
+  patientPhone: z.union([
+    z.string().min(10, "Phone number must be at least 10 digits"),
+    z.string().length(0), // Allow empty strings
+    z.undefined()
+  ]),
   medicalCondition: z.string().optional(),
-  pickupAddress: z.string().min(5, "Pickup address is required"),
-  pickupContactPerson: z.string().min(2, "Contact person name is required"),
-  pickupContactPhone: z.string().min(10, "Contact phone is required"),
-  destinationAddress: z.string().min(5, "Destination address is required"),
+  pickupLocation: z.string().min(5, "Pickup location is required"),
+  pickupDateTime: z.string(),
+  destinationLocation: z.string().min(5, "Destination location is required"),
+  rideEndDateTime: z.string().optional(),
+  tripCost: z.number().min(0, "Cost must be a positive number"),
   destinationFacility: z.string().optional(),
 });
 
@@ -65,77 +70,74 @@ export default function AmbulanceBookingForm({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
       patientName: booking?.patientName || "",
-      patientAge: booking?.patientAge || 0,
-      patientPhone: booking?.patientPhone || "",
+      patientAge: booking?.patientAge,
+      patientPhone: booking?.patientPhone,
       medicalCondition: booking?.medicalCondition || "",
-      pickupAddress: booking?.pickupLocation?.address || "",
-      pickupContactPerson: booking?.pickupLocation?.contactPerson || "",
-      pickupContactPhone: booking?.pickupLocation?.contactPhone || "",
-      destinationAddress: booking?.destination?.address || "",
+      pickupLocation: booking?.pickupLocation?.address || "",
+      pickupDateTime: booking?.scheduledTime || new Date().toISOString().slice(0, 16),
+      destinationLocation: booking?.destination?.address || "",
+      rideEndDateTime: booking?.scheduledTime || (() => {
+        // Default ride end time to be 1 hour after pickup time
+        const now = new Date();
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+        return oneHourLater.toISOString().slice(0, 16);
+      })(),
+      tripCost: booking?.cost || 0,
       destinationFacility: booking?.destination?.facilityName || "",
     },
   });
 
+  // Log form state changes for debugging
+  React.useEffect(() => {
+    console.log("Form state changed:", {
+      isValid: form.formState.isValid,
+      errors: form.formState.errors,
+      isDirty: form.formState.isDirty
+    });
+  }, [form.formState.isValid, form.formState.errors, form.formState.isDirty]);
+
+  // Set ride end time to match pickup time by default, but allow user to change it
+
   const onSubmit = async (data: BookingFormData) => {
-    // Validate required fields
-    if (!data.patientName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Patient name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!data.pickupAddress.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Pickup address is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!data.destinationAddress.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Destination address is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    console.log("Form submission triggered");
+    console.log("Form data:", data);
+    console.log("All form errors:", form.formState.errors);
+    
     setIsSubmitting(true);
     try {
-      const scheduledDateTime = new Date();
-
       // Prepare booking data
       const bookingData: Omit<AmbulanceBooking, "id"> = {
         bookingType: "scheduled",
-        patientName: data.patientName,
-        patientAge: data.patientAge,
-        patientPhone: data.patientPhone,
+        patientName: data.patientName || "",
+        patientAge: data.patientAge ?? 0,
+        patientPhone: data.patientPhone ?? "",
         medicalCondition: data.medicalCondition,
         pickupLocation: {
-          address: data.pickupAddress,
-          contactPerson: data.pickupContactPerson,
-          contactPhone: data.pickupContactPhone,
+          address: data.pickupLocation,
         },
         destination: {
-          address: data.destinationAddress,
+          address: data.destinationLocation,
           facilityName: data.destinationFacility,
         },
-        scheduledTime: scheduledDateTime.toISOString(),
+        scheduledTime: new Date(data.pickupDateTime).toISOString(),
         status: "pending",
         paymentStatus: "pending",
-        cost: 0,
+        cost: data.tripCost,
         specialRequirements: [],
         createdBy: "current_user", // TODO: Get from auth context
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
+      console.log("Booking data:", bookingData);
+
+      // Add ride end time if provided
+      if (data.rideEndDateTime) {
+        bookingData.rideEndDateTime = new Date(data.rideEndDateTime).toISOString();
+      }
+
       // Save to database
+      console.log("Attempting to save booking data:", bookingData);
       const result = booking
         ? await mutateData({
             path: `ambulance-bookings/${booking.id}`,
@@ -148,6 +150,7 @@ export default function AmbulanceBookingForm({
             action: "createWithId",
           });
 
+      console.log("Mutation result:", result);
       if (!result.success) {
         throw new Error(result.error || "Failed to save booking");
       }
@@ -158,6 +161,8 @@ export default function AmbulanceBookingForm({
         ...bookingData,
       };
 
+      console.log("Final booking data before success callback:", finalBookingData);
+
       toast({
         title: "Success",
         description: `Ambulance booking ${
@@ -166,10 +171,17 @@ export default function AmbulanceBookingForm({
       });
 
       form.reset();
+      console.log("Calling onSuccess callback with:", finalBookingData);
       onSuccess?.(finalBookingData);
+      console.log("Setting dialog open to false");
       onOpenChange(false);
     } catch (error) {
       console.error("Error submitting booking:", error);
+      console.error("Error details:", error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       toast({
@@ -180,32 +192,39 @@ export default function AmbulanceBookingForm({
         variant: "destructive",
       });
     } finally {
+      console.log("Setting isSubmitting to false");
       setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[100vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
-            {booking ? "Edit Ambulance Booking" : "Book Ambulance Service"}
+            {booking ? "Edit Ambulance Booking" : "Add Ambulance Booking"}
           </DialogTitle>
           <DialogDescription>
             {booking
               ? "Update the ambulance booking details below"
-              : "Fill in the details to book an ambulance service"}
+              : "Fill in the details to add an ambulance booking"}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={(e) => {
+            console.log("Form submit event triggered");
+            console.log("Is form valid?", form.formState.isValid);
+            console.log("Form errors:", form.formState.errors);
+            console.log("Form dirty fields:", form.formState.dirtyFields);
+            form.handleSubmit(onSubmit)(e);
+          }} className="space-y-6">
             {/* Patient Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Patient Information
+                Patient Information (Optional)
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,9 +233,9 @@ export default function AmbulanceBookingForm({
                   name="patientName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Patient Name</FormLabel>
+                      <FormLabel>Patient Name (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter patient name" {...field} />
+                        <Input placeholder="Enter patient name (optional)" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -228,7 +247,7 @@ export default function AmbulanceBookingForm({
                   name="patientAge"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Age</FormLabel>
+                      <FormLabel>Age (Optional)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -249,7 +268,7 @@ export default function AmbulanceBookingForm({
                   name="patientPhone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>Phone Number (Optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="+91-XXXXXXXXXX" {...field} />
                       </FormControl>
@@ -260,39 +279,22 @@ export default function AmbulanceBookingForm({
               </div>
             </div>
 
-            {/* Pickup Location */}
+            {/* Booking Details */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Pickup Location
+                Booking Details
               </h3>
-
-              <FormField
-                control={form.control}
-                name="pickupAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pickup Address</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter complete pickup address with landmarks..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="pickupContactPerson"
+                  name="pickupLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Person</FormLabel>
+                      <FormLabel>Pickup Location</FormLabel>
                       <FormControl>
-                        <Input placeholder="Contact person name" {...field} />
+                        <Input placeholder="Enter pickup location" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -301,60 +303,70 @@ export default function AmbulanceBookingForm({
 
                 <FormField
                   control={form.control}
-                  name="pickupContactPhone"
+                  name="pickupDateTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Phone</FormLabel>
+                      <FormLabel>Pickup Date and Time</FormLabel>
                       <FormControl>
-                        <Input placeholder="+91-XXXXXXXXXX" {...field} />
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="destinationLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Destination Location</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter destination location"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="rideEndDateTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ride End Date and Time</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tripCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collection Amount</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Enter collection amount"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-            </div>
-
-            {/* Destination */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Destination
-              </h3>
-
-              <FormField
-                control={form.control}
-                name="destinationAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Destination Address</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter complete destination address..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="destinationFacility"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Facility Name (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Apollo Hospital, AIIMS"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <DialogFooter>
@@ -370,7 +382,7 @@ export default function AmbulanceBookingForm({
                   ? "Processing..."
                   : booking
                   ? "Update Booking"
-                  : "Book Ambulance"}
+                  : "Add a booking"}
               </Button>
             </DialogFooter>
           </form>

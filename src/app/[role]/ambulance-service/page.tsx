@@ -47,6 +47,7 @@ import {
   type EmergencyCall,
 } from "@/types/ambulance";
 import { PAYMENT_METHODS, type DriverExpense } from "@/types/expense";
+import { formatCurrency } from "@ashirbad/js-core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Activity,
@@ -78,7 +79,7 @@ import * as z from "zod";
 // Emergency call form schema
 const emergencyCallSchema = z.object({
   patientName: z.string().min(2, "Patient name is required"),
-  patientPhone: z.string().min(10, "Valid phone number is required"),
+  patientPhone: z.string().optional(),
   emergencyType: z.string().min(1, "Emergency type is required"),
   severity: z.string().min(1, "Severity level is required"),
   location: z.string().min(5, "Location is required"),
@@ -349,7 +350,7 @@ export default function AmbulanceServicePage() {
       // Create emergency call data
       const emergencyCallData = {
         patientName: data.patientName,
-        patientPhone: data.patientPhone,
+        patientPhone: data.patientPhone || "",
         emergencyType: data.emergencyType,
         severity: data.severity,
         location: {
@@ -555,7 +556,7 @@ export default function AmbulanceServicePage() {
             onClick={() => setShowBookingForm(true)}
           >
             <Plus className="h-4 w-4" />
-            Book Ambulance
+            Add a booking
           </Button>
           <Button
             variant="outline"
@@ -849,7 +850,7 @@ export default function AmbulanceServicePage() {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Phone className="h-4 w-4" />
-                                  {call.patientPhone}
+                                  {call.patientPhone || "N/A"}
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <MapPin className="h-4 w-4" />
@@ -998,12 +999,8 @@ export default function AmbulanceServicePage() {
                               <h3 className="font-semibold">
                                 {booking.patientName}
                               </h3>
-                              <span className="text-sm text-muted-foreground">
-                                Age: {booking.patientAge}
-                              </span>
-                              <Badge className={getStatusColor(booking.status)}>
-                                {booking.status}
-                              </Badge>
+                              
+                              
                             </div>
                             <div className="text-sm">
                               <strong>From:</strong>{" "}
@@ -1013,114 +1010,19 @@ export default function AmbulanceServicePage() {
                               <strong>To:</strong> {booking.destination.address}
                             </div>
                             <div className="text-sm">
-                              <strong>Scheduled:</strong>{" "}
+                              <strong>Start Time:</strong>{" "}
                               {new Date(booking.scheduledTime).toLocaleString()}
                             </div>
-                            {booking.medicalCondition && (
-                              <div className="text-sm">
-                                <strong>Condition:</strong>{" "}
-                                {booking.medicalCondition}
-                              </div>
-                            )}
-                            {booking.specialRequirements && (
-                              <div className="flex gap-1 mt-2">
-                                {booking.specialRequirements.map(
-                                  (req, index) => (
-                                    <Badge key={index} variant="outline">
-                                      {req}
-                                    </Badge>
-                                  )
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-right space-y-3">
-                            <div className="font-semibold text-lg">
-                              ₹{booking.cost?.toLocaleString()}
+                            <div className="text-sm">
+                              <strong>End Time:</strong>{" "}
+                              {booking.rideEndDateTime ? new Date(booking.rideEndDateTime).toLocaleString() : 'N/A'}
                             </div>
-
-                            {booking.pricingDetails && (
-                              <div className="text-xs text-muted-foreground space-y-1 border-l-2 border-blue-200 pl-3">
-                                <div className="font-medium text-blue-700 flex items-center gap-1">
-                                  <Receipt className="h-3 w-3" />
-                                  Price Breakdown
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Base Cost:</span>
-                                  <span>
-                                    ₹
-                                    {booking.pricingDetails.baseCost.toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>
-                                    Distance (
-                                    {booking.pricingDetails.estimatedDistance}
-                                    km):
-                                  </span>
-                                  <span>
-                                    ₹
-                                    {(
-                                      booking.pricingDetails.estimatedDistance *
-                                      booking.pricingDetails.costPerKm
-                                    ).toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Rate per km:</span>
-                                  <span className="font-medium text-blue-600">
-                                    ₹{booking.pricingDetails.costPerKm}/km
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Duration Cost:</span>
-                                  <span>
-                                    ₹
-                                    {booking.pricingDetails.durationCost.toLocaleString()}
-                                  </span>
-                                </div>
-                                {(booking.pricingDetails.emergencySurcharge ??
-                                  0) > 0 && (
-                                  <div className="flex justify-between text-red-600">
-                                    <span>Emergency Surcharge:</span>
-                                    <span>
-                                      ₹
-                                      {(
-                                        booking.pricingDetails
-                                          .emergencySurcharge ?? 0
-                                      ).toLocaleString()}
-                                    </span>
-                                  </div>
-                                )}
-                                {(booking.pricingDetails
-                                  .specialRequirementsCost ?? 0) > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Special Requirements:</span>
-                                    <span>
-                                      ₹
-                                      {(
-                                        booking.pricingDetails
-                                          .specialRequirementsCost ?? 0
-                                      ).toLocaleString()}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="border-t pt-1 mt-1 flex justify-between font-semibold">
-                                  <span>Total:</span>
-                                  <span>
-                                    ₹
-                                    {booking.pricingDetails.totalCost.toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            <Badge
-                              className={getStatusColor(booking.paymentStatus)}
-                            >
-                              {booking.paymentStatus.replace("_", " ")}
-                            </Badge>
+                           <div className="text-sm">
+                              <strong>Collected Amount:</strong>{" "}
+                               {formatCurrency(booking.cost || 0)}
+                            </div>
                           </div>
+                         
                         </div>
                       </CardContent>
                     </Card>
@@ -1442,7 +1344,7 @@ export default function AmbulanceServicePage() {
                     name="patientPhone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Patient Phone *</FormLabel>
+                        <FormLabel>Patient Phone</FormLabel>
                         <FormControl>
                           <Input placeholder="+91-XXXXXXXXXX" {...field} />
                         </FormControl>

@@ -73,7 +73,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 
 // Emergency call form schema
@@ -91,6 +91,56 @@ const emergencyCallSchema = z.object({
 });
 
 type EmergencyCallFormData = z.infer<typeof emergencyCallSchema>;
+
+// Common expense types for ambulance staff
+const COMMON_EXPENSE_TYPES = [
+  { value: "toll", label: "Toll Charges" },
+  { value: "parking", label: "Parking Fees" },
+  { value: "maintenance", label: "Vehicle Maintenance" },
+  { value: "emergency_supplies", label: "Emergency Supplies" },
+  { value: "communication", label: "Communication Charges" },
+  { value: "overtime_allowance", label: "Overtime Allowance" },
+  { value: "night_duty", label: "Night Duty Charges" },
+  { value: "cleaning", label: "Vehicle Cleaning" },
+  { value: "uniform", label: "Uniform & Equipment" },
+  { value: "refreshments", label: "Staff Refreshments" },
+  { value: "fuel_extra", label: "Additional Fuel Costs" },
+  { value: "tire_repair", label: "Tire Repair/Replacement" },
+  { value: "insurance", label: "Insurance Claims" },
+  { value: "registration", label: "Vehicle Registration" },
+  { value: "documentation", label: "Documentation Fees" },
+  { value: "medical_supplies", label: "Medical Supplies" },
+  { value: "oxygen_refill", label: "Oxygen Tank Refill" },
+  { value: "sanitization", label: "Vehicle Sanitization" },
+  { value: "security", label: "Security Expenses" },
+  { value: "training", label: "Training & Certification" },
+  { value: "accommodation", label: "Accommodation" },
+  { value: "food_allowance", label: "Food Allowance" },
+  { value: "transportation", label: "Public Transportation" },
+  { value: "internet", label: "Internet/Data Charges" },
+  { value: "stationery", label: "Stationery & Forms" },
+  { value: "other", label: "Other (Please specify)" },
+];
+
+const otherExpenseSchema = z
+  .object({
+    type: z.string().min(1, "Expense type is required"),
+    customType: z.string().optional(),
+    amount: z.number().min(0, "Amount must be positive"),
+  })
+  .refine(
+    (data) => {
+      // If type is "other", customType must be provided
+      if (data.type === "other") {
+        return data.customType && data.customType.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Please specify the expense type when selecting 'Other'",
+      path: ["customType"],
+    }
+  );
 
 // Driver expense form schema
 const driverExpenseSchema = z.object({
@@ -110,7 +160,10 @@ const driverExpenseSchema = z.object({
   collectionAmount: z.number().min(0, "Collection amount must be positive"),
   paymentMethod: z.string().min(1, "Payment method is required"),
   notes: z.string().optional(),
+  otherExpenses: z.array(otherExpenseSchema).optional(),
 });
+
+type OtherExpense = z.infer<typeof otherExpenseSchema>;
 
 type DriverExpenseFormData = z.infer<typeof driverExpenseSchema>;
 
@@ -263,7 +316,13 @@ export default function AmbulanceServicePage() {
       collectionAmount: 0,
       paymentMethod: "",
       notes: "",
+      otherExpenses: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: expenseForm.control,
+    name: "otherExpenses",
   });
 
   // Fetch real booking data from Firebase
@@ -409,8 +468,14 @@ export default function AmbulanceServicePage() {
     setIsSubmittingExpense(true);
     try {
       // Calculate totals
+      const otherExpensesTotal =
+        data.otherExpenses?.reduce((sum, expense) => sum + expense.amount, 0) ||
+        0;
       const totalExpenses =
-        data.petrolAmount + data.mealAmount + data.travelAmount;
+        data.petrolAmount +
+        data.mealAmount +
+        data.travelAmount +
+        otherExpensesTotal;
       const totalCollections = data.collectionAmount;
       const netAmount = totalCollections - totalExpenses;
 
@@ -435,6 +500,14 @@ export default function AmbulanceServicePage() {
             distance: data.distance,
             purpose: data.purpose,
           },
+          otherExpenses: data.otherExpenses?.map((expense) => ({
+            type:
+              expense.type === "other" && expense.customType
+                ? expense.customType
+                : COMMON_EXPENSE_TYPES.find((t) => t.value === expense.type)
+                    ?.label || expense.type,
+            amount: expense.amount,
+          })),
         },
         collections:
           data.patientName &&
@@ -924,6 +997,136 @@ export default function AmbulanceServicePage() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Other Expenses */}
+              <div className="p-4 border rounded-lg">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Other Expenses
+                </h4>
+                {fields.map((item, index) => {
+                  const selectedType = expenseForm.watch(
+                    `otherExpenses.${index}.type`
+                  );
+                  return (
+                    <div
+                      key={item.id}
+                      className="space-y-4 p-4 border rounded-lg mb-3"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={expenseForm.control}
+                          name={`otherExpenses.${index}.type`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Expense Type</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select expense type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-60 overflow-y-auto">
+                                  {COMMON_EXPENSE_TYPES.map(
+                                    (expenseType, typeIndex) => (
+                                      <SelectItem
+                                        key={expenseType.value}
+                                        value={expenseType.value}
+                                        className="cursor-pointer hover:bg-accent focus:bg-accent"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium">
+                                            {expenseType.label}
+                                          </span>
+                                          {typeIndex <
+                                            COMMON_EXPENSE_TYPES.length - 1 && (
+                                            <span className="text-xs text-muted-foreground">
+                                              #{typeIndex + 1}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    )
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={expenseForm.control}
+                          name={`otherExpenses.${index}.amount`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Amount (₹)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Custom type input - shown only when "other" is selected */}
+                      {selectedType === "other" && (
+                        <FormField
+                          control={expenseForm.control}
+                          name={`otherExpenses.${index}.customType`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Please specify expense type</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter custom expense type"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => remove(index)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    append({ type: "", customType: "", amount: 0 })
+                  }
+                  className="mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Other Expense
+                </Button>
               </div>
 
               {/* Expense Categories */}

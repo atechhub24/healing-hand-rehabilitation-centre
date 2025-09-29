@@ -242,6 +242,10 @@ export interface DriverExpense {
       distance?: number;
       purpose?: string;
     };
+    otherExpenses?: {
+      type: string;
+      amount: number;
+    }[];
   };
   collections: {
     patientName: string;

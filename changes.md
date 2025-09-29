@@ -21,6 +21,12 @@
 - [x] Fixed issue where previous form data was not cleared when opening a new booking for editing. ✅
 - [x] Make sure the Age default to not set to anything currently it is 0.
 - [x] Add a delete icon to each booking card in the bookings tab.
+- [x] In add daily expenses, add an expense type where we can add common expense types like petrol expenses, meal expenses, etc., and others. With the added expense types, the user can also add an amount for it.
 - [x] when want to edit a booking, on there age section, make sure default age is not set to anything.
+
+## Task 4: Ambulance staff Expancenses
+
+- [x] I need a list of common expenses types in the drop down (shadcn select)
+- [x] If use feel that I do not have the type the user can choose the option "Other" and enter his own expense type and add an amount.
 
 All tasks completed on September 29, 2025.

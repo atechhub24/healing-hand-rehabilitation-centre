@@ -129,7 +129,7 @@ export default function AmbulanceBookingForm({
       const bookingData: Omit<AmbulanceBooking, "id"> = {
         bookingType: "scheduled",
         patientName: data.patientName || "",
-        patientAge: data.patientAge ?? 0,
+        patientAge: data.patientAge,
         patientPhone: data.patientPhone ?? "",
         medicalCondition: data.medicalCondition,
         pickupLocation: {

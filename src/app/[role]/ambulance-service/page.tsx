@@ -611,25 +611,6 @@ export default function AmbulanceServicePage() {
             <Receipt className="h-4 w-4" />
             Add Expense
           </Button>
-          {role === "admin" && (
-            <>
-              <Button
-                variant="outline"
-                className="gap-2 text-red-600 border-red-600 hover:bg-red-50"
-                onClick={clearAllBookings}
-              >
-                <Trash className="h-4 w-4" />
-                Clear All Bookings
-              </Button>
-              <Button
-                className="gap-2 bg-red-600 hover:bg-red-700"
-                onClick={handleEmergencyCall}
-              >
-                <Phone className="h-4 w-4" />
-                Emergency Call
-              </Button>
-            </>
-          )}
         </div>
       </div>
 
@@ -711,13 +692,13 @@ export default function AmbulanceServicePage() {
                                   ).toLocaleString()
                                 : "N/A"}
                             </div>
-
                             <div className="text-sm">
                               <strong>Collected Amount:</strong>{" "}
                               {formatCurrency(booking.cost || 0)}
                             </div>
                           </div>
-                          <div className="text-right space-y-3">
+
+                          <div className="flex flex-col gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -727,12 +708,12 @@ export default function AmbulanceServicePage() {
                               Edit
                             </Button>
                             <Button
-                              variant="destructive"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleDeleteBooking(booking.id)}
-                              className="mt-2 ml-2"
+                              className="mt-2 text-red-600 border-red-600 hover:bg-red-50"
                             >
-                              <Trash className="h-4 w-4" />
+                              Delete
                             </Button>
                           </div>
                         </div>

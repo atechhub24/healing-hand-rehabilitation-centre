@@ -57,7 +57,7 @@ export interface AmbulanceBooking {
   id: string;
   bookingType: BookingType;
   patientName: string;
-  patientAge: number;
+  patientAge?: number;
   patientPhone: string;
   medicalCondition?: string;
   pickupLocation: {

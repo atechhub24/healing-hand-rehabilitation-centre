@@ -22,7 +22,7 @@ export interface Expense {
   billNumber?: string;
 }
 
-export type ExpenseCategory = 
+export type ExpenseCategory =
   | "canteen"
   | "ambulance"
   | "external"
@@ -41,7 +41,7 @@ export type ExpenseCategory =
   | "consultation"
   | "other";
 
-export type PaymentMethod = 
+export type PaymentMethod =
   | "cash"
   | "bank_transfer"
   | "credit_card"
@@ -50,14 +50,14 @@ export type PaymentMethod =
   | "upi"
   | "other";
 
-export type RecurringPeriod = 
+export type RecurringPeriod =
   | "daily"
   | "weekly"
   | "monthly"
   | "quarterly"
   | "yearly";
 
-export type ApprovalStatus = 
+export type ApprovalStatus =
   | "pending"
   | "approved"
   | "rejected"
@@ -98,113 +98,113 @@ export const EXPENSE_CATEGORIES: Array<{
     label: "Canteen Expenses",
     description: "Food, beverages, kitchen supplies, staff meals",
     color: "bg-orange-100 text-orange-800",
-    icon: "🍽️"
+    icon: "🍽️",
   },
   {
     value: "ambulance",
-    label: "Ambulance Expenses", 
+    label: "Ambulance Expenses",
     description: "Ambulance fuel, maintenance, driver costs, equipment",
     color: "bg-red-100 text-red-800",
-    icon: "🚑"
+    icon: "🚑",
   },
   {
     value: "external",
     label: "External Expenses",
     description: "Outside services, consultations, outsourced work",
     color: "bg-purple-100 text-purple-800",
-    icon: "🏢"
+    icon: "🏢",
   },
   {
     value: "medicine_supply",
     label: "Medicine Supply",
     description: "Pharmaceutical drugs, medical supplies, inventory",
     color: "bg-blue-100 text-blue-800",
-    icon: "💊"
+    icon: "💊",
   },
   {
     value: "equipment",
     label: "Medical Equipment",
     description: "Medical devices, machines, tools, technology",
     color: "bg-indigo-100 text-indigo-800",
-    icon: "🏥"
+    icon: "🏥",
   },
   {
     value: "utilities",
     label: "Utilities",
     description: "Electricity, water, internet, phone, gas",
     color: "bg-yellow-100 text-yellow-800",
-    icon: "⚡"
+    icon: "⚡",
   },
   {
     value: "maintenance",
     label: "Maintenance & Repair",
     description: "Building maintenance, equipment repair, cleaning",
     color: "bg-green-100 text-green-800",
-    icon: "🔧"
+    icon: "🔧",
   },
   {
     value: "staff_salary",
     label: "Staff Salary & Benefits",
     description: "Employee wages, benefits, allowances, bonuses",
     color: "bg-teal-100 text-teal-800",
-    icon: "👥"
+    icon: "👥",
   },
   {
     value: "office_supplies",
     label: "Office Supplies",
     description: "Stationery, printing, office equipment, furniture",
     color: "bg-gray-100 text-gray-800",
-    icon: "📋"
+    icon: "📋",
   },
   {
     value: "fuel",
     label: "Fuel & Transportation",
     description: "Vehicle fuel, transportation costs, travel expenses",
     color: "bg-amber-100 text-amber-800",
-    icon: "⛽"
+    icon: "⛽",
   },
   {
     value: "consultation",
     label: "Professional Consultation",
     description: "Expert consultations, professional services",
     color: "bg-cyan-100 text-cyan-800",
-    icon: "👨‍⚕️"
+    icon: "👨‍⚕️",
   },
   {
     value: "marketing",
     label: "Marketing & Advertising",
     description: "Promotional activities, advertising, branding",
     color: "bg-pink-100 text-pink-800",
-    icon: "📢"
+    icon: "📢",
   },
   {
     value: "training",
     label: "Training & Education",
     description: "Staff training, certifications, educational materials",
     color: "bg-lime-100 text-lime-800",
-    icon: "🎓"
+    icon: "🎓",
   },
   {
     value: "insurance",
     label: "Insurance",
     description: "Insurance premiums, coverage, claims",
     color: "bg-emerald-100 text-emerald-800",
-    icon: "🛡️"
+    icon: "🛡️",
   },
   {
     value: "rent",
     label: "Rent & Lease",
     description: "Property rent, equipment lease, facility costs",
     color: "bg-violet-100 text-violet-800",
-    icon: "🏠"
+    icon: "🏠",
   },
   {
     value: "other",
     label: "Other Expenses",
     description: "Miscellaneous and uncategorized expenses",
     color: "bg-slate-100 text-slate-800",
-    icon: "📦"
-  }
+    icon: "📦",
+  },
 ];
 
 export const PAYMENT_METHODS: Array<{
@@ -217,7 +217,7 @@ export const PAYMENT_METHODS: Array<{
   { value: "debit_card", label: "Debit Card" },
   { value: "cheque", label: "Cheque" },
   { value: "upi", label: "UPI Payment" },
-  { value: "other", label: "Other Payment Method" }
+  { value: "other", label: "Other Payment Method" },
 ];
 
 // Driver Expense Interface for Ambulance Service
@@ -227,21 +227,6 @@ export interface DriverExpense {
   vehicleNumber: string;
   date: string; // ISO date string
   expenses: {
-    petrol: {
-      amount: number;
-      liters?: number;
-    };
-    meals: {
-      amount: number;
-      description?: string;
-    };
-    travel: {
-      amount: number;
-      fromLocation?: string;
-      toLocation?: string;
-      distance?: number;
-      purpose?: string;
-    };
     otherExpenses?: {
       type: string;
       amount: number;

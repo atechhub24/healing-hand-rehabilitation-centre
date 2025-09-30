@@ -144,28 +144,19 @@ const otherExpenseSchema = z
 
 // Driver expense form schema
 const driverExpenseSchema = z.object({
-  driverName: z.string().min(2, "Driver name is required"),
-  vehicleNumber: z.string().min(1, "Vehicle number is required"),
   date: z.string().min(1, "Date is required"),
-  petrolAmount: z.number().min(0, "Petrol amount must be positive"),
-  petrolLiters: z.number().min(0, "Petrol liters must be positive").optional(),
-  mealAmount: z.number().min(0, "Meal amount must be positive"),
-  mealDescription: z.string().optional(),
-  travelAmount: z.number().min(0, "Travel amount must be positive"),
-  fromLocation: z.string().optional(),
-  toLocation: z.string().optional(),
-  distance: z.number().min(0, "Distance must be positive").optional(),
-  purpose: z.string().optional(),
-  patientName: z.string().optional(),
-  collectionAmount: z.number().min(0, "Collection amount must be positive"),
-  paymentMethod: z.string().min(1, "Payment method is required"),
+  // Simplified expense fields
   notes: z.string().optional(),
   otherExpenses: z.array(otherExpenseSchema).optional(),
 });
 
 type OtherExpense = z.infer<typeof otherExpenseSchema>;
 
-type DriverExpenseFormData = z.infer<typeof driverExpenseSchema>;
+type DriverExpenseFormData = {
+  date: string;
+  notes?: string;
+  otherExpenses?: OtherExpense[];
+};
 
 // Mock data - In real implementation, this would come from your database
 const mockVehicles: AmbulanceVehicle[] = [
@@ -301,24 +292,23 @@ export default function AmbulanceServicePage() {
   const expenseForm = useForm<DriverExpenseFormData>({
     resolver: zodResolver(driverExpenseSchema),
     defaultValues: {
-      driverName: "",
       date: new Date().toISOString().split("T")[0],
-      petrolAmount: 0,
-      petrolLiters: 0,
-      mealAmount: 0,
-      mealDescription: "",
-      travelAmount: 0,
-      fromLocation: "",
-      toLocation: "",
-      distance: 0,
-      purpose: "",
-      patientName: "",
-      collectionAmount: 0,
-      paymentMethod: "",
       notes: "",
       otherExpenses: [],
     },
   });
+
+  // Reset form when expense dialog opens
+  React.useEffect(() => {
+    if (showExpenseForm) {
+      console.log("Expense form dialog opened, resetting form");
+      expenseForm.reset({
+        date: new Date().toISOString().split("T")[0],
+        notes: "",
+        otherExpenses: [],
+      });
+    }
+  }, [showExpenseForm, expenseForm]);
 
   const { fields, append, remove } = useFieldArray({
     control: expenseForm.control,
@@ -465,41 +455,21 @@ export default function AmbulanceServicePage() {
   };
 
   const handleExpenseSubmit = async (data: DriverExpenseFormData) => {
+    console.log("=== Expense Form Submission Started ===");
+    console.log("Received form data:", data);
     setIsSubmittingExpense(true);
     try {
-      // Calculate totals
+      // Calculate totals from other expenses
       const otherExpensesTotal =
         data.otherExpenses?.reduce((sum, expense) => sum + expense.amount, 0) ||
         0;
-      const totalExpenses =
-        data.petrolAmount +
-        data.mealAmount +
-        data.travelAmount +
-        otherExpensesTotal;
-      const totalCollections = data.collectionAmount;
-      const netAmount = totalCollections - totalExpenses;
+      const totalExpenses = otherExpensesTotal;
+      const netAmount = -totalExpenses; // Negative since it's an expense
 
       // Create expense data
       const expenseData: Omit<DriverExpense, "id"> = {
-        driverName: data.driverName,
-        vehicleNumber: data.vehicleNumber,
         date: data.date,
         expenses: {
-          petrol: {
-            amount: data.petrolAmount,
-            liters: data.petrolLiters,
-          },
-          meals: {
-            amount: data.mealAmount,
-            description: data.mealDescription,
-          },
-          travel: {
-            amount: data.travelAmount,
-            fromLocation: data.fromLocation,
-            toLocation: data.toLocation,
-            distance: data.distance,
-            purpose: data.purpose,
-          },
           otherExpenses: data.otherExpenses?.map((expense) => ({
             type:
               expense.type === "other" && expense.customType
@@ -509,33 +479,16 @@ export default function AmbulanceServicePage() {
             amount: expense.amount,
           })),
         },
-        collections:
-          data.patientName &&
-          data.collectionAmount > 0 &&
-          data.paymentMethod &&
-          data.paymentMethod !== ""
-            ? [
-                {
-                  patientName: data.patientName,
-                  amount: data.collectionAmount,
-                  paymentMethod: data.paymentMethod as
-                    | "cash"
-                    | "bank_transfer"
-                    | "credit_card"
-                    | "debit_card"
-                    | "cheque"
-                    | "upi"
-                    | "other",
-                },
-              ]
-            : [],
+        collections: [], // No collections for expenses
         totalExpenses,
-        totalCollections,
+        totalCollections: 0,
         netAmount,
         notes: data.notes,
         createdBy: "current-user", // In real app, get from auth context
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        driverName: "",
+        vehicleNumber: "",
       };
 
       // Save to database
@@ -551,7 +504,7 @@ export default function AmbulanceServicePage() {
 
       toast({
         title: "Expenses Saved Successfully",
-        description: `Daily expenses have been recorded. Net amount: ₹${netAmount.toLocaleString()}`,
+        description: `Daily expenses have been recorded. Total amount: ₹${totalExpenses.toLocaleString()}`,
       });
 
       // Reset form and close dialog
@@ -679,7 +632,10 @@ export default function AmbulanceServicePage() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={() => setShowExpenseForm(true)}
+            onClick={() => {
+              console.log("Add Expense button clicked");
+              setShowExpenseForm(true);
+            }}
           >
             <Receipt className="h-4 w-4" />
             Add Expense
@@ -694,7 +650,7 @@ export default function AmbulanceServicePage() {
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{realBookings.length}</div>
+            <div className="text-2xl font-bold">{realBookings.length || 0}</div>
             <p className="text-xs text-muted-foreground">Scheduled for today</p>
           </CardContent>
         </Card>
@@ -853,9 +809,6 @@ export default function AmbulanceServicePage() {
                                 <div className="text-xs space-y-1">
                                   <div className="flex justify-between">
                                     <span>Petrol:</span>
-                                    <span>
-                                      ₹{expense.expenses.petrol.amount}
-                                    </span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Meals:</span>
@@ -865,9 +818,6 @@ export default function AmbulanceServicePage() {
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Travel:</span>
-                                    <span>
-                                      ₹{expense.expenses.travel.amount}
-                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -979,11 +929,42 @@ export default function AmbulanceServicePage() {
 
           <Form {...expenseForm}>
             <form
-              onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)}
+              onSubmit={(e) => {
+                e.preventDefault();
+                console.log("=== Form Submission Debug ===");
+                console.log("Form values:", expenseForm.getValues());
+                console.log(
+                  "Form errors before submit:",
+                  expenseForm.formState.errors
+                );
+                console.log("Is form valid?", expenseForm.formState.isValid);
+
+                // Trigger validation manually to see what's failing
+                expenseForm.trigger().then((isValid) => {
+                  console.log("Manual validation result:", isValid);
+                  console.log(
+                    "Form errors after validation:",
+                    expenseForm.formState.errors
+                  );
+
+                  if (isValid) {
+                    console.log("Proceeding with form submission...");
+                    expenseForm.handleSubmit(handleExpenseSubmit)(e);
+                  } else {
+                    console.log("Form validation failed, not submitting");
+                    toast({
+                      title: "Form Validation Failed",
+                      description:
+                        "Please check the form for errors and try again.",
+                      variant: "destructive",
+                    });
+                  }
+                });
+              }}
               className="space-y-6"
             >
-              {/* Driver Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Date Field */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={expenseForm.control}
                   name="date"
@@ -991,7 +972,14 @@ export default function AmbulanceServicePage() {
                     <FormItem>
                       <FormLabel>Date *</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input
+                          type="date"
+                          {...field}
+                          onChange={(e) => {
+                            console.log("Date changed:", e.target.value);
+                            field.onChange(e);
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1107,7 +1095,14 @@ export default function AmbulanceServicePage() {
                           type="button"
                           variant="destructive"
                           size="sm"
-                          onClick={() => remove(index)}
+                          onClick={() => {
+                            console.log("Removing expense at index:", index);
+                            console.log(
+                              "Current fields before removal:",
+                              fields
+                            );
+                            remove(index);
+                          }}
                         >
                           Remove
                         </Button>
@@ -1119,9 +1114,11 @@ export default function AmbulanceServicePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    append({ type: "", customType: "", amount: 0 })
-                  }
+                  onClick={() => {
+                    console.log("Adding new expense field");
+                    console.log("Current fields before addition:", fields);
+                    append({ type: "", customType: "", amount: 0 });
+                  }}
                   className="mt-2"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -1129,33 +1126,33 @@ export default function AmbulanceServicePage() {
                 </Button>
               </div>
 
-              {/* Expense Categories */}
-              <div className="space-y-4">
-                {/* Additional Notes */}
-                <FormField
-                  control={expenseForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Additional Notes</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Any additional notes about today's expenses or trips..."
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {/* Additional Notes */}
+              <FormField
+                control={expenseForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Additional Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any additional notes about today's expenses or trips..."
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowExpenseForm(false)}
+                  onClick={() => {
+                    console.log("Cancel button clicked, closing expense form");
+                    setShowExpenseForm(false);
+                  }}
                   disabled={isSubmittingExpense}
                 >
                   Cancel

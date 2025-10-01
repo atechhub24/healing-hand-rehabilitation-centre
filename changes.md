@@ -9,3 +9,4 @@
 - [x] Fixed the expense form to properly handle "other" expense type by adding a field to specify the type name
 - [x] Fixed form submission issues by improving validation and error handling
 - [x] Tested the "Add Expense" functionality and refactored the code to use Firebase for data persistence.
+- [x] Implemented responsive design for the expense list, showing cards on mobile and a table on larger screens.

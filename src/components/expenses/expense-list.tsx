@@ -1,8 +1,14 @@
 "use client";
 
-import { Expense } from "@/types/expense";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -11,13 +17,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AddExpenseForm } from "./add-expense-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-import useFetch from "@/lib/hooks/use-fetch";
 import mutate from "@/lib/firebase/mutate-data";
-
-import { useMemo } from "react";
+import useFetch from "@/lib/hooks/use-fetch";
+import { Edit, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AddExpenseForm } from "./add-expense-form";
+import { Expense } from "@/types/expense";
 
 interface ExpenseListProps {
   searchQuery: string;
@@ -85,57 +90,121 @@ export function ExpenseList({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile View: Cards */}
+      <div className="md:hidden space-y-4">
         {filteredExpenses.map((expense) => (
-          <TableRow key={expense.id}>
-            <TableCell>{expense.date}</TableCell>
-            <TableCell>{expense.type}</TableCell>
-            <TableCell>{expense.amount}</TableCell>
-            <TableCell>{expense.description}</TableCell>
-            <TableCell>
-              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogTrigger asChild>
+          <Card key={expense.id}>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>{expense.type}</span>
+                <div className="flex gap-2">
+                  <Dialog
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedExpense(expense)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Expense</DialogTitle>
+                      </DialogHeader>
+                      {selectedExpense && (
+                        <AddExpenseForm
+                          onSubmit={() => setIsEditDialogOpen(false)}
+                          initialValues={selectedExpense}
+                        />
+                      )}
+                    </DialogContent>
+                  </Dialog>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setSelectedExpense(expense)}
+                    onClick={() => handleDelete(expense.id!)}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Edit Expense</DialogTitle>
-                  </DialogHeader>
-                  {selectedExpense && (
-                    <AddExpenseForm
-                      onSubmit={() => setIsEditDialogOpen(false)}
-                      initialValues={selectedExpense}
-                    />
-                  )}
-                </DialogContent>
-              </Dialog>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(expense.id!)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p>
+                <strong>Date:</strong> {expense.date}
+              </p>
+              <p>
+                <strong>Amount:</strong> {expense.amount}
+              </p>
+              <p>
+                <strong>Description:</strong> {expense.description}
+              </p>
+            </CardContent>
+          </Card>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop View: Table */}
+      <Table className="hidden md:table">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredExpenses.map((expense) => (
+            <TableRow key={expense.id}>
+              <TableCell>{expense.date}</TableCell>
+              <TableCell>{expense.type}</TableCell>
+              <TableCell>{expense.amount}</TableCell>
+              <TableCell>{expense.description}</TableCell>
+              <TableCell>
+                <Dialog
+                  open={isEditDialogOpen}
+                  onOpenChange={setIsEditDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedExpense(expense)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Expense</DialogTitle>
+                    </DialogHeader>
+                    {selectedExpense && (
+                      <AddExpenseForm
+                        onSubmit={() => setIsEditDialogOpen(false)}
+                        initialValues={selectedExpense}
+                      />
+                    )}
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(expense.id!)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   );
 }

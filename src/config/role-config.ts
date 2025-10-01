@@ -75,6 +75,7 @@ export const roleConfig = {
     menuItems: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/staff" },
       { label: "Attendance", icon: Clock, href: "/staff/attendance" },
+      { label: "Expenses", icon: DollarSign, href: "/staff/expenses" },
       { label: "Patients", icon: Users, href: "/staff/patients" },
       {
         label: "Ambulance Service",

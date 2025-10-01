@@ -1,12 +1,38 @@
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import ThemeProvider from "@/components/providers/theme-provider";
-import { Loader2 } from "lucide-react";
+import { Loader2, Weight } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+import path from "path";
 
-const inter = Inter({ subsets: ["latin"] });
+const myFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/trebuc.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/trebucit.ttf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/trebucbd.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/trebucbi.ttf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
+  variable: "--font-trebuc",
+});
 
 export const metadata: Metadata = {
   title: "Healing Hand Rehabilitation Centre",
@@ -22,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} antialiased min-h-screen flex flex-col`}
+        className={`${myFont.className} antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider>
           <AuthProvider

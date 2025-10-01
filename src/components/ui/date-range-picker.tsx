@@ -18,10 +18,7 @@ interface DateRangePickerProps {
   className?: string;
 }
 
-export function DateRangePicker({
-  onUpdate,
-  className,
-}: DateRangePickerProps) {
+export function DateRangePicker({ onUpdate, className }: DateRangePickerProps) {
   const [date, setDate] = React.useState<DateRange | undefined>();
 
   const handleDateChange = (newDate: DateRange | undefined) => {
@@ -39,7 +36,7 @@ export function DateRangePicker({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-[300px] justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
           >

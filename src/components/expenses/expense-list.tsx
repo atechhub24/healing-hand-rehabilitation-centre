@@ -23,6 +23,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AddExpenseForm } from "./add-expense-form";
 import { Expense } from "@/types/expense";
+import { formatCurrency } from "@ashirbad/js-core";
 
 interface ExpenseListProps {
   searchQuery: string;
@@ -90,84 +91,13 @@ export function ExpenseList({
   }
 
   return (
-    <>
-      {/* Mobile View: Cards */}
-      <div className="md:hidden space-y-4">
-        {filteredExpenses.map((expense) => (
-          <Card key={expense.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{expense.type}</span>
-                <div className="flex gap-2">
-                  <Dialog
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setSelectedExpense(expense)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Expense</DialogTitle>
-                      </DialogHeader>
-                      {selectedExpense && (
-                        <AddExpenseForm
-                          onSubmit={() => setIsEditDialogOpen(false)}
-                          initialValues={selectedExpense}
-                        />
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(expense.id!)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p>
-                <strong>Date:</strong> {expense.date}
-              </p>
-              <p>
-                <strong>Amount:</strong> {expense.amount}
-              </p>
-              <p>
-                <strong>Description:</strong> {expense.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Desktop View: Table */}
-      <Table className="hidden md:table">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredExpenses.map((expense) => (
-            <TableRow key={expense.id}>
-              <TableCell>{expense.date}</TableCell>
-              <TableCell>{expense.type}</TableCell>
-              <TableCell>{expense.amount}</TableCell>
-              <TableCell>{expense.description}</TableCell>
-              <TableCell>
+    <div className="space-y-4">
+      {filteredExpenses.map((expense) => (
+        <Card key={expense.id}>
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+              <span>{expense.type}</span>
+              <div className="flex gap-2">
                 <Dialog
                   open={isEditDialogOpen}
                   onOpenChange={setIsEditDialogOpen}
@@ -200,11 +130,22 @@ export function ExpenseList({
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p>
+              <strong>Date:</strong> {expense.date}
+            </p>
+            <p>
+              <strong>Amount:</strong> {formatCurrency(expense?.amount || 0)}
+            </p>
+            <p>
+              <strong>Description:</strong> {expense.description}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }

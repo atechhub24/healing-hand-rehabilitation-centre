@@ -118,9 +118,16 @@ export function AddExpenseForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="salary">Salary</SelectItem>
-                  <SelectItem value="supplies">Supplies</SelectItem>
+                  <SelectItem value="grocery">Grocery</SelectItem>
+                  <SelectItem value="food">Food</SelectItem>
+                  <SelectItem value="travel">Travel</SelectItem>
                   <SelectItem value="utilities">Utilities</SelectItem>
+                  <SelectItem value="rent">Rent</SelectItem>
+                  <SelectItem value="salary">Salary</SelectItem>
+                  <SelectItem value="medical">Medical</SelectItem>
+                  <SelectItem value="transportation">Transportation</SelectItem>
+                  <SelectItem value="entertainment">Entertainment</SelectItem>
+                  <SelectItem value="education">Education</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

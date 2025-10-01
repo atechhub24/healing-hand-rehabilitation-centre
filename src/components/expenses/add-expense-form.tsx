@@ -78,9 +78,10 @@ export function AddExpenseForm({
           action: "createWithId",
         });
       }
-      onSubmit();
     } catch (error) {
       console.error("Error submitting expense:", error);
+    } finally {
+      onSubmit();
     }
   };
 

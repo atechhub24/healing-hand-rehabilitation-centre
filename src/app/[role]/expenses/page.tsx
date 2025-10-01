@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EXPENSE_CATEGORIES, type ExpenseCategory } from "@/types/expense";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import { type DriverExpense } from "@/types/expense";
 import {
   BarChart3,
   Calendar,
@@ -12,60 +15,217 @@ import {
   Filter,
   PieChart,
   Plus,
-  TrendingUp
+  TrendingUp,
+  Receipt
 } from "lucide-react";
 import { useParams } from "next/navigation";
-
-// Mock data - In real implementation, this would come from your database
-const mockExpenseData = {
-  totalExpenses: 285000,
-  monthlyChange: 12.5,
-  categoryTotals: {
-    canteen: 35000,
-    ambulance: 45000, 
-    external: 25000,
-    medicine_supply: 65000,
-    equipment: 40000,
-    utilities: 18000,
-    maintenance: 22000,
-    staff_salary: 150000,
-    office_supplies: 8000,
-    fuel: 15000,
-    consultation: 12000,
-    marketing: 5000,
-    training: 8000,
-    insurance: 15000,
-    rent: 25000,
-    other: 7000
-  },
-  monthlyTrends: [
-    { month: "Jan", total: 265000 },
-    { month: "Feb", total: 278000 },
-    { month: "Mar", total: 285000 },
-    { month: "Apr", total: 292000 },
-    { month: "May", total: 285000 },
-    { month: "Jun", total: 285000 }
-  ]
-};
+import React from "react";
 
 export default function ExpensesPage() {
   const { role } = useParams();
+  const { user } = useAuth();
+  
+  // Fetch real expense data from Firebase
+  const [expenseData] = useFetch<Record<string, DriverExpense>>("driver-expenses", { needRaw: true });
 
-  // Only allow admin access
-  if (role !== "admin") {
+  // Convert expense data to array and filter by current user if role is staff
+  const userExpenses = React.useMemo(() => {
+    if (!expenseData) return [];
+    let expenseArray = Object.entries(expenseData)
+      .map(([id, expense]) => ({ ...expense, id }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    // If user is staff, filter by their expenses only
+    if (role === "staff" && user) {
+      return expenseArray.filter(expense => expense.createdBy === user.uid);
+    }
+    return expenseArray;
+  }, [expenseData, role, user]);
+
+  // Only show ambulance-related expenses for staff, full view for admin
+  if (role === "staff") {
+    // For staff: show only their own ambulance expenses
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Daily Expenses</h1>
+            <p className="text-muted-foreground">
+              Track your daily ambulance service expenses
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Expense
+            </Button>
+          </div>
+        </div>
+
+        {/* Summary Cards for Staff */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ₹{userExpenses.reduce((sum, expense) => sum + expense.totalExpenses, 0).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Records</CardTitle>
+              <Receipt className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{userExpenses.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Last Expense</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {userExpenses.length > 0 ? new Date(userExpenses[0].date).toLocaleDateString() : "N/A"}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Expenses List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>My Expense Records</CardTitle>
+            <CardDescription>Your recorded daily expenses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {userExpenses.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No expense records yet</p>
+                  <p className="text-sm">Add your first expense to get started</p>
+                </div>
+              ) : (
+                userExpenses.map((expense) => (
+                  <Card key={expense.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{expense.driverName}</h3>
+                            <span className="text-sm text-muted-foreground">
+                              {expense.vehicleNumber}
+                            </span>
+                            <Badge variant="outline">
+                              {new Date(expense.date).toLocaleDateString()}
+                            </Badge>
+                          </div>
+
+                          {/* Expense Breakdown - Only show expenses, no collections or summary */}
+                          <div className="space-y-2 mt-3">
+                            <div className="text-sm font-medium text-red-600">
+                              Expenses
+                            </div>
+                            <div className="text-xs space-y-1 ml-2">
+                              {expense.expenses.otherExpenses && expense.expenses.otherExpenses.length > 0 ? (
+                                expense.expenses.otherExpenses.map((exp, index) => (
+                                  <div key={index} className="flex justify-between">
+                                    <span>{exp.type}:</span>
+                                    <span>₹{exp.amount}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-muted-foreground">
+                                  No expenses recorded
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-xs">
+                              <div className="flex justify-between font-medium">
+                                <span>Total Expenses:</span>
+                                <span className="text-red-600">₹{expense.totalExpenses}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {expense.notes && (
+                            <div className="text-sm text-muted-foreground mt-2">
+                              <strong>Notes:</strong> {expense.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  } else if (role !== "admin") {
+    // For other roles that aren't admin: access denied
     return (
       <div className="container mx-auto p-6">
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-              <p className="text-gray-600">Only admin users can access expense tracking.</p>
+              <p className="text-gray-600">You don't have permission to access expense tracking.</p>
             </div>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  // For admin: show the original comprehensive expense view
+  // Mock data - In real implementation, this would come from your database
+  const mockExpenseData = {
+    totalExpenses: 285000,
+    monthlyChange: 12.5,
+    categoryTotals: {
+      canteen: 35000,
+      ambulance: 45000, 
+      external: 25000,
+      medicine_supply: 65000,
+      equipment: 40000,
+      utilities: 18000,
+      maintenance: 22000,
+      staff_salary: 150000,
+      office_supplies: 8000,
+      fuel: 15000,
+      consultation: 12000,
+      marketing: 5000,
+      training: 8000,
+      insurance: 15000,
+      rent: 25000,
+      other: 7000
+    },
+    monthlyTrends: [
+      { month: "Jan", total: 265000 },
+      { month: "Feb", total: 278000 },
+      { month: "Mar", total: 285000 },
+      { month: "Apr", total: 292000 },
+      { month: "May", total: 285000 },
+      { month: "Jun", total: 285000 }
+    ]
+  };
 
   const getCategoryInfo = (category: ExpenseCategory) => {
     return EXPENSE_CATEGORIES.find(cat => cat.value === category) || EXPENSE_CATEGORIES[0];

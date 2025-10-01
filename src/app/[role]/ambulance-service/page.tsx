@@ -57,7 +57,7 @@ export default function AmbulanceServicePage() {
       />
 
       {/* Booking Stats */}
-      <BookingStats bookingsCount={bookings.length} />
+      <BookingStats bookingsCount={bookings?.length ?? 0} />
 
       {/* Main Content */}
       <Tabs
@@ -73,7 +73,7 @@ export default function AmbulanceServicePage() {
         {/* Bookings Tab - Available for both admin and staff */}
         <TabsContent value="bookings" className="space-y-4">
           <BookingsTab
-            bookings={bookings}
+            bookings={bookings || []}
             onEditBooking={onEditBooking}
             onDeleteBooking={onDeleteBooking}
           />
@@ -81,7 +81,7 @@ export default function AmbulanceServicePage() {
 
         {/* Expenses Tab - Available for both admin and staff */}
         <TabsContent value="expenses" className="space-y-4">
-          <ExpensesTab expenses={expenses} role={role as string} />
+          <ExpensesTab expenses={expenses || []} role={role as string} />
         </TabsContent>
       </Tabs>
 

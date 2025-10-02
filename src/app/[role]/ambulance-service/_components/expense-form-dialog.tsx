@@ -124,6 +124,37 @@ export function ExpenseFormDialog({
         action: "createWithId",
       });
 
+      // Also save each expense to the main expenses collection so it appears in the expense tab
+      if (expenseData.expenses.otherExpenses && expenseData.expenses.otherExpenses.length > 0) {
+        for (const expenseItem of expenseData.expenses.otherExpenses) {
+          const mainExpenseData = {
+            date: expenseData.date,
+            type: expenseItem.type,
+            amount: expenseItem.amount,
+            description: `Ambulance service expense for ${expenseItem.type} - ${expenseData.notes || ''}`.trim(),
+            createdAt: expenseData.createdAt,
+            updatedAt: expenseData.updatedAt,
+          };
+
+          const expenseResult = await mutateData({
+            path: "expenses",
+            data: mainExpenseData,
+            action: "createWithId",
+          });
+          
+          if (!expenseResult.success) {
+            console.error("Failed to save individual expense to main expenses collection:", expenseResult.error);
+            toast({
+              title: "Partial Success",
+              description: `Some expenses were saved, but failed to save to main expense tab: ${expenseResult.error}`,
+              variant: "destructive",
+            });
+          } else {
+            console.log("Successfully saved individual expense to main expenses collection:", expenseResult.id);
+          }
+        }
+      }
+
       if (!result.success) {
         throw new Error(result.error || "Failed to save expense data");
       }

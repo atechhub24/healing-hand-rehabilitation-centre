@@ -9,14 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import mutate from "@/lib/firebase/mutate-data";
 import useFetch from "@/lib/hooks/use-fetch";
 import { Edit, Trash2 } from "lucide-react";

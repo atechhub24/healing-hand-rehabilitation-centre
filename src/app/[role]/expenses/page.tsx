@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { ExpenseList } from "@/components/expenses/expense-list";
 import { AddExpenseButton } from "@/components/expenses/add-expense-button";
+import { ExpenseList } from "@/components/expenses/expense-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 import { DateRange } from "react-day-picker"; // Import DateRange type
 
 export default function ExpensesPage() {

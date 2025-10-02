@@ -22,6 +22,7 @@ import mutate from "@/lib/firebase/mutate-data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 const expenseFormSchema = z.object({
   date: z.string(),
@@ -42,6 +43,8 @@ export function AddExpenseForm({
   onSubmit,
   initialValues,
 }: AddExpenseFormProps) {
+  const { user } = useAuth();
+  
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: initialValues || {
@@ -62,6 +65,8 @@ export function AddExpenseForm({
         type: data.type === "other" ? data.otherType || "Other" : data.type,
         amount: data.amount,
         description: data.description,
+        createdBy: user?.uid,
+        creatorName: user?.name,
       };
 
       if (initialValues?.id) {

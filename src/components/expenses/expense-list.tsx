@@ -22,7 +22,8 @@ interface ExpenseListProps {
   searchQuery: string;
   dateRange?: { from: Date; to: Date };
   expenseType: string;
-  amountRange?: { from: number; to: number };
+  amountRange?: { from?: number; to?: number };
+  createdBy?: string; // Filter by specific user ID
 }
 
 export function ExpenseList({
@@ -30,6 +31,7 @@ export function ExpenseList({
   dateRange,
   expenseType,
   amountRange,
+  createdBy,
 }: ExpenseListProps) {
   const [expenses, isLoading] = useFetch<Expense[]>("expenses");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -49,11 +51,19 @@ export function ExpenseList({
       );
     }
 
-    if (dateRange) {
+    if (dateRange?.from && dateRange.to) {
+      // Convert Date objects to YYYY-MM-DD format for comparison
+      const startDate = new Date(dateRange.from);
+      startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
+      
+      const endDate = new Date(dateRange.to);
+      endDate.setHours(23, 59, 59, 999); // Set time to end of the day
+
       filtered = filtered.filter(
-        (expense) =>
-          new Date(expense.date) >= dateRange.from &&
-          new Date(expense.date) <= dateRange.to
+        (expense) => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate >= startDate && expenseDate <= endDate;
+        }
       );
     }
 
@@ -62,14 +72,32 @@ export function ExpenseList({
     }
 
     if (amountRange) {
-      filtered = filtered.filter(
-        (expense) =>
-          expense.amount >= amountRange.from && expense.amount <= amountRange.to
-      );
+      if (amountRange.from !== undefined && amountRange.to !== undefined) {
+        // Both min and max are specified
+        filtered = filtered.filter(
+          (expense) =>
+            expense.amount >= (amountRange.from as number) && expense.amount <= (amountRange.to as number)
+        );
+      } else if (amountRange.from !== undefined) {
+        // Only min is specified
+        filtered = filtered.filter(
+          (expense) => expense.amount >= (amountRange.from as number)
+        );
+      } else if (amountRange.to !== undefined) {
+        // Only max is specified
+        filtered = filtered.filter(
+          (expense) => expense.amount <= (amountRange.to as number)
+        );
+      }
+    }
+
+    // Filter by creator if specified and not "all"
+    if (createdBy && createdBy !== "all") {
+      filtered = filtered.filter((expense) => expense.createdBy === createdBy);
     }
 
     return filtered;
-  }, [expenses, searchQuery, dateRange, expenseType, amountRange]);
+  }, [expenses, searchQuery, dateRange, expenseType, amountRange, createdBy]);
 
   const handleDelete = async (id: string) => {
     await mutate({ path: `expenses/${id}`, action: "delete" });

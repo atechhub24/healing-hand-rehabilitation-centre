@@ -1,7 +1,5 @@
 # Complete these Changes and then mark them as complete
 
-- [ ] Create one pharmacy menu for staff
-- [ ] Here staff can add new medicines with proper details like name, price, expiry date, quantity, purchase date, purchase price, purchane bill number, from which shop they bought all other things that is needed to add medicines
-- [ ] Here staff can edit medicines details
-- [ ] Here staff can delete medicines
-- [ ] Once medicines are sale staff can properly manage
+- [x] in admin role, in expance tracker, admin can track all the expances of all staffs, that means admin can see all the expances of all staffs also all the expances of individual staffs.
+
+- [x] in expance tracker, admin can see the total expance monthwise and yearwise.

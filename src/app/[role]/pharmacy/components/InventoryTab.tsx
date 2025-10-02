@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,8 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Plus, Edit, Trash2, ShoppingCart } from "lucide-react";
 import { format } from "date-fns";
+import { Edit, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 
 // Define types
 interface Medicine {
@@ -28,19 +27,6 @@ interface Medicine {
   shopName: string;
   description?: string;
   category: string;
-}
-
-interface Sale {
-  id?: string;
-  medicineId: string;
-  medicineName: string;
-  quantity: number;
-  totalPrice: number;
-  customerName: string;
-  customerPhone: string;
-  customerEmail?: string;
-  paymentMethod: string;
-  saleDate: string;
 }
 
 interface InventoryTabProps {

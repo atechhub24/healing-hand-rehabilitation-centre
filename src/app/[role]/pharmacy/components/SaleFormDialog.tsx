@@ -80,7 +80,7 @@ export function SaleFormDialog({
   medicines,
   isLoading,
   handleSaleSubmit,
-  resetSaleForm,
+
   handleSaleFormChange,
 }: SaleFormDialogProps) {
   return (

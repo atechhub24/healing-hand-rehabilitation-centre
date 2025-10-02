@@ -1,30 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
+import mutate from "@/lib/firebase/mutate-data";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
-import mutate from "@/lib/firebase/mutate-data";
-import {
-  Search,
-  Plus,
-  ShoppingCart,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 // Import components
-import { MedicineFormDialog } from "./components/MedicineFormDialog";
-import { SaleFormDialog } from "./components/SaleFormDialog";
-import { StatsCards } from "./components/StatsCards";
 import { InventoryTab } from "./components/InventoryTab";
+import { MedicineFormDialog } from "./components/MedicineFormDialog";
 import { PurchaseHistoryTab } from "./components/PurchaseHistoryTab";
+import { SaleFormDialog } from "./components/SaleFormDialog";
 import { SalesHistoryTab } from "./components/SalesHistoryTab";
+import { StatsCards } from "./components/StatsCards";
 
 // Define types
 interface Medicine {
@@ -108,25 +97,38 @@ export default function PharmacyPage() {
   useEffect(() => {
     // Check if values actually changed to prevent infinite loops
     // Instead of comparing objects directly, compare their JSON representations
-    const currentMedicinesJSON = fetchedMedicines ? JSON.stringify(fetchedMedicines) : null;
-    const prevMedicinesJSON = prevFetchedMedicines.current ? JSON.stringify(prevFetchedMedicines.current) : null;
-    const medicinesChanged = currentMedicinesJSON !== prevMedicinesJSON || prevMedicinesLoading.current !== medicinesLoading;
-    
+    const currentMedicinesJSON = fetchedMedicines
+      ? JSON.stringify(fetchedMedicines)
+      : null;
+    const prevMedicinesJSON = prevFetchedMedicines.current
+      ? JSON.stringify(prevFetchedMedicines.current)
+      : null;
+    const medicinesChanged =
+      currentMedicinesJSON !== prevMedicinesJSON ||
+      prevMedicinesLoading.current !== medicinesLoading;
+
     const currentSalesJSON = fetchedSales ? JSON.stringify(fetchedSales) : null;
-    const prevSalesJSON = prevFetchedSales.current ? JSON.stringify(prevFetchedSales.current) : null;
-    const salesChanged = currentSalesJSON !== prevSalesJSON || prevSalesLoading.current !== salesLoading;
+    const prevSalesJSON = prevFetchedSales.current
+      ? JSON.stringify(prevFetchedSales.current)
+      : null;
+    const salesChanged =
+      currentSalesJSON !== prevSalesJSON ||
+      prevSalesLoading.current !== salesLoading;
 
     if (medicinesChanged && fetchedMedicines && !medicinesLoading) {
       setMedicines(Array.isArray(fetchedMedicines) ? fetchedMedicines : []);
       prevFetchedMedicines.current = fetchedMedicines; // Store the actual reference
     }
-    
+
     if (salesChanged && fetchedSales && !salesLoading) {
       setSales(Array.isArray(fetchedSales) ? fetchedSales : []);
       prevFetchedSales.current = fetchedSales; // Store the actual reference
     }
-    
-    if (prevMedicinesLoading.current !== medicinesLoading || prevSalesLoading.current !== salesLoading) {
+
+    if (
+      prevMedicinesLoading.current !== medicinesLoading ||
+      prevSalesLoading.current !== salesLoading
+    ) {
       if (!medicinesLoading && !salesLoading) {
         setIsLoading(false);
       }
@@ -138,12 +140,6 @@ export default function PharmacyPage() {
   }, [fetchedMedicines, fetchedSales, medicinesLoading, salesLoading]);
 
   // Handle medicine form changes
-  const handleMedicineFormChange = (
-    field: keyof Medicine,
-    value: string | number
-  ) => {
-    setMedicineForm((prev) => ({ ...prev, [field]: value }));
-  };
 
   // Handle sale form changes
   const handleSaleFormChange = (
@@ -442,17 +438,11 @@ export default function PharmacyPage() {
         </TabsContent>
 
         <TabsContent value="purchases" className="space-y-4">
-          <PurchaseHistoryTab
-            medicines={medicines}
-            isLoading={isLoading}
-          />
+          <PurchaseHistoryTab medicines={medicines} isLoading={isLoading} />
         </TabsContent>
 
         <TabsContent value="sales" className="space-y-4">
-          <SalesHistoryTab
-            sales={sales}
-            isLoading={isLoading}
-          />
+          <SalesHistoryTab sales={sales} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>

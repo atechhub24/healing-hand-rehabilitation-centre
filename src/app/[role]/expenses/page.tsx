@@ -1,6 +1,7 @@
 "use client";
 
 import { AddExpenseButton } from "@/components/expenses/add-expense-button";
+import { ExpenseAnalytics } from "@/components/expenses/expense-analytics";
 import { ExpenseList } from "@/components/expenses/expense-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -12,6 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/hooks/use-auth";
+import useFetch from "@/lib/hooks/use-fetch";
+import { UserData } from "@/types";
+import { Expense } from "@/types/expense";
 import { useState } from "react";
 import { DateRange } from "react-day-picker"; // Import DateRange type
 
@@ -22,22 +27,31 @@ export default function ExpensesPage() {
   const [amountRange, setAmountRange] = useState<
     { from?: number; to?: number } | undefined
   >();
+  const [selectedStaff, setSelectedStaff] = useState<string>("all");
+  const { role } = useAuth();
+  const [staffList] = useFetch<UserData[]>("users");
+  const [expenses] = useFetch<Expense[]>("expenses");
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
   // Transform DateRange to the format expected by ExpenseList
-  const transformedDateRange =
-    dateRange?.from && dateRange.to
-      ? { from: dateRange.from, to: dateRange.to }
+  const transformedDateRange = 
+    dateRange?.from && dateRange?.to 
+      ? { from: dateRange.from, to: dateRange.to } 
       : undefined;
 
   // Transform amount range to the format expected by ExpenseList
-  const transformedAmountRange =
-    amountRange?.from !== undefined && amountRange?.to !== undefined
-      ? { from: amountRange.from, to: amountRange.to }
-      : undefined;
+  const transformedAmountRange = amountRange;
+
+  // Filter staff members based on the current user's role
+  const filteredStaffList = staffList?.filter(
+    (staff) =>
+      staff.role === "staff" ||
+      staff.role === "paramedic" ||
+      staff.role === "doctor"
+  );
 
   return (
     <div className="space-y-6">
@@ -69,8 +83,26 @@ export default function ExpensesPage() {
             <div>
               <DateRangePicker onUpdate={({ range }) => setDateRange(range)} />
             </div>
+            {/* Show staff filter only for admin role */}
+            {role === "admin" && (
+              <div>
+                <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by staff" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Staff</SelectItem>
+                    {filteredStaffList?.map((staff) => (
+                      <SelectItem key={staff.uid} value={staff.uid}>
+                        {staff.name || staff.email || "Unnamed"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
-              <Select onValueChange={setExpenseType}>
+              <Select value={expenseType || "all"} onValueChange={setExpenseType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
@@ -118,11 +150,15 @@ export default function ExpensesPage() {
         </CardContent>
       </Card>
 
+      {/* Analytics - only show if user is admin */}
+      {role === "admin" && <ExpenseAnalytics expenses={expenses} />}
+
       <ExpenseList
         searchQuery={searchQuery}
         dateRange={transformedDateRange}
         expenseType={expenseType}
         amountRange={transformedAmountRange}
+        createdBy={selectedStaff || undefined}
       />
     </div>
   );

@@ -6,6 +6,8 @@ export interface Expense {
   description?: string;
   createdAt?: string;
   updatedAt?: string;
+  createdBy?: string; // UID of the user who created the expense
+  creatorName?: string; // Name of the user who created the expense
 }
 
 export interface DriverExpense {

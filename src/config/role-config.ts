@@ -12,6 +12,7 @@ import {
   Clock,
   DollarSign,
   Truck,
+  ShoppingCart,
 } from "lucide-react";
 
 // Configuration object that defines the navigation menu and title for each role
@@ -81,6 +82,11 @@ export const roleConfig = {
         label: "Ambulance Service",
         icon: Truck,
         href: "/staff/ambulance-service",
+      },
+      {
+        label: "Pharmacy",
+        icon: ShoppingCart,
+        href: "/staff/pharmacy",
       },
       {
         label: "BMI Calculator",

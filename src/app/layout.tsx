@@ -1,12 +1,10 @@
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
-import type { Metadata } from "next";
-import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import ThemeProvider from "@/components/providers/theme-provider";
-import { Loader2, Weight } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
-import path from "path";
+import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import "./globals.css";
 
 const myFont = localFont({
   src: [

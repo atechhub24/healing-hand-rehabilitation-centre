@@ -53,9 +53,13 @@ interface SaleFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   selectedMedicineForSale: Medicine | null;
-  setSelectedMedicineForSale: React.Dispatch<React.SetStateAction<Medicine | null>>;
+  setSelectedMedicineForSale: React.Dispatch<
+    React.SetStateAction<Medicine | null>
+  >;
   saleForm: Omit<Sale, "id" | "medicineName">;
-  setSaleForm: React.Dispatch<React.SetStateAction<Omit<Sale, "id" | "medicineName">>>;
+  setSaleForm: React.Dispatch<
+    React.SetStateAction<Omit<Sale, "id" | "medicineName">>
+  >;
   medicines: Medicine[];
   isLoading: boolean;
   handleSaleSubmit: () => void;
@@ -101,13 +105,13 @@ export function SaleFormDialog({
             <Select
               value={selectedMedicineForSale?.id || ""}
               onValueChange={(value) => {
-                const selectedMed = medicines.find(m => m.id === value);
+                const selectedMed = medicines.find((m) => m.id === value);
                 if (selectedMed) {
                   setSelectedMedicineForSale(selectedMed);
-                  setSaleForm(prev => ({
+                  setSaleForm((prev) => ({
                     ...prev,
                     medicineId: selectedMed.id || "",
-                    totalPrice: selectedMed.price * prev.quantity
+                    totalPrice: selectedMed.price * prev.quantity,
                   }));
                 }
               }}
@@ -138,56 +142,90 @@ export function SaleFormDialog({
           </div>
 
           <div>
-            <Label htmlFor="quantity">Quantity *</Label>
+            <Label htmlFor="customerPhone">Customer Phone *</Label>
             <Input
-              id="quantity"
-              type="number"
-              min="1"
-              max={selectedMedicineForSale?.quantity || 0}
-              value={saleForm.quantity}
-              onChange={(e) => {
-                const quantity = Number(e.target.value);
-                handleSaleFormChange("quantity", quantity);
-                if (selectedMedicineForSale) {
-                  handleSaleFormChange(
-                    "totalPrice",
-                    quantity * selectedMedicineForSale.price
-                  );
-                }
-              }}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="saleDate">Sale Date *</Label>
-            <Input
-              id="saleDate"
-              type="date"
-              value={saleForm.saleDate}
+              id="customerPhone"
+              value={saleForm.customerPhone}
               onChange={(e) =>
-                handleSaleFormChange("saleDate", e.target.value)
+                handleSaleFormChange("customerPhone", e.target.value)
               }
+              placeholder="Customer phone number"
             />
           </div>
 
-          <div>
-            <Label htmlFor="pricePerUnit">Sale Price Per Unit (₹)</Label>
-            <Input
-              id="pricePerUnit"
-              type="number"
-              value={selectedMedicineForSale?.price || 0}
-              readOnly
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="quantity">Quantity *</Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="1"
+                max={selectedMedicineForSale?.quantity || 0}
+                value={saleForm.quantity}
+                onChange={(e) => {
+                  const quantity = Number(e.target.value);
+                  handleSaleFormChange("quantity", quantity);
+                  if (selectedMedicineForSale) {
+                    handleSaleFormChange(
+                      "totalPrice",
+                      quantity * selectedMedicineForSale.price
+                    );
+                  }
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="saleDate">Sale Date *</Label>
+              <Input
+                id="saleDate"
+                type="date"
+                value={saleForm.saleDate}
+                onChange={(e) =>
+                  handleSaleFormChange("saleDate", e.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="pricePerUnit">Sale Price Per Unit (₹)</Label>
+              <Input
+                id="pricePerUnit"
+                type="number"
+                value={selectedMedicineForSale?.price || 0}
+                readOnly
+              />
+            </div>
+            <div>
+              <Label htmlFor="totalPrice">Total Price (₹)</Label>
+              <Input
+                id="totalPrice"
+                type="number"
+                value={saleForm.totalPrice}
+                readOnly
+              />
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="totalPrice">Total Price (₹)</Label>
-            <Input
-              id="totalPrice"
-              type="number"
-              value={saleForm.totalPrice}
-              readOnly
-            />
+            <Label htmlFor="paymentMethod">Payment Method *</Label>
+            <Select
+              value={saleForm.paymentMethod}
+              onValueChange={(value) =>
+                handleSaleFormChange("paymentMethod", value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="upi">UPI</SelectItem>
+                <SelectItem value="online">Online Transfer</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -204,6 +242,8 @@ export function SaleFormDialog({
             disabled={
               isLoading ||
               !saleForm.customerName ||
+              !saleForm.customerPhone ||
+              !saleForm.paymentMethod ||
               !selectedMedicineForSale ||
               saleForm.quantity <= 0 ||
               saleForm.quantity > (selectedMedicineForSale?.quantity || 0)

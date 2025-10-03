@@ -30,6 +30,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ref, get } from "firebase/database";
 import { database } from "@/lib/firebase";
 
+// Leaflet imports for map functionality
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
 export default function AttendancePage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -591,6 +607,60 @@ export default function AttendancePage() {
   }
 
   function renderAllStaffView() {
+    // Define type for map markers
+    interface MapMarker {
+      id: string;
+      position: [number, number];
+      popup: string;
+      type: string;
+    }
+
+    // Function to generate map markers from attendance data
+    const generateMapMarkers = (): MapMarker[] => {
+      if (!allStaffAttendance) return [];
+
+      const markers: MapMarker[] = [];
+      Object.entries(allStaffAttendance).forEach(([staffId, records]) => {
+        Object.entries(records).forEach(([date, record]) => {
+          // Add punch-in location marker
+          if (record.punchInLocation) {
+            markers.push({
+              id: `${staffId}-${date}-in`,
+              position: [
+                record.punchInLocation.lat,
+                record.punchInLocation.lng,
+              ],
+              popup: `${record.staffName} - Punch In\n${format(
+                new Date(record.punchIn!),
+                "h:mm a"
+              )}`,
+              type: "punch-in",
+            });
+          }
+
+          // Add punch-out location marker
+          if (record.punchOutLocation) {
+            markers.push({
+              id: `${staffId}-${date}-out`,
+              position: [
+                record.punchOutLocation.lat,
+                record.punchOutLocation.lng,
+              ],
+              popup: `${record.staffName} - Punch Out\n${format(
+                new Date(record.punchOut!),
+                "h:mm a"
+              )}`,
+              type: "punch-out",
+            });
+          }
+        });
+      });
+
+      return markers;
+    };
+
+    const mapMarkers = generateMapMarkers();
+
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -605,19 +675,41 @@ export default function AttendancePage() {
             </Button>
           </div>
 
-          <div className="text-center py-12">
-            <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h4 className="text-lg font-medium mb-2">
-              Interactive Attendance Map
-            </h4>
-            <p className="text-muted-foreground mb-4">
-              View all staff punch-in and punch-out locations on an interactive
-              map
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Map integration will be implemented in the next update
-            </p>
-          </div>
+          {mapMarkers.length > 0 ? (
+            <div className="text-center">
+              <div className="bg-muted rounded-lg overflow-hidden mb-4 h-[400px]">
+                <MapContainer
+                  center={[20, 0] as [number, number]}
+                  zoom={2}
+                  style={{ height: "100%", width: "100%" }}
+                  className="h-full w-full"
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  {mapMarkers.map((marker) => (
+                    <Marker key={marker.id} position={marker.position}>
+                      <Popup>{marker.popup}</Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Map showing staff punch-in and punch-out locations
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-lg font-medium mb-2">
+                No Location Data Available
+              </h4>
+              <p className="text-muted-foreground mb-4">
+                No staff location data found for today
+              </p>
+            </div>
+          )}
         </Card>
 
         <Card className="p-6">

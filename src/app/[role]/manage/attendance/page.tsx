@@ -35,11 +35,39 @@ import {
   XCircle,
   AlertCircle,
   Edit,
+  Map,
+  MapPin,
 } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
 import { AttendanceRecord, Staff } from "@/types";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import mutateData from "@/lib/firebase/mutate-data";
+
+// Leaflet imports for map functionality
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Define type for map markers
+interface MapMarker {
+  id: string;
+  position: [number, number];
+  popup: string;
+  type: string;
+}
 
 export default function AttendanceManagementPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -59,6 +87,7 @@ export default function AttendanceManagementPage() {
     location: "",
     notes: "",
   });
+  const [activeTab, setActiveTab] = useState("table"); // Add state for tab management
 
   // Fetch staff members
   const [staffMembers] = useFetch<Staff[]>("users", {
@@ -221,6 +250,58 @@ export default function AttendanceManagementPage() {
     setEditTarget(null);
   };
 
+  // Function to generate map markers from attendance data
+  const generateMapMarkers = (): MapMarker[] => {
+    if (!staffMembers || !attendanceData) return [];
+
+    const markers: MapMarker[] = [];
+    const { start } = getDateRangeFilter();
+    const targetDate = format(
+      dateRange === "custom" ? selectedDate : start,
+      "yyyy-MM-dd"
+    );
+
+    staffMembers.forEach((staff) => {
+      const attendance = getAttendanceForDate(staff.uid, targetDate);
+
+      // Add punch-in location marker
+      if (attendance?.punchInLocation) {
+        markers.push({
+          id: `${staff.uid}-${targetDate}-in`,
+          position: [
+            attendance.punchInLocation.lat,
+            attendance.punchInLocation.lng,
+          ],
+          popup: `${staff.name} - Punch In\n${format(
+            new Date(attendance.punchIn!),
+            "h:mm a"
+          )}`,
+          type: "punch-in",
+        });
+      }
+
+      // Add punch-out location marker
+      if (attendance?.punchOutLocation) {
+        markers.push({
+          id: `${staff.uid}-${targetDate}-out`,
+          position: [
+            attendance.punchOutLocation.lat,
+            attendance.punchOutLocation.lng,
+          ],
+          popup: `${staff.name} - Punch Out\n${format(
+            new Date(attendance.punchOut!),
+            "h:mm a"
+          )}`,
+          type: "punch-out",
+        });
+      }
+    });
+
+    return markers;
+  };
+
+  const mapMarkers = generateMapMarkers();
+
   return (
     <div className="container mx-auto p-6">
       <div className="space-y-6">
@@ -376,94 +457,161 @@ export default function AttendanceManagementPage() {
           </div>
         </Card>
 
-        {/* Attendance Table */}
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted text-muted-foreground">
-                <tr>
-                  <th className="px-6 py-3 text-left">Staff Member</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                  <th className="px-6 py-3 text-left">Punch In</th>
-                  <th className="px-6 py-3 text-left">Punch Out</th>
-                  <th className="px-6 py-3 text-left">Total Hours</th>
-                  <th className="px-6 py-3 text-left">Location</th>
-                  <th className="px-6 py-3 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredData.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-muted-foreground"
-                    >
-                      No attendance records found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredData.map(({ staff, attendance }) => (
-                    <tr key={staff.uid} className="hover:bg-muted/50">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {staff.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {staff.title || "Staff"}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(attendance)}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {attendance?.punchIn
-                          ? format(new Date(attendance.punchIn), "HH:mm:ss")
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {attendance?.punchOut
-                          ? format(new Date(attendance.punchOut), "HH:mm:ss")
-                          : attendance?.punchIn
-                          ? "Still working"
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {attendance?.totalHours
-                          ? `${attendance.totalHours}h`
-                          : attendance?.punchIn && !attendance?.punchOut
-                          ? "In progress"
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {attendance?.location || "-"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-2"
-                          onClick={() =>
-                            openEdit(
-                              staff,
-                              (attendance?.date as string) ||
-                                format(selectedDate, "yyyy-MM-dd"),
-                              attendance
-                            )
-                          }
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit
-                        </Button>
-                      </td>
+        {/* Tabbed Interface for Table and Map Views */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="table" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Attendance Table
+            </TabsTrigger>
+            <TabsTrigger value="map" className="flex items-center gap-2">
+              <Map className="h-4 w-4" />
+              Staff Map View
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="table">
+            {/* Attendance Table */}
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted text-muted-foreground">
+                    <tr>
+                      <th className="px-6 py-3 text-left">Staff Member</th>
+                      <th className="px-6 py-3 text-left">Status</th>
+                      <th className="px-6 py-3 text-left">Punch In</th>
+                      <th className="px-6 py-3 text-left">Punch Out</th>
+                      <th className="px-6 py-3 text-left">Total Hours</th>
+                      <th className="px-6 py-3 text-left">Location</th>
+                      <th className="px-6 py-3 text-left">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-6 py-8 text-center text-muted-foreground"
+                        >
+                          No attendance records found
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredData.map(({ staff, attendance }) => (
+                        <tr key={staff.uid} className="hover:bg-muted/50">
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {staff.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {staff.title || "Staff"}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {getStatusBadge(attendance)}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground">
+                            {attendance?.punchIn
+                              ? format(new Date(attendance.punchIn), "HH:mm:ss")
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground">
+                            {attendance?.punchOut
+                              ? format(
+                                  new Date(attendance.punchOut),
+                                  "HH:mm:ss"
+                                )
+                              : attendance?.punchIn
+                              ? "Still working"
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground">
+                            {attendance?.totalHours
+                              ? `${attendance.totalHours}h`
+                              : attendance?.punchIn && !attendance?.punchOut
+                              ? "In progress"
+                              : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-muted-foreground">
+                            {attendance?.location || "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() =>
+                                openEdit(
+                                  staff,
+                                  (attendance?.date as string) ||
+                                    format(selectedDate, "yyyy-MM-dd"),
+                                  attendance
+                                )
+                              }
+                            >
+                              <Edit className="h-4 w-4" />
+                              Edit
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="map">
+            {/* Map View */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Staff Locations
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {mapMarkers.length} location
+                  {mapMarkers.length !== 1 ? "s" : ""} found
+                </p>
+              </div>
+
+              {mapMarkers.length > 0 ? (
+                <div className="bg-muted rounded-lg overflow-hidden h-[500px]">
+                  <MapContainer
+                    center={[20, 0] as [number, number]}
+                    zoom={2}
+                    style={{ height: "100%", width: "100%" }}
+                    className="h-full w-full"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    {mapMarkers.map((marker) => (
+                      <Marker key={marker.id} position={marker.position}>
+                        <Popup>{marker.popup}</Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <h4 className="text-lg font-medium mb-2">
+                    No Location Data Available
+                  </h4>
+                  <p className="text-muted-foreground mb-4">
+                    No staff location data found for the selected date range
+                  </p>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+        </Tabs>
+
         {/* Edit Attendance Dialog */}
         <Dialog open={isEditing} onOpenChange={setIsEditing}>
           <DialogContent>

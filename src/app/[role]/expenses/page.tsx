@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { UserData } from "@/types";
@@ -28,6 +29,7 @@ export default function ExpensesPage() {
     { from?: number; to?: number } | undefined
   >();
   const [selectedStaff, setSelectedStaff] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("list");
   const { role } = useAuth();
   const [staffList] = useFetch<UserData[]>("users");
   const [expenses] = useFetch<Expense[]>("expenses");
@@ -38,9 +40,9 @@ export default function ExpensesPage() {
   };
 
   // Transform DateRange to the format expected by ExpenseList
-  const transformedDateRange = 
-    dateRange?.from && dateRange?.to 
-      ? { from: dateRange.from, to: dateRange.to } 
+  const transformedDateRange =
+    dateRange?.from && dateRange?.to
+      ? { from: dateRange.from, to: dateRange.to }
       : undefined;
 
   // Transform amount range to the format expected by ExpenseList
@@ -114,7 +116,10 @@ export default function ExpensesPage() {
               </div>
             )}
             <div>
-              <Select value={expenseType || "all"} onValueChange={setExpenseType}>
+              <Select
+                value={expenseType || "all"}
+                onValueChange={setExpenseType}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
@@ -127,7 +132,9 @@ export default function ExpensesPage() {
                   <SelectItem value="medical-supplies">
                     Medical Supplies
                   </SelectItem>
-                  <SelectItem value="office-supplies">Office Supplies</SelectItem>
+                  <SelectItem value="office-supplies">
+                    Office Supplies
+                  </SelectItem>
                   <SelectItem value="client-patient-related">
                     Client & Patient Related
                   </SelectItem>
@@ -166,17 +173,29 @@ export default function ExpensesPage() {
         </CardContent>
       </Card>
 
-      {/* Analytics - only show if user is admin */}
-      {role === "admin" && <ExpenseAnalytics expenses={expenses} />}
-
-      <ExpenseList
-        searchQuery={searchQuery}
-        dateRange={transformedDateRange}
-        expenseType={expenseType}
-        amountRange={transformedAmountRange}
-        createdBy={selectedStaff || undefined}
-        gridCols={parseInt(layout, 10)}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="list">Expense List</TabsTrigger>
+          {role === "admin" && (
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          )}
+        </TabsList>
+        <TabsContent value="list" className="mt-6">
+          <ExpenseList
+            searchQuery={searchQuery}
+            dateRange={transformedDateRange}
+            expenseType={expenseType}
+            amountRange={transformedAmountRange}
+            createdBy={selectedStaff || undefined}
+            gridCols={parseInt(layout, 10)}
+          />
+        </TabsContent>
+        {role === "admin" && (
+          <TabsContent value="analytics" className="mt-6">
+            <ExpenseAnalytics expenses={expenses} />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }

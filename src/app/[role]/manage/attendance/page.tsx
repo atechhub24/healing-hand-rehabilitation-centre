@@ -18,7 +18,7 @@ import {
 
 export default function AttendanceManagementPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStaff, setSelectedStaff] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("today");
   const [isEditing, setIsEditing] = useState(false);
@@ -77,11 +77,10 @@ export default function AttendanceManagementPage() {
     );
 
     return staffMembers
-      .filter(
-        (staff) =>
-          staff.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          staff.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter((staff) => {
+        if (selectedStaff === "all") return true;
+        return staff.uid === selectedStaff;
+      })
       .map((staff) => {
         const attendance = getAttendanceForDate(staff.uid, targetDate);
         return {
@@ -123,22 +122,16 @@ export default function AttendanceManagementPage() {
   }
 
   const generateMapMarkers = (): MapMarker[] => {
-    if (!staffMembers || !attendanceData) return [];
+    const filtered = getFilteredAttendance();
+    if (!filtered || filtered.length === 0) return [];
 
     const markers: MapMarker[] = [];
-    const { start } = getDateRangeFilter();
-    const targetDate = format(
-      dateRange === "custom" ? selectedDate : start,
-      "yyyy-MM-dd"
-    );
 
-    staffMembers.forEach((staff) => {
-      const attendance = getAttendanceForDate(staff.uid, targetDate);
-
+    filtered.forEach(({ staff, attendance }) => {
       // Add punch-in location marker
       if (attendance?.punchInLocation) {
         markers.push({
-          id: `${staff.uid}-${targetDate}-in`,
+          id: `${staff.uid}-${attendance.date}-in`,
           position: [
             attendance.punchInLocation.lat,
             attendance.punchInLocation.lng,
@@ -154,7 +147,7 @@ export default function AttendanceManagementPage() {
       // Add punch-out location marker
       if (attendance?.punchOutLocation) {
         markers.push({
-          id: `${staff.uid}-${targetDate}-out`,
+          id: `${staff.uid}-${attendance.date}-out`,
           position: [
             attendance.punchOutLocation.lat,
             attendance.punchOutLocation.lng,
@@ -262,8 +255,9 @@ export default function AttendanceManagementPage() {
 
         {/* Filters */}
         <AttendanceFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          staffMembers={staffMembers}
+          selectedStaff={selectedStaff}
+          setSelectedStaff={setSelectedStaff}
           dateRange={dateRange}
           setDateRange={setDateRange}
           selectedDate={selectedDate}

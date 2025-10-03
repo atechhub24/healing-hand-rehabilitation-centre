@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -17,22 +16,26 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Search, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Staff } from "@/types";
+import { Dispatch, SetStateAction } from "react";
 
 interface AttendanceFiltersProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
+  staffMembers: Staff[] | null;
+  selectedStaff: string;
+  setSelectedStaff: Dispatch<SetStateAction<string>>;
   dateRange: string;
-  setDateRange: (range: string) => void;
+  setDateRange: Dispatch<SetStateAction<string>>;
   selectedDate: Date;
-  setSelectedDate: (date: Date) => void;
+  setSelectedDate: Dispatch<SetStateAction<Date>>;
   statusFilter: string;
-  setStatusFilter: (status: string) => void;
+  setStatusFilter: Dispatch<SetStateAction<string>>;
 }
 
 export default function AttendanceFilters({
-  searchTerm,
-  setSearchTerm,
+  staffMembers,
+  selectedStaff,
+  setSelectedStaff,
   dateRange,
   setDateRange,
   selectedDate,
@@ -44,17 +47,20 @@ export default function AttendanceFilters({
     <Card className="p-4">
       <div className="flex flex-wrap gap-4 items-end">
         <div className="flex-1 min-w-[200px]">
-          <Label htmlFor="search">Search Staff</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="search"
-              placeholder="Search by name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <Label htmlFor="staff">Select Staff</Label>
+          <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a staff member" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Staff Members</SelectItem>
+              {staffMembers?.map((staff) => (
+                <SelectItem key={staff.uid} value={staff.uid}>
+                  {staff.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="min-w-[150px]">

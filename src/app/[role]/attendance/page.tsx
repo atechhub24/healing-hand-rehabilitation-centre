@@ -1,42 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Clock,
-  Calendar,
-  MapPin,
-  CheckCircle,
-  Timer,
-  User,
-  LogIn,
-  LogOut,
-  Navigation,
-  Users,
-  Map,
-} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { database } from "@/lib/firebase";
+import mutateData from "@/lib/firebase/mutate-data";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
-import mutateData from "@/lib/firebase/mutate-data";
 import { AttendanceRecord } from "@/types";
 import { format } from "date-fns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ref, get } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { get, ref } from "firebase/database";
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  LogIn,
+  LogOut,
+  Map,
+  MapPin,
+  Navigation,
+  Timer,
+  User,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Leaflet imports for map functionality
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
 // Fix for default marker icons in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })
+  ._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -462,8 +462,8 @@ export default function AttendancePage() {
                 {isPunchedIn
                   ? "Punch Out"
                   : isCompleted
-                  ? "Attendance Completed"
-                  : "Punch In"}
+                    ? "Attendance Completed"
+                    : "Punch In"}
               </h3>
             </div>
 
@@ -715,7 +715,7 @@ export default function AttendancePage() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Today's Attendance Records
+            {`Today's Attendance Records`}
           </h3>
 
           {isLoadingAll ? (
@@ -742,8 +742,8 @@ export default function AttendancePage() {
                           record.status === "present"
                             ? "default"
                             : record.status === "late"
-                            ? "destructive"
-                            : "secondary"
+                              ? "destructive"
+                              : "secondary"
                         }
                       >
                         {record.status}

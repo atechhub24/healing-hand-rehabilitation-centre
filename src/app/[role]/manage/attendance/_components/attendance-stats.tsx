@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Users, XCircle } from "lucide-react";
 
 interface AttendanceStatsProps {
   stats: {

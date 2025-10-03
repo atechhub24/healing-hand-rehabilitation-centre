@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,15 @@ interface EditAttendanceDialogProps {
     location: string;
     notes: string;
   };
-  setEditForm: (form: any) => void;
+  setEditForm: React.Dispatch<
+    React.SetStateAction<{
+      punchIn: string;
+      punchOut: string;
+      status: AttendanceRecord["status"];
+      location: string;
+      notes: string;
+    }>
+  >;
   onSave: () => void;
 }
 

@@ -56,6 +56,10 @@ export default function ExpensesPage() {
       staff.role === "doctor"
   );
 
+  // Determine tabs to show based on role
+  const showAnalyticsTab = role === "admin";
+  const tabCols = showAnalyticsTab ? "grid-cols-2" : "grid-cols-1";
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-none">
@@ -174,9 +178,9 @@ export default function ExpensesPage() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className={`grid w-1/3 ${tabCols}`}>
           <TabsTrigger value="list">Expense List</TabsTrigger>
-          {role === "admin" && (
+          {showAnalyticsTab && (
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           )}
         </TabsList>
@@ -190,7 +194,7 @@ export default function ExpensesPage() {
             gridCols={parseInt(layout, 10)}
           />
         </TabsContent>
-        {role === "admin" && (
+        {showAnalyticsTab && (
           <TabsContent value="analytics" className="mt-6">
             <ExpenseAnalytics expenses={expenses} />
           </TabsContent>

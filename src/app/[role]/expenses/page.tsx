@@ -31,7 +31,7 @@ export default function ExpensesPage() {
   const { role } = useAuth();
   const [staffList] = useFetch<UserData[]>("users");
   const [expenses] = useFetch<Expense[]>("expenses");
-  const [layout, setLayout] = useState("1");
+  const [layout, setLayout] = useState("3");
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

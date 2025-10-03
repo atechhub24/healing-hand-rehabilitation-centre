@@ -1,24 +1,21 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, TrendingUp, DollarSign, PieChart } from "lucide-react";
-import { useMemo } from "react";
 import { Expense } from "@/types/expense";
 import { formatCurrency } from "@ashirbad/js-core";
+import { Calendar, DollarSign, PieChart, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart as RechartsPieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
 } from "recharts";
 
 interface ExpenseAnalyticsProps {

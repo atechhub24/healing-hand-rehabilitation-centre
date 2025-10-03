@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -8,24 +8,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Receipt, TrendingUp, PieChart, Calendar } from "lucide-react";
-import { type DriverExpense } from "@/types/expense";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { type DriverExpense } from "@/types/expense";
 import { formatCurrency } from "@ashirbad/js-core";
+import { PieChart, Receipt, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart as RechartsPieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
 } from "recharts";
 
 // Define color palette for charts

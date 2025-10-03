@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import useFetch from "@/lib/hooks/use-fetch";
 import { UserData } from "@/types";
@@ -60,6 +62,101 @@ export default function ExpensesPage() {
   const showAnalyticsTab = role === "admin";
   const tabCols = showAnalyticsTab ? "grid-cols-2" : "grid-cols-1";
 
+  // Function to generate and download expense report
+  const downloadExpenseReport = () => {
+    if (!expenses) return;
+
+    // Filter expenses based on current filters
+    let filteredExpenses = [...expenses];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const lowercaseQuery = searchQuery.toLowerCase();
+      filteredExpenses = filteredExpenses.filter(
+        (expense) =>
+          expense.description?.toLowerCase().includes(lowercaseQuery) ||
+          expense.type?.toLowerCase().includes(lowercaseQuery)
+      );
+    }
+
+    // Apply date range filter
+    if (transformedDateRange?.from && transformedDateRange?.to) {
+      const startDate = new Date(transformedDateRange.from);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(transformedDateRange.to);
+      endDate.setHours(23, 59, 59, 999);
+
+      filteredExpenses = filteredExpenses.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate >= startDate && expenseDate <= endDate;
+      });
+    }
+
+    // Apply expense type filter
+    if (expenseType && expenseType !== "all") {
+      filteredExpenses = filteredExpenses.filter(
+        (expense) => expense.type === expenseType
+      );
+    }
+
+    // Apply amount range filter
+    if (amountRange) {
+      if (amountRange.from !== undefined && amountRange.to !== undefined) {
+        filteredExpenses = filteredExpenses.filter(
+          (expense) =>
+            expense.amount >= (amountRange.from as number) &&
+            expense.amount <= (amountRange.to as number)
+        );
+      } else if (amountRange.from !== undefined) {
+        filteredExpenses = filteredExpenses.filter(
+          (expense) => expense.amount >= (amountRange.from as number)
+        );
+      } else if (amountRange.to !== undefined) {
+        filteredExpenses = filteredExpenses.filter(
+          (expense) => expense.amount <= (amountRange.to as number)
+        );
+      }
+    }
+
+    // Apply staff filter (admin only)
+    if (role === "admin" && selectedStaff && selectedStaff !== "all") {
+      filteredExpenses = filteredExpenses.filter(
+        (expense) => expense.createdBy === selectedStaff
+      );
+    }
+
+    // Generate CSV content
+    const headers = ["Date", "Type", "Amount", "Description", "Created By"];
+
+    const csvContent = [
+      headers.join(","),
+      ...filteredExpenses.map((expense) =>
+        [
+          expense.date,
+          expense.type,
+          expense.amount,
+          `"${expense.description || ""}"`,
+          expense.creatorName || expense.createdBy || "",
+        ].join(",")
+      ),
+    ].join("\n");
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `expense-report-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-none">
@@ -83,6 +180,14 @@ export default function ExpensesPage() {
                   <SelectItem value="4">Grid (4x4)</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                onClick={downloadExpenseReport}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </Button>
               <AddExpenseButton onExpenseAdded={() => {}} />
             </div>
           </div>
@@ -178,7 +283,7 @@ export default function ExpensesPage() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-1/3 ${tabCols}`}>
+        <TabsList className={`grid w-full ${tabCols}`}>
           <TabsTrigger value="list">Expense List</TabsTrigger>
           {showAnalyticsTab && (
             <TabsTrigger value="analytics">Analytics</TabsTrigger>

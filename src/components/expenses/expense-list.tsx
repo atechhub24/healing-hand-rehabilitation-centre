@@ -24,6 +24,7 @@ interface ExpenseListProps {
   expenseType: string;
   amountRange?: { from?: number; to?: number };
   createdBy?: string; // Filter by specific user ID
+  gridCols?: number;
 }
 
 export function ExpenseList({
@@ -32,6 +33,7 @@ export function ExpenseList({
   expenseType,
   amountRange,
   createdBy,
+  gridCols = 1,
 }: ExpenseListProps) {
   const [expenses, isLoading] = useFetch<Expense[]>("expenses");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -103,6 +105,20 @@ export function ExpenseList({
     await mutate({ path: `expenses/${id}`, action: "delete" });
   };
 
+  const getGridClass = (cols: number) => {
+    switch (cols) {
+      case 2:
+        return "grid grid-cols-1 sm:grid-cols-2 gap-4";
+      case 3:
+        return "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4";
+      case 4:
+        return "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+      case 1:
+      default:
+        return "space-y-4";
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -112,7 +128,7 @@ export function ExpenseList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className={getGridClass(gridCols)}>
       {filteredExpenses.map((expense) => (
         <Card key={expense.id}>
           <CardHeader>

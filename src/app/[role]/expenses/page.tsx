@@ -31,6 +31,7 @@ export default function ExpensesPage() {
   const { role } = useAuth();
   const [staffList] = useFetch<UserData[]>("users");
   const [expenses] = useFetch<Expense[]>("expenses");
+  const [layout, setLayout] = useState("1");
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -65,6 +66,17 @@ export default function ExpensesPage() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Select value={layout} onValueChange={setLayout}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="View" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">List</SelectItem>
+                  <SelectItem value="2">Grid (2x2)</SelectItem>
+                  <SelectItem value="3">Grid (3x3)</SelectItem>
+                  <SelectItem value="4">Grid (4x4)</SelectItem>
+                </SelectContent>
+              </Select>
               <AddExpenseButton onExpenseAdded={() => {}} />
             </div>
           </div>
@@ -108,16 +120,20 @@ export default function ExpensesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="grocery">Grocery</SelectItem>
-                  <SelectItem value="food">Food</SelectItem>
-                  <SelectItem value="travel">Travel</SelectItem>
-                  <SelectItem value="utilities">Utilities</SelectItem>
-                  <SelectItem value="rent">Rent</SelectItem>
-                  <SelectItem value="salary">Salary</SelectItem>
-                  <SelectItem value="medical">Medical</SelectItem>
+                  <SelectItem value="meals-refreshments">
+                    Meals & Refreshments
+                  </SelectItem>
                   <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="entertainment">Entertainment</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="medical-supplies">
+                    Medical Supplies
+                  </SelectItem>
+                  <SelectItem value="office-supplies">Office Supplies</SelectItem>
+                  <SelectItem value="client-patient-related">
+                    Client & Patient Related
+                  </SelectItem>
+                  <SelectItem value="travel-accommodation">
+                    Travel & Accommodation
+                  </SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -159,6 +175,7 @@ export default function ExpensesPage() {
         expenseType={expenseType}
         amountRange={transformedAmountRange}
         createdBy={selectedStaff || undefined}
+        gridCols={parseInt(layout, 10)}
       />
     </div>
   );

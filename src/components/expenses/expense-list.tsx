@@ -31,6 +31,8 @@ interface ExpenseWithCreatorInfo extends Expense {
   };
 }
 
+import { useAuth } from "@/lib/hooks/use-auth";
+
 interface ExpenseListProps {
   searchQuery: string;
   dateRange?: { from: Date; to: Date };
@@ -49,6 +51,7 @@ export function ExpenseList({
   gridCols = 1,
 }: ExpenseListProps) {
   const [expenses, isLoading] = useFetch<Expense[]>("expenses");
+  const { user, role } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
 
@@ -57,6 +60,7 @@ export function ExpenseList({
 
     let filtered = expenses;
 
+    // Standard filters
     if (searchQuery.trim()) {
       const lowercaseQuery = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -67,13 +71,10 @@ export function ExpenseList({
     }
 
     if (dateRange?.from && dateRange.to) {
-      // Convert Date objects to YYYY-MM-DD format for comparison
       const startDate = new Date(dateRange.from);
-      startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
-
+      startDate.setHours(0, 0, 0, 0);
       const endDate = new Date(dateRange.to);
-      endDate.setHours(23, 59, 59, 999); // Set time to end of the day
-
+      endDate.setHours(23, 59, 59, 999);
       filtered = filtered.filter((expense) => {
         const expenseDate = new Date(expense.date);
         return expenseDate >= startDate && expenseDate <= endDate;
@@ -86,32 +87,31 @@ export function ExpenseList({
 
     if (amountRange) {
       if (amountRange.from !== undefined && amountRange.to !== undefined) {
-        // Both min and max are specified
         filtered = filtered.filter(
           (expense) =>
             expense.amount >= (amountRange.from as number) &&
             expense.amount <= (amountRange.to as number)
         );
       } else if (amountRange.from !== undefined) {
-        // Only min is specified
         filtered = filtered.filter(
           (expense) => expense.amount >= (amountRange.from as number)
         );
       } else if (amountRange.to !== undefined) {
-        // Only max is specified
         filtered = filtered.filter(
           (expense) => expense.amount <= (amountRange.to as number)
         );
       }
     }
 
-    // Filter by creator if specified and not "all"
-    if (createdBy && createdBy !== "all") {
+    // Role-based filtering
+    if (role !== "admin" && user) {
+      filtered = filtered.filter((expense) => expense.createdBy === user.uid);
+    } else if (createdBy && createdBy !== "all") {
       filtered = filtered.filter((expense) => expense.createdBy === createdBy);
     }
 
     return filtered;
-  }, [expenses, searchQuery, dateRange, expenseType, amountRange, createdBy]);
+  }, [expenses, searchQuery, dateRange, expenseType, amountRange, createdBy, user, role]);
 
   const handleDelete = async (id: string) => {
     await mutate({ path: `expenses/${id}`, action: "delete" });
@@ -192,6 +192,11 @@ export function ExpenseList({
             <p>
               <strong>Description:</strong> {expense.description}
             </p>
+            {role === "admin" && expense.creatorName && (
+              <p className="text-xs text-gray-500">
+                Created by: {expense.creatorName}
+              </p>
+            )}
             {expense.createdAt && (
               <p className="text-xs text-gray-500 pt-2">
                 Added on: {new Date(expense.createdAt).toLocaleString()}

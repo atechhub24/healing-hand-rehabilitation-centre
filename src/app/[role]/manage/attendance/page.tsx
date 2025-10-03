@@ -2,72 +2,19 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Users,
-  Calendar as CalendarIcon,
-  Download,
-  Search,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Edit,
-  Map,
-  MapPin,
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, Users, Map } from "lucide-react";
 import useFetch from "@/lib/hooks/use-fetch";
 import { AttendanceRecord, Staff } from "@/types";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import mutateData from "@/lib/firebase/mutate-data";
-
-// Leaflet imports for map functionality
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix for default marker icons in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Define type for map markers
-interface MapMarker {
-  id: string;
-  position: [number, number];
-  popup: string;
-  type: string;
-}
+import {
+  AttendanceStats,
+  AttendanceFilters,
+  AttendanceTable,
+  AttendanceMap,
+  EditAttendanceDialog,
+} from "./_components";
 
 export default function AttendanceManagementPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -87,7 +34,7 @@ export default function AttendanceManagementPage() {
     location: "",
     notes: "",
   });
-  const [activeTab, setActiveTab] = useState("table"); // Add state for tab management
+  const [activeTab, setActiveTab] = useState("table");
 
   // Fetch staff members
   const [staffMembers] = useFetch<Staff[]>("users", {
@@ -153,23 +100,6 @@ export default function AttendanceManagementPage() {
       });
   };
 
-  const getStatusBadge = (attendance: AttendanceRecord | undefined) => {
-    if (!attendance) {
-      return <Badge variant="destructive">Absent</Badge>;
-    }
-
-    switch (attendance.status) {
-      case "present":
-        return <Badge variant="default">Present</Badge>;
-      case "late":
-        return <Badge variant="secondary">Late</Badge>;
-      case "partial":
-        return <Badge variant="outline">Partial</Badge>;
-      default:
-        return <Badge variant="destructive">Absent</Badge>;
-    }
-  };
-
   const getAttendanceStats = () => {
     const filtered = getFilteredAttendance();
     const total = filtered.length;
@@ -184,8 +114,66 @@ export default function AttendanceManagementPage() {
     return { total, present, absent, late };
   };
 
+  // Function to generate map markers from attendance data
+  interface MapMarker {
+    id: string;
+    position: [number, number];
+    popup: string;
+    type: string;
+  }
+
+  const generateMapMarkers = (): MapMarker[] => {
+    if (!staffMembers || !attendanceData) return [];
+
+    const markers: MapMarker[] = [];
+    const { start } = getDateRangeFilter();
+    const targetDate = format(
+      dateRange === "custom" ? selectedDate : start,
+      "yyyy-MM-dd"
+    );
+
+    staffMembers.forEach((staff) => {
+      const attendance = getAttendanceForDate(staff.uid, targetDate);
+
+      // Add punch-in location marker
+      if (attendance?.punchInLocation) {
+        markers.push({
+          id: `${staff.uid}-${targetDate}-in`,
+          position: [
+            attendance.punchInLocation.lat,
+            attendance.punchInLocation.lng,
+          ],
+          popup: `${staff.name} - Punch In\n${format(
+            new Date(attendance.punchIn!),
+            "h:mm a"
+          )}`,
+          type: "punch-in",
+        });
+      }
+
+      // Add punch-out location marker
+      if (attendance?.punchOutLocation) {
+        markers.push({
+          id: `${staff.uid}-${targetDate}-out`,
+          position: [
+            attendance.punchOutLocation.lat,
+            attendance.punchOutLocation.lng,
+          ],
+          popup: `${staff.name} - Punch Out\n${format(
+            new Date(attendance.punchOut!),
+            "h:mm a"
+          )}`,
+          type: "punch-out",
+        });
+      }
+    });
+
+    return markers;
+  };
+
   const stats = getAttendanceStats();
   const filteredData = getFilteredAttendance();
+  const mapMarkers = generateMapMarkers();
 
   const openEdit = (
     staff: Staff,
@@ -250,58 +238,6 @@ export default function AttendanceManagementPage() {
     setEditTarget(null);
   };
 
-  // Function to generate map markers from attendance data
-  const generateMapMarkers = (): MapMarker[] => {
-    if (!staffMembers || !attendanceData) return [];
-
-    const markers: MapMarker[] = [];
-    const { start } = getDateRangeFilter();
-    const targetDate = format(
-      dateRange === "custom" ? selectedDate : start,
-      "yyyy-MM-dd"
-    );
-
-    staffMembers.forEach((staff) => {
-      const attendance = getAttendanceForDate(staff.uid, targetDate);
-
-      // Add punch-in location marker
-      if (attendance?.punchInLocation) {
-        markers.push({
-          id: `${staff.uid}-${targetDate}-in`,
-          position: [
-            attendance.punchInLocation.lat,
-            attendance.punchInLocation.lng,
-          ],
-          popup: `${staff.name} - Punch In\n${format(
-            new Date(attendance.punchIn!),
-            "h:mm a"
-          )}`,
-          type: "punch-in",
-        });
-      }
-
-      // Add punch-out location marker
-      if (attendance?.punchOutLocation) {
-        markers.push({
-          id: `${staff.uid}-${targetDate}-out`,
-          position: [
-            attendance.punchOutLocation.lat,
-            attendance.punchOutLocation.lng,
-          ],
-          popup: `${staff.name} - Punch Out\n${format(
-            new Date(attendance.punchOut!),
-            "h:mm a"
-          )}`,
-          type: "punch-out",
-        });
-      }
-    });
-
-    return markers;
-  };
-
-  const mapMarkers = generateMapMarkers();
-
   return (
     <div className="container mx-auto p-6">
       <div className="space-y-6">
@@ -322,140 +258,19 @@ export default function AttendanceManagementPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Staff
-                </p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
-                <CheckCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Present
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.present}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400">
-                <XCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Absent
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.absent}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Late
-                </p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.late}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
+        <AttendanceStats stats={stats} />
 
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="search">Search Staff</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="min-w-[150px]">
-              <Label>Date Range</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">Last 7 Days</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="custom">Custom Date</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {dateRange === "custom" && (
-              <div>
-                <Label>Select Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <CalendarIcon className="h-4 w-4" />
-                      {format(selectedDate, "MMM dd, yyyy")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            <div className="min-w-[120px]">
-              <Label>Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="present">Present</SelectItem>
-                  <SelectItem value="absent">Absent</SelectItem>
-                  <SelectItem value="late">Late</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </Card>
+        <AttendanceFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
 
         {/* Tabbed Interface for Table and Map Views */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -471,227 +286,22 @@ export default function AttendanceManagementPage() {
           </TabsList>
 
           <TabsContent value="table">
-            {/* Attendance Table */}
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted text-muted-foreground">
-                    <tr>
-                      <th className="px-6 py-3 text-left">Staff Member</th>
-                      <th className="px-6 py-3 text-left">Status</th>
-                      <th className="px-6 py-3 text-left">Punch In</th>
-                      <th className="px-6 py-3 text-left">Punch Out</th>
-                      <th className="px-6 py-3 text-left">Total Hours</th>
-                      <th className="px-6 py-3 text-left">Location</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {filteredData.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-6 py-8 text-center text-muted-foreground"
-                        >
-                          No attendance records found
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredData.map(({ staff, attendance }) => (
-                        <tr key={staff.uid} className="hover:bg-muted/50">
-                          <td className="px-6 py-4">
-                            <div>
-                              <p className="font-medium text-foreground">
-                                {staff.name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {staff.title || "Staff"}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {getStatusBadge(attendance)}
-                          </td>
-                          <td className="px-6 py-4 text-muted-foreground">
-                            {attendance?.punchIn
-                              ? format(new Date(attendance.punchIn), "HH:mm:ss")
-                              : "-"}
-                          </td>
-                          <td className="px-6 py-4 text-muted-foreground">
-                            {attendance?.punchOut
-                              ? format(
-                                  new Date(attendance.punchOut),
-                                  "HH:mm:ss"
-                                )
-                              : attendance?.punchIn
-                              ? "Still working"
-                              : "-"}
-                          </td>
-                          <td className="px-6 py-4 text-muted-foreground">
-                            {attendance?.totalHours
-                              ? `${attendance.totalHours}h`
-                              : attendance?.punchIn && !attendance?.punchOut
-                              ? "In progress"
-                              : "-"}
-                          </td>
-                          <td className="px-6 py-4 text-muted-foreground">
-                            {attendance?.location || "-"}
-                          </td>
-                          <td className="px-6 py-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="gap-2"
-                              onClick={() =>
-                                openEdit(
-                                  staff,
-                                  (attendance?.date as string) ||
-                                    format(selectedDate, "yyyy-MM-dd"),
-                                  attendance
-                                )
-                              }
-                            >
-                              <Edit className="h-4 w-4" />
-                              Edit
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+            <AttendanceTable filteredData={filteredData} onEdit={openEdit} />
           </TabsContent>
 
           <TabsContent value="map">
-            {/* Map View */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Staff Locations
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {mapMarkers.length} location
-                  {mapMarkers.length !== 1 ? "s" : ""} found
-                </p>
-              </div>
-
-              {mapMarkers.length > 0 ? (
-                <div className="bg-muted rounded-lg overflow-hidden h-[500px]">
-                  <MapContainer
-                    center={[20, 0] as [number, number]}
-                    zoom={2}
-                    style={{ height: "100%", width: "100%" }}
-                    className="h-full w-full"
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    {mapMarkers.map((marker) => (
-                      <Marker key={marker.id} position={marker.position}>
-                        <Popup>{marker.popup}</Popup>
-                      </Marker>
-                    ))}
-                  </MapContainer>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h4 className="text-lg font-medium mb-2">
-                    No Location Data Available
-                  </h4>
-                  <p className="text-muted-foreground mb-4">
-                    No staff location data found for the selected date range
-                  </p>
-                </div>
-              )}
-            </Card>
+            <AttendanceMap mapMarkers={mapMarkers} />
           </TabsContent>
         </Tabs>
 
         {/* Edit Attendance Dialog */}
-        <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Attendance</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-2">
-              <div className="grid gap-2">
-                <Label htmlFor="punchIn">Punch In</Label>
-                <Input
-                  id="punchIn"
-                  type="datetime-local"
-                  value={editForm.punchIn}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, punchIn: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="punchOut">Punch Out</Label>
-                <Input
-                  id="punchOut"
-                  type="datetime-local"
-                  value={editForm.punchOut}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, punchOut: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <Select
-                  value={editForm.status}
-                  onValueChange={(v) =>
-                    setEditForm({
-                      ...editForm,
-                      status: v as AttendanceRecord["status"],
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="present">Present</SelectItem>
-                    <SelectItem value="late">Late</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                    <SelectItem value="absent">Absent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={editForm.location}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, location: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Input
-                  id="notes"
-                  value={editForm.notes}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, notes: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={saveEdit}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <EditAttendanceDialog
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          editForm={editForm}
+          setEditForm={setEditForm}
+          onSave={saveEdit}
+        />
       </div>
     </div>
   );

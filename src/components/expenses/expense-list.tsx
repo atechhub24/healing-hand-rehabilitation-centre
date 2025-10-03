@@ -18,6 +18,19 @@ import { AddExpenseForm } from "./add-expense-form";
 import { Expense } from "@/types/expense";
 import { formatCurrency } from "@ashirbad/js-core";
 
+// Extend the Expense interface to include creatorInfo
+interface ExpenseWithCreatorInfo extends Expense {
+  creatorInfo?: {
+    timestamp: string;
+    actionBy: string;
+    userAgent?: string;
+    platform?: string;
+    language?: string;
+    screenResolution?: string;
+    browser?: string;
+  };
+}
+
 interface ExpenseListProps {
   searchQuery: string;
   dateRange?: { from: Date; to: Date };
@@ -57,16 +70,14 @@ export function ExpenseList({
       // Convert Date objects to YYYY-MM-DD format for comparison
       const startDate = new Date(dateRange.from);
       startDate.setHours(0, 0, 0, 0); // Set time to beginning of the day
-      
+
       const endDate = new Date(dateRange.to);
       endDate.setHours(23, 59, 59, 999); // Set time to end of the day
 
-      filtered = filtered.filter(
-        (expense) => {
-          const expenseDate = new Date(expense.date);
-          return expenseDate >= startDate && expenseDate <= endDate;
-        }
-      );
+      filtered = filtered.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate >= startDate && expenseDate <= endDate;
+      });
     }
 
     if (expenseType && expenseType !== "all") {
@@ -78,7 +89,8 @@ export function ExpenseList({
         // Both min and max are specified
         filtered = filtered.filter(
           (expense) =>
-            expense.amount >= (amountRange.from as number) && expense.amount <= (amountRange.to as number)
+            expense.amount >= (amountRange.from as number) &&
+            expense.amount <= (amountRange.to as number)
         );
       } else if (amountRange.from !== undefined) {
         // Only min is specified
@@ -180,6 +192,21 @@ export function ExpenseList({
             <p>
               <strong>Description:</strong> {expense.description}
             </p>
+            {expense.createdAt && (
+              <p className="text-xs text-gray-500 pt-2">
+                Added on: {new Date(expense.createdAt).toLocaleString()}
+              </p>
+            )}
+            {/* Display timestamp from creatorInfo if createdAt is not available */}
+            {!expense.createdAt &&
+              (expense as ExpenseWithCreatorInfo).creatorInfo?.timestamp && (
+                <p className="text-xs text-gray-500 pt-2">
+                  Added on:{" "}
+                  {new Date(
+                    (expense as ExpenseWithCreatorInfo).creatorInfo!.timestamp
+                  ).toLocaleString()}
+                </p>
+              )}
           </CardContent>
         </Card>
       ))}

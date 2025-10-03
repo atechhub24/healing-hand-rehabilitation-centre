@@ -16,6 +16,9 @@ import {
   User,
   LogIn,
   LogOut,
+  Navigation,
+  Users,
+  Map,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -23,22 +26,65 @@ import useFetch from "@/lib/hooks/use-fetch";
 import mutateData from "@/lib/firebase/mutate-data";
 import { AttendanceRecord } from "@/types";
 import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ref, get } from "firebase/database";
+import { database } from "@/lib/firebase";
 
 export default function AttendancePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [notes, setNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState("my-attendance");
 
   const today = format(new Date(), "yyyy-MM-dd");
 
-  // Fetch today's attendance record
+  // Fetch today's attendance record for current user
   const [todayAttendance, isLoading] = useFetch<AttendanceRecord>(
     `attendance/${user?.uid}/${today}`,
     { needRaw: true }
   );
+
+  // State for all staff attendance records (admin only)
+  const [allStaffAttendance, setAllStaffAttendance] = useState<Record<
+    string,
+    AttendanceRecord
+  > | null>(null);
+  const [isLoadingAll, setIsLoadingAll] = useState(false);
+
+  // Fetch all staff attendance records (admin only)
+  useEffect(() => {
+    if (user?.role === "admin") {
+      setIsLoadingAll(true);
+      const fetchAllStaffAttendance = async () => {
+        try {
+          const dbRef = ref(database, "attendance");
+          const snapshot = await get(dbRef);
+          if (snapshot.exists()) {
+            setAllStaffAttendance(snapshot.val());
+          } else {
+            setAllStaffAttendance(null);
+          }
+        } catch (error) {
+          console.error("Error fetching all staff attendance:", error);
+          setAllStaffAttendance(null);
+        } finally {
+          setIsLoadingAll(false);
+        }
+      };
+
+      fetchAllStaffAttendance();
+    } else {
+      setAllStaffAttendance(null);
+      setIsLoadingAll(false);
+    }
+  }, [user?.role]);
 
   // Update current time every second
   useEffect(() => {
@@ -48,8 +94,67 @@ export default function AttendancePage() {
     return () => clearInterval(timer);
   }, []);
 
+  // Function to get user's current location
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      toast({
+        variant: "destructive",
+        title: "Geolocation Not Supported",
+        description: "Your browser doesn't support geolocation services.",
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setIsGettingLocation(false);
+        toast({
+          title: "Location Retrieved",
+          description: "Your location has been successfully captured.",
+        });
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        setLocationError(`Unable to retrieve your location: ${error.message}`);
+        toast({
+          variant: "destructive",
+          title: "Location Error",
+          description: `Unable to retrieve your location: ${error.message}`,
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      }
+    );
+  };
+
   const handlePunchIn = async () => {
     if (!user) return;
+
+    // Get location if not already obtained
+    if (!location && !isGettingLocation) {
+      getCurrentLocation();
+      // Wait a bit for location to be obtained
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!location) {
+        toast({
+          variant: "destructive",
+          title: "Location Required",
+          description: "Please allow location access to punch in.",
+        });
+        return;
+      }
+    }
 
     setIsProcessing(true);
     try {
@@ -61,7 +166,10 @@ export default function AttendancePage() {
         date: today,
         punchIn: punchInTime,
         status: "present",
-        location: location || "Not specified",
+        location: location
+          ? `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+          : "Location not available",
+        punchInLocation: location || undefined,
         notes: notes || "",
         createdAt: punchInTime,
         updatedAt: punchInTime,
@@ -82,7 +190,6 @@ export default function AttendancePage() {
       });
 
       setNotes("");
-      setLocation("");
     } catch (error) {
       console.error("Error punching in:", error);
       toast({
@@ -97,6 +204,21 @@ export default function AttendancePage() {
   const handlePunchOut = async () => {
     if (!user || !todayAttendance) return;
 
+    // Get location if not already obtained
+    if (!location && !isGettingLocation) {
+      getCurrentLocation();
+      // Wait a bit for location to be obtained
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!location) {
+        toast({
+          variant: "destructive",
+          title: "Location Required",
+          description: "Please allow location access to punch out.",
+        });
+        return;
+      }
+    }
+
     setIsProcessing(true);
     try {
       const punchOutTime = new Date().toISOString();
@@ -104,12 +226,23 @@ export default function AttendancePage() {
       const totalHours =
         (new Date().getTime() - punchInTime.getTime()) / (1000 * 60 * 60);
 
+      // Format the location for punch out
+      const punchOutLocation = location
+        ? `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+        : "Location not available";
+
       const updatedAttendance = {
         ...todayAttendance,
         punchOut: punchOutTime,
         totalHours: Math.round(totalHours * 100) / 100,
         updatedAt: punchOutTime,
         notes: notes || todayAttendance.notes,
+        // Store punch out location coordinates
+        punchOutLocation: location || undefined,
+        // Keep the location field for backward compatibility
+        location: todayAttendance.location
+          ? `${todayAttendance.location} | Punch Out: ${punchOutLocation}`
+          : `Punch Out: ${punchOutLocation}`,
       };
 
       await mutateData({
@@ -170,23 +303,69 @@ export default function AttendancePage() {
   const isPunchedIn = todayAttendance?.punchIn && !todayAttendance?.punchOut;
   const isCompleted = todayAttendance?.punchIn && todayAttendance?.punchOut;
 
+  // For admin users, show tabs
+  const isAdmin = user?.role === "admin";
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-foreground">
-            Staff Attendance
+            {isAdmin ? "Staff Attendance Dashboard" : "Staff Attendance"}
           </h1>
-          <p className="text-muted-foreground">Track your daily work hours</p>
+          <p className="text-muted-foreground">
+            {isAdmin
+              ? "Track and manage staff attendance"
+              : "Track your daily work hours"}
+          </p>
         </div>
 
+        {isAdmin && (
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger
+                value="my-attendance"
+                className="flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                My Attendance
+              </TabsTrigger>
+              <TabsTrigger
+                value="all-staff"
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                All Staff
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="my-attendance" className="mt-6">
+              {renderAttendanceView()}
+            </TabsContent>
+            <TabsContent value="all-staff" className="mt-6">
+              {renderAllStaffView()}
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {!isAdmin && renderAttendanceView()}
+      </div>
+    </div>
+  );
+
+  function renderAttendanceView() {
+    return (
+      <>
         {/* Current Time Card */}
         <Card className="p-6 text-center bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
           <div className="space-y-2">
             <Clock className="h-12 w-12 mx-auto text-green-600" />
             <div className="text-4xl font-bold text-foreground">
-              {format(currentTime, "HH:mm:ss")}
+              {format(currentTime, "hh:mm:ss a")}
             </div>
             <div className="text-lg text-muted-foreground">
               {format(currentTime, "EEEE, MMMM do, yyyy")}
@@ -274,20 +453,34 @@ export default function AttendancePage() {
 
             {!isCompleted && (
               <>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location (Optional)</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="location"
-                        placeholder="e.g., Main Office, Branch 1"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        className="pl-10"
-                        disabled={isProcessing}
-                      />
+                    <Label htmlFor="location">Location</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={getCurrentLocation}
+                        disabled={isGettingLocation || isProcessing}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Navigation className="h-4 w-4 mr-2" />
+                        {isGettingLocation
+                          ? "Getting Location..."
+                          : "Get My Location"}
+                      </Button>
                     </div>
+                    {location && (
+                      <div className="text-sm text-muted-foreground mt-2">
+                        <MapPin className="h-4 w-4 inline mr-1" />
+                        Location captured: {location.lat.toFixed(6)},{" "}
+                        {location.lng.toFixed(6)}
+                      </div>
+                    )}
+                    {locationError && (
+                      <div className="text-sm text-red-500 mt-2">
+                        {locationError}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -343,8 +536,13 @@ export default function AttendancePage() {
                   variant="outline"
                   className="text-green-600 border-green-600"
                 >
-                  {formatTime(todayAttendance.punchIn!)} -{" "}
-                  {formatTime(todayAttendance.punchOut!)}
+                  {todayAttendance.punchIn
+                    ? formatTime(todayAttendance.punchIn)
+                    : ""}{" "}
+                  -{" "}
+                  {todayAttendance.punchOut
+                    ? formatTime(todayAttendance.punchOut)
+                    : ""}
                 </Badge>
               </div>
             )}
@@ -388,7 +586,131 @@ export default function AttendancePage() {
             </div>
           </Card>
         )}
+      </>
+    );
+  }
+
+  function renderAllStaffView() {
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Map className="h-5 w-5" />
+              Staff Attendance Map
+            </h3>
+            <Button variant="outline" size="sm">
+              <MapPin className="h-4 w-4 mr-2" />
+              View on Map
+            </Button>
+          </div>
+
+          <div className="text-center py-12">
+            <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h4 className="text-lg font-medium mb-2">
+              Interactive Attendance Map
+            </h4>
+            <p className="text-muted-foreground mb-4">
+              View all staff punch-in and punch-out locations on an interactive
+              map
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Map integration will be implemented in the next update
+            </p>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Today's Attendance Records
+          </h3>
+
+          {isLoadingAll ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Loading staff attendance...
+              </p>
+            </div>
+          ) : allStaffAttendance &&
+            Object.keys(allStaffAttendance).length > 0 ? (
+            <div className="space-y-4">
+              {Object.entries(allStaffAttendance).map(([staffId, records]) =>
+                Object.entries(records).map(([date, record]) => (
+                  <Card key={`${staffId}-${date}`} className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{record.staffName}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(date), "MMMM d, yyyy")}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          record.status === "present"
+                            ? "default"
+                            : record.status === "late"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {record.status}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mt-3">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Punch In
+                        </p>
+                        {record.punchIn ? (
+                          <p className="font-medium">
+                            {formatTime(record.punchIn)}
+                            {record.punchInLocation && (
+                              <span className="block text-xs text-muted-foreground">
+                                {record.punchInLocation.lat.toFixed(6)},{" "}
+                                {record.punchInLocation.lng.toFixed(6)}
+                              </span>
+                            )}
+                          </p>
+                        ) : (
+                          <p className="text-muted-foreground">Not recorded</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Punch Out
+                        </p>
+                        {record.punchOut ? (
+                          <p className="font-medium">
+                            {formatTime(record.punchOut)}
+                            {record.punchOutLocation && (
+                              <span className="block text-xs text-muted-foreground">
+                                {record.punchOutLocation.lat.toFixed(6)},{" "}
+                                {record.punchOutLocation.lng.toFixed(6)}
+                              </span>
+                            )}
+                          </p>
+                        ) : (
+                          <p className="text-muted-foreground">Not recorded</p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                No staff attendance records found for today
+              </p>
+            </div>
+          )}
+        </Card>
       </div>
-    </div>
-  );
+    );
+  }
 }

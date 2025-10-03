@@ -208,6 +208,14 @@ export interface AttendanceRecord {
   status: "present" | "absent" | "partial" | "late";
   notes?: string;
   location?: string; // Optional: GPS or manual location
+  punchInLocation?: {
+    lat: number;
+    lng: number;
+  };
+  punchOutLocation?: {
+    lat: number;
+    lng: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
